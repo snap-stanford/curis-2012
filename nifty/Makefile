@@ -2,7 +2,7 @@ CXXFLAGS += -std=c++98 -g -Wall
 LDFLAGS += -lrt
 
 
-NAME = hello-world
+NAME = nifty
 SNAP = ../../snap/snap-core
 GLIB = ../../snap/glib-core
 
