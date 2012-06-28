@@ -9,9 +9,31 @@ const int MaxQtWrdLen = 30;
 
 THashSet<TMd5Sig> SeenUrlSet(Mega(100), true);
 THashSet<TStr> URLBlackList;
+THashSet<TStr> CommonEnglishWordsList;
+
+void LoadCommonEnglishWords() {
+  PSIn EnglishWords = TFIn::New("common_english_words.txt");
+  TStr Word;
+  while (!EnglishWords->Eof() && EnglishWords->GetNextLn(Word)) {
+    CommonEnglishWordsList.AddKey(Word);
+  }
+}
 
 bool IsEnglish(TChA &quote) {
 	return quote.CountCh('?') <= quote.Len()/2;
+}
+
+/// Assumes lower case characters only format
+bool IsRobustlyEnglish(TStr Quote) {
+  TStrV Parsed = TQuote::ParseContentString(Quote);
+  TInt EnglishCount = 0;
+  for (int i = 0; i < Parsed.Len(); ++i) {
+    if (CommonEnglishWordsList.IsKey(Parsed[i])) {
+      EnglishCount++;
+    }
+  }
+  printf("%f: %s", EnglishCount * 1.0 / Parsed.Len(), Quote.CStr());
+  return true;
 }
 
 void LoadURLBlackList() {
@@ -74,6 +96,7 @@ bool IsDuplicateUrl(TChA &Url) {
 
 // usage filelist directory
 int main(int argc, char *argv[]) {
+  LoadURLBlackList();
 	TStr InFileName = "Spinn3rFileList.txt";
 
 	printf("Loading data from Spinn3r dataset to QuoteBase...\n");
@@ -132,7 +155,9 @@ int main(int argc, char *argv[]) {
 			if (Memes.MemeV.Len() >= 1) {
 				TInt CurrentDocId = DB->AddDoc(Memes.PostUrlStr, Memes.PubTm, Memes.ContentStr, Memes.LinkV);
 				for (int m = 0; m < Memes.MemeV.Len(); m++) {
-					QB->AddQuote(Memes.MemeV[m], CurrentDocId);
+				  if (!Memes.MemeV[m].Len() < 1 && IsRobustlyEnglish(Memes.MemeV[m])) {
+				    QB->AddQuote(Memes.MemeV[m], CurrentDocId);
+				  }
 				}
 			}
 		}
