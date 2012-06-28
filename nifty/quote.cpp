@@ -42,7 +42,7 @@ TQuoteBase::TQuoteBase() {
 /// Adds quote string to quote base; returns quote's quote id
 TQuote* TQuoteBase::AddQuote(TStr ContentString) {
   TStrV ContentVectorString = TQuote::ParseContentString(ContentString);
-  TInt QuoteId = GetQuoteId(ContentVectorString);
+  TInt QuoteId = GetNewQuoteId(ContentVectorString);
   if (IdToTQuotes.H.IsKey(QuoteId)) {
     return IdToTQuotes.H.GetDat(QuoteId); // nothing to do here; quote is already in database
   } else {
@@ -74,7 +74,7 @@ void TQuoteBase::RemoveQuote(TQuote* Quote) {
   RemoveQuote(Quote->GetId());
 }
 
-TInt TQuoteBase::GetQuoteId(TStrV& Content) {
+TInt TQuoteBase::GetNewQuoteId(TStrV& Content) {
   if (QuoteToId.H.IsKey(Content)) {
     return QuoteToId.H.GetDat(Content);
   } else {
@@ -83,6 +83,14 @@ TInt TQuoteBase::GetQuoteId(TStrV& Content) {
     QuoteIdCounter++;
     QuoteToId.H.AddDat(Content, NewId);
     return NewId;
+  }
+}
+
+TInt TQuoteBase::GetQuoteId(TStrV& Content) {
+  if (QuoteToId.H.IsKey(Content)) {
+    return QuoteToId.H.GetDat(Content);
+  } else {
+    return -1;
   }
 }
 

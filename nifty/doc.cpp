@@ -72,7 +72,7 @@ TInt TDocBase::GetDocId(TStr Url) const {
   if (DocUrlToId.H.IsKey(Url)) {
     return DocUrlToId.H.GetDat(Url);
   } else {
-    return NULL;
+    return -1;
   }
 }
 

@@ -33,6 +33,7 @@ public:
   void RemoveQuote(TInt QuoteId);
   void RemoveQuote(TQuote *Quote);
   TInt GetQuoteId(TStrV& Content);
+  TInt GetNewQuoteId(TStrV& Content);
   TQuote* GetQuote(TInt QuoteId);
   int Len();
 };
