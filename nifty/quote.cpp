@@ -28,8 +28,9 @@ TIntV TQuote::GetSources() {
 }
 
 TStrV TQuote::ParseContentString(TStr ContentString) {
-  TStrV NewStr;
-  return NewStr;
+  TStrV ParsedString;
+  QtStr.SplitOnAllAnyCh(" ", ParsedString);
+  return ParsedString;
 }
 
 TQuoteBase::TQuoteBase() {
@@ -87,11 +88,19 @@ TQuote* TQuoteBase::GetQuote(TInt QuoteId) {
   }
 }
 
-// Remove all punctuation in the quotes and replace with space
-// TODO: rewrite this to blacklist, not white list
+// Removes all punctuation in the quotes and replace with space
+// Adapted (but modified) from memes.h because I want a white list, not a blacklist.
+// TODO: rewrite this to white list, not blacklist
+// TODO: move to filter.cpp
 void TQuoteBase::QuoteFilter(TStr &QtStr) {
+  // Three passes...hopefully this isn't too slow.
+  for (int i = 0; i < QtStr.Len(); ++i) {
+    if (isalpha(QtStr[i]) || QtStr[i] == '\'') {
+      QtStr[i] = ' ';
+    }
+  }
   TStrV WordV;
-  QtStr.SplitOnAllAnyCh(" ?!()@#=&,.<>/\\:\";{}|", WordV);
+  QtStr.SplitOnAllAnyCh(" ", WordV);
   QtStr.Clr();
   for (int i = 0; i < WordV.Len(); ++i) {
     if (i > 0)  QtStr.InsStr(QtStr.Len()," ");
