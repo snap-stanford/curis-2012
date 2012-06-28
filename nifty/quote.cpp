@@ -3,12 +3,20 @@
 
 TQuote::TQuote(TInt Id, TStrVP Content) {
   this->Id = Id;
-  this->Content = Content;
+  this->Content = Content; // TODO: deep copy?
 }
 
 TQuote::TQuote(TInt Id, TStr ContentString) {
   this->Id = Id;
 	Content = TQuote::ParseContentString(ContentString);
+}
+
+TStrVP TQuote::GetContent() {
+  return Content;
+}
+
+TInt TQuote:: GetId() {
+  return Id;
 }
 
 void TQuote::AddSource(TInt SourceId) {
@@ -44,7 +52,18 @@ void TQuoteBase::AddQuote(TStr ContentString) {
 }
 
 void TQuoteBase::RemoveQuote(TInt QuoteId) {
+  // TODO: memory management
+  if (IdToTQuotes.H.IsKey(QuoteId)) {
+    TQuote* CurQuote = IdToTQuotes.H.GetDat(QuoteId);
+    if (QuoteToId.H.IsKey(CurQuote->GetContent())) {
+      QuoteToId.H.DelKey(CurQuote->GetContent());
+    }
+    IdToTQuotes.H.DelKey(QuoteId);
+  }
+}
 
+void TQuoteBase::RemoveQuote(TQuote* Quote) {
+  RemoveQuote(Quote->GetId());
 }
 
 TInt TQuoteBase::GetQuoteId(TStrVP Content) {

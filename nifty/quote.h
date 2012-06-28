@@ -14,6 +14,8 @@ public:
   TQuote(TInt Id, TStr ContentString);
   void AddSource(TInt SourceId);
   TIntV GetSources();
+  TStrVP GetContent();
+  TInt GetId();
 
   static TStrVP ParseContentString(TStr ContentString);
 };
@@ -28,6 +30,7 @@ public:
   // returns true if new TQuote created, false otherwise.
   void AddQuote(TStr ContentString);
   void RemoveQuote(TInt QuoteId);
+  void RemoveQuote(TQuote* Quote);
   TInt GetQuoteId(TStrVP Content);
   TQuote* GetQuote(TInt QuoteId);
   static void QuoteFilter(TStr &QtStr);
