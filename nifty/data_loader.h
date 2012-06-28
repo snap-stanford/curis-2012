@@ -5,6 +5,7 @@
 
 class TDataLoader {
 private:
+	TStr Prefix;
 	TChAV FileList;
 	TInt CurrentFileId;
 	PSIn SInPt;
@@ -20,7 +21,7 @@ public:
   TVec<TInt> LinkPosV;    // url begins at ContentStr[LinkPosV[i]]
 public:
   void Clr();
-  void LoadFileList(const TStr&);
+  void LoadFileList(const TStr&, const TStr&);
   bool LoadNextFile();
   bool LoadNextEntry();
   int GetNumFiles() { return FileList.Len(); }

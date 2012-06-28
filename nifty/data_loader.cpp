@@ -5,13 +5,14 @@ bool TDataLoader::LoadNextFile() {
 	if (CurrentFileId == FileList.Len()) {
 		return false;
 	} else {
-		SInPt = TZipIn::New(FileList[CurrentFileId++]);
+		SInPt = TZipIn::New(Prefix + FileList[CurrentFileId++]);
 		return true;
 	}
 }
 
-void TDataLoader::LoadFileList(const TStr& InFileName) {
+void TDataLoader::LoadFileList(const TStr& InFileName, const TStr& Directory) {
 	// Get file list from file
+	Prefix = Directory;
 	PSIn InFileNameF = TFIn::New(InFileName);
 	TStr FileName;
 	while (!InFileNameF->Eof() && InFileNameF->GetNextLn(FileName))
@@ -20,7 +21,7 @@ void TDataLoader::LoadFileList(const TStr& InFileName) {
 	TChAV DeleteList;
 	// Test whether each file is good
 	for (int i = 0; i < FileList.Len(); i++) {
-		FILE *fin = fopen(FileList[i].CStr(), "r");
+		FILE *fin = fopen((Prefix + FileList[i]).CStr(), "r");
 		if (fin == NULL) {
 			printf("Error reading file %s, ignore...\n", FileList[i].CStr());
 			DeleteList.Add(FileList[i]);
