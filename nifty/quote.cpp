@@ -53,6 +53,12 @@ TQuote* TQuoteBase::AddQuote(TStr ContentString) {
   }
 }
 
+TQuote* AddQuote(TStr ContentString, TInt SourceId) {
+  TQuote* NewQuote = AddQuote(ContentString);
+  NewQuote->AddSource(SourceId);
+  return NewQuote;
+}
+
 void TQuoteBase::RemoveQuote(TInt QuoteId) {
   // TODO: memory management
   if (IdToTQuotes.H.IsKey(QuoteId)) {
