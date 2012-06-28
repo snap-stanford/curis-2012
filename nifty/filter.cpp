@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
 	while (Memes.LoadNextFile()) {
 		while (Memes.LoadNextEntry()) {
 			if (IsUrlInBlackList(Memes.PostUrlStr)) continue;
-			if (IsDuplicateUrl(Memes.PostUrlStr)) { NSkip++;continue; }
+      if (IsDuplicateUrl(Memes.PostUrlStr)) { NSkip++;continue; }
 			for (int m = 0; m < Memes.MemeV.Len(); m++) {
 				if (IsEnglish(Memes.MemeV[m])) {
 					TStr QtStr = Memes.MemeV[m];
