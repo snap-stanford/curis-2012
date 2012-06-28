@@ -4,7 +4,6 @@
 TDoc::TDoc(TInt Id, TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links) {
   // TODO: Check that URLs are not repeated
   this->Url = TStr(Url);
-  this->Title = TStr();
   this->Content = TStr(Content);
   this->Links = TStrVP();
   for (int i = 0; i < Links.Len(); i++) {
@@ -19,10 +18,6 @@ TInt TDoc::GetId() const {
 
 TStr TDoc::GetUrl() const {
   return Url;
-}
-
-TStr TDoc::GetTitle() const {
-  return Title;
 }
 
 TTm TDoc::GetDate() const {
@@ -45,10 +40,6 @@ void TDoc::SetUrl(TStr Url) {
   this->Url = Url;
 }
 
-void TDoc::SetTitle(TStr Title) {
-  this->Title = Title;
-}
-
 void TDoc::SetDate(TTm Date) {
   this->Date = Date;
 }
@@ -62,8 +53,8 @@ void TDoc::AddLink(TStr Link) {
 }
 
 TDocBase::TDocBase() {
-  IdToDoc = PHash<TInt, TDoc *>();
-  DocUrlToId = PHash<TStr, TInt>();
+  IdToDoc.H = THash<TInt, TDoc *>();
+  DocUrlToId.H = THash<TStr, TInt>();
   NumDocs = 0;
 }
 
