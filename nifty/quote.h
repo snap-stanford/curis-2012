@@ -10,26 +10,26 @@ private:
   TIntV Sources;
 
 public:
-  TQuote(TInt Id, TStrVP Content);
-  TQuote(TInt Id, TStr ContentString);
+  TQuote(TInt QuoteId, TStrVP QuoteContent);
+  TQuote(TInt QuoteId, TStr ContentString);
   void AddSource(TInt SourceId);
-  TStrVP GetSources();
+  TIntV GetSources();
 
   static TStrVP ParseContentString(TStr ContentString);
 };
 
 class TQuoteBase {
 private:
-  TInt QuoteIDCounter = 0;
+  TInt QuoteIdCounter;
   PHash<TInt, TQuote*> IdToTQuotes;
   PHash<TStrVP, TInt> QuoteToId;
 public:
   TQuoteBase();
   // returns true if new TQuote created, false otherwise.
-  bool AddQuote(TStr ContentString);
-  bool RemoveQuote(TInt QuoteId);
-  TInt GetQuoteId(TStrV Content);
-  TQuote GetQuote(TInt QuoteId);
+  void AddQuote(TStr ContentString);
+  void RemoveQuote(TInt QuoteId);
+  TInt GetQuoteId(TStrVP Content);
+  TQuote* GetQuote(TInt QuoteId);
   static void QuoteFilter(TStr &QtStr);
 };
 

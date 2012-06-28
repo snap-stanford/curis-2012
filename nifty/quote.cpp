@@ -1,36 +1,47 @@
 #include "quote.h"
 #include "stdafx.h"
 
-Quote::TQuote(TInt Id, TStrVP Content) {
-  this->Id = Id;
-	this->Content = Content;
+TQuote::TQuote(TInt QuoteId, TStrVP QuoteContent) {
+  Id = QuoteId;
+	Content(QuoteContent);
 }
 
-Quote::TQuote(TInt Id, TStr ContentString) {
-  this->Id = Id;
-	this->Content = Quote::ParseContentString(ContentString);
+TQuote::TQuote(TInt QuoteId, TStr ContentString) {
+  Id = QuoteId;
+	Content = TQuote::ParseContentString(ContentString);
 }
 
-void Quote::AddSource(TInt SourceId) {
+void TQuote::AddSource(TInt SourceId) {
   Sources.Add(SourceId); // TODO: check to see if adding duplicate source?
 }
 
-PStrV Quote::GetSources() {
+TIntV TQuote::GetSources() {
   return Sources;
 }
 
-static TStrVP Quote::ParseContentString(TStr ContentString) {
-  return "place holder";
+TStrVP TQuote::ParseContentString(TStr ContentString) {
+  TStrVP NewStr;
+  return NewStr;
 }
 
-#pragma mark QuoteBase
+#pragma QuoteBase
 TQuoteBase::TQuoteBase() {
-  IdToTQuotes = PHash<TInt, TQuote*>::New();
-  QuoteToId = PHash<TStrVP, TInt>::New();
+  QuoteIdCounter = 0;
+  //IdToTQuotes = PHash<TInt, TQuote*>::New();
+  //QuoteToId = PHash<TStrVP, TInt>::New();
 }
 
+/// Adds quote string to quote base; returns quote's quote id
 void TQuoteBase::AddQuote(TStr ContentString) {
-  TInt QuoteId = GetQuoteId(ContentString);
+  TStrVP ContentVectorString = TQuote::ParseContentString(ContentString);
+  TInt QuoteId = GetQuoteId(ContentVectorString);
+  if (IdToTQuotes.H.IsKey(QuoteId)) {
+    return; // nothing to do here; quote is already in database
+  } else {
+    // otherwise, create the new TQuote and proceed.
+    TQuote* NewQuote = new TQuote(QuoteId, ContentVectorString);
+    IdToTQuotes.H.AddDat(QuoteId, NewQuote);
+  }
 }
 
 void TQuoteBase::RemoveQuote(TInt QuoteId) {
@@ -38,17 +49,20 @@ void TQuoteBase::RemoveQuote(TInt QuoteId) {
 }
 
 TInt TQuoteBase::GetQuoteId(TStrVP Content) {
-  if (QuoteToId->H.isKey(Content)) {
-    return QuoteToId->H.getDat(Content);
+  if (QuoteToId.H.IsKey(Content)) {
+    return QuoteToId.H.GetDat(Content);
   } else {
     // this will increment QuoteIdCounter after returning.
-    return QuoteToId++;
+    TInt NewId = QuoteIdCounter;
+    QuoteIdCounter++;
+    QuoteToId.H.AddDat(Content, NewId);
+    return NewId;
   }
 }
 
-TQuote TQuoteBase::GetQuote(TInt QuoteId) {
-  if (IdToTQuotes->H.isKey(QuoteId)) {
-    return IdToTQuotes->H.getDat(QuoteId);
+TQuote* TQuoteBase::GetQuote(TInt QuoteId) {
+  if (IdToTQuotes.H.IsKey(QuoteId)) {
+    return IdToTQuotes.H.GetDat(QuoteId);
   } else {
     return NULL;
   }
