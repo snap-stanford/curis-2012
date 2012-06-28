@@ -13,7 +13,7 @@ private:
   TStrVP Links;
 
 public:
-  TDoc(TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links);
+  TDoc(TInt Id, TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links);
   TInt GetId() const;
   TStr GetUrl() const;
   TStr GetTitle() const;
@@ -40,8 +40,8 @@ public:
   TInt GetNumDocs() const;
   TInt GetAndIncNumDocs();
   TInt GetDocId(TStr Url) const;
-  TDoc GetDoc(TInt Id) const;
-  void AddDoc(TDoc *Doc);
+  TDoc *GetDoc(TInt Id) const;
+  void AddDoc(TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links);
   void RemoveDoc(TDoc *Doc);
 };
 

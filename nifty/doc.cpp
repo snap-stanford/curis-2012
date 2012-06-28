@@ -1,19 +1,16 @@
 #include "stdafx.h"
 #include "doc.h"
 
-TDoc::TDoc(TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links) {
+TDoc::TDoc(TInt Id, TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links) {
   // TODO: Check that URLs are not repeated
-  static TDocBase DocBase = new TDocBase();
-  this->Id = DocBase.GetAndIncNumDocs();
-  this->Url = new TStr(Url);
-  this->Title = new TStr();
-  this->Content = new TStr(Content);
-  this->Links = new TStrVP();
+  this->Url = TStr(Url);
+  this->Title = TStr();
+  this->Content = TStr(Content);
+  this->Links = TStrVP();
   for (int i = 0; i < Links.Len(); i++) {
-    TStr ToAdd = new TStr(Links.GetVal(i));
+    TStr ToAdd = TStr(Links.GetVal(i));
     AddLink(ToAdd);
   }
-  DocBase.AddDoc(this);
 }
 
 TInt TDoc::GetId() const {
@@ -65,8 +62,8 @@ void TDoc::AddLink(TStr Link) {
 }
 
 TDocBase::TDocBase() {
-  IdToDoc = new PHash<TInt, TDoc>();
-  DocUrlToId = new PHash<TStr, TInt>();
+  IdToDoc = PHash<TInt, TDoc *>();
+  DocUrlToId = PHash<TStr, TInt>();
   NumDocs = 0;
 }
 
@@ -87,7 +84,7 @@ TInt TDocBase::GetDocId(TStr Url) const {
   }
 }
 
-TDoc TDocBase::GetDoc(TInt Id) const {
+TDoc *TDocBase::GetDoc(TInt Id) const {
   if (IdToDoc.H.IsKey(Id)) {
     return IdToDoc.H.GetDat(Id);
   } else {
@@ -95,9 +92,14 @@ TDoc TDocBase::GetDoc(TInt Id) const {
   }
 }
 
-void TDocBase::AddDoc(TDoc *Doc) {
-  IdToDoc.H.AddDat(Doc->GetId(), Doc);
-  DocUrlToId.H.AddDat(Doc->GetUrl(), Doc->GetId());
+void TDocBase::AddDoc(TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links) {
+  if (!DocUrlToId.H.IsKey(TStr(Url))) {
+    TInt DocId = NumDocs;
+    NumDocs += 1;
+    TDoc *NewDoc = new TDoc(DocId, Url, Date, Content, Links);
+    IdToDoc.H.AddDat(DocId, NewDoc);
+    DocUrlToId.H.AddDat(Url, DocId);
+  }
 }
 
 void TDocBase::RemoveDoc(TDoc *Doc) {
