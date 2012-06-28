@@ -79,7 +79,6 @@ int main(int argc, char *argv[]) {
 	printf("Loading data from Spinn3r dataset to QuoteBase...\n");
 	int NSkip = 0, fileCnt = 0;
 	THash<TMd5Sig, TInt> MemeCntH(Mega(100), true);
-
 	// Read files and count the quotes
 	TDataLoader Memes;
 	Memes.LoadFileList(InFileName, "/lfs/1/tmp/curis/spinn3r/2012-01/");
