@@ -4,15 +4,61 @@
 #include "doc.h"
 
 THashSet<TMd5Sig> SeenUrlSet(Mega(100), true);
+THashSet<TStr> URLBlackList;
 
 bool IsEnglish(TChA &quote) {
 	return quote.CountCh('?') <= quote.Len()/2;
 }
 
+void LoadURLBlackList() {
+  PSIn BlackListFile = TFIn::New("URLBlacklist");
+  TStr BadURL;
+  while (!BlackListFile->Eof() && BlackListFile->GetNextLn(BadURL)) {
+    URLBlackList.AddKey(BadURL);
+  }
+}
+
 bool IsUrlInBlackList(TChA &Url) {
-	if (strstr(Url.CStr(), "facebook.com") != NULL) { return true; }
-	if (strstr(Url.CStr(), "twitter.com") != NULL) { return true; }
+  TStr UrlStr(Url);
+  TStrV PeriodVector;
+  UrlStr.SplitOnAllAnyCh(".", PeriodVector);
+
+  if (PeriodVector.Len() >= 2) {
+    TStrV SlashVector;
+    PeriodVector[PeriodVector.Len() - 1].SplitOnAllAnyCh("/", SlashVector);
+    if (SlashVector.Len() >= 1) {
+      TStr DomainName = PeriodVector[PeriodVector.Len() - 2] + "." + SlashVector[0];
+      if (URLBlackList.IsKey(DomainName)) {
+        return true;
+      }
+    }
+  }
+
 	return false;
+}
+
+
+// Removes all punctuation in the quotes and replace with spaces.
+// Also converts upper case to lower case.
+// Adapted (but modified) from memes.h because I want a white list, not a blacklist.
+// TODO: move to filter.cpp
+void FilterSpacesAndSetLowercase(TStr &QtStr) {
+  // Three passes...hopefully this isn't too slow.
+  TChA QtChA(QtStr);
+  for (int i = 0; i < QtChA.Len(); ++i) {
+    if (isalpha(QtChA[i]) || QtChA[i] == '\'') {
+      QtChA[i] = ' ';
+    }
+    QtChA[i] = tolower(QtStr[i]);
+  }
+  QtStr = TStr(QtChA);
+  TStrV WordV;
+  QtStr.SplitOnAllAnyCh(" ", WordV);
+  QtStr.Clr();
+  for (int i = 0; i < WordV.Len(); ++i) {
+    if (i > 0)  QtStr.InsStr(QtStr.Len()," ");
+    QtStr.InsStr(QtStr.Len(), WordV[i]);
+  }
 }
 
 bool IsDuplicateUrl(TChA &Url) {

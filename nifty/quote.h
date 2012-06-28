@@ -33,7 +33,6 @@ public:
   void RemoveQuote(TQuote *Quote);
   TInt GetQuoteId(TStrV& Content);
   TQuote* GetQuote(TInt QuoteId);
-  static void QuoteFilter(TStr &QtStr);
 };
 
 #endif
