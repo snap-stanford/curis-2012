@@ -100,8 +100,6 @@ int main(int argc, char *argv[]) {
 
 		printf("Done \nAll quotes: %d\n", MemeCntH.Len());
 		printf("  skip %d urls, keep %d\n", NSkip, SeenUrlSet.Len());
-
-		printf("Meme2QtBs DONE!\n");
 	}
 
 	// Find frequent quotes
