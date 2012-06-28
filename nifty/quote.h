@@ -34,7 +34,7 @@ public:
   void RemoveQuote(TQuote *Quote);
   TInt GetQuoteId(TStrV& Content);
   TQuote* GetQuote(TInt QuoteId);
-  TInt Len();
+  int Len();
 };
 
 #endif

@@ -94,6 +94,6 @@ TQuote* TQuoteBase::GetQuote(TInt QuoteId) {
   }
 }
 
-TInt TQuoteBase::Len() {
+int TQuoteBase::Len() {
   return IdToTQuotes.H.Len();
 }
