@@ -5,11 +5,11 @@
 
 class TDataLoader {
 private:
-	TStr Prefix;
-	TChAV FileList;
-	TInt CurrentFileId;
-	PSIn SInPt;
-	TChA CurLn;
+  TStr Prefix;
+  TChAV FileList;
+  TInt CurrentFileId;
+  PSIn SInPt;
+  TChA CurLn;
 public:
   uint64 LineCnt;
   TChA PostUrlStr;

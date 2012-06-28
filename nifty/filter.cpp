@@ -3,6 +3,10 @@
 #include "quote.h"
 #include "doc.h"
 
+const int MinMemeFreq = 5;
+const int MinQtWrdLen = 3;
+const int MaxQtWrdLen = 30;
+
 THashSet<TMd5Sig> SeenUrlSet(Mega(100), true);
 
 bool IsEnglish(TChA &quote) {
@@ -34,13 +38,11 @@ int main(int argc, char *argv[]) {
 	TDataLoader Memes;
 	Memes.LoadFileList(InFileName, "/lfs/hulk/0/datasets/spinn3r/spinn3r-full5/");
 	while (Memes.LoadNextFile()) {
-		TVec<TMd5SigV> QtStrVV;
-
 		while (Memes.LoadNextEntry()) {
 			if (IsUrlInBlackList(Memes.PostUrlStr)) continue;
 			if (IsDuplicateUrl(Memes.PostUrlStr)) { NSkip++;continue; }
 			for (int m = 0; m < Memes.MemeV.Len(); m++) {
-				if (IsEnglish(Memes.MemeV[m])) {					// Filter non-English quote
+				if (IsEnglish(Memes.MemeV[m])) {
 					TStr QtStr = Memes.MemeV[m];
 					TQuoteBase::QuoteFilter(QtStr);
 					MemeCntH.AddDat(TMd5Sig(QtStr)) += 1;
@@ -55,5 +57,45 @@ int main(int argc, char *argv[]) {
 
 		printf("Meme2QtBs DONE!\n");
 	}
+
+	// Find frequent quotes
+	THashSet<TMd5Sig> FreqMemeSet;
+	for (int i = 0; i < MemeCntH.Len(); i++) {
+		if (MemeCntH[i] >= MinMemeFq) {
+			FreqMemeSet.AddKey(MemeCntH.GetKey(i)); }
+	}
+	SeenUrlSet.Clr(true);
+	MemeCntH.Clr(true);
+	printf("Number of frequent quotes: %d\n", FqMemeSet.Len());
+
+	NSkip = 0; 	fileCnt = 0;
+	TQuoteBase *QB = new TQuoteBase;
+	TDocBase *DB = new TDocBase;
+	// Add frequent quote containing memes into quote base
+	Memes.LoadFileList(InFileName, "/lfs/hulk/0/datasets/spinn3r/spinn3r-full5/");
+	while (Memes.LoadNextFile()) {
+		while (Memes.LoadNextEntry()) {
+			if (IsUrlInBlackList(Memes.PostUrlStr)) continue;
+			if (IsDuplicateUrl(Memes.PostUrlStr)) { NSkip++;continue; }
+			for (int m = 0; m < Memes.MemeV.Len(); m++) { // delete non-frequent memes
+				TStr qtStr = Memes.MemeV[m];
+				TQuoteBase::QuoteFilter(qtStr);
+				Memes.MemeV[m] = qtStr;
+				if (! FqMemeSet.IsKey(TMd5Sig(Memes.MemeV[m])) ||
+						TStrUtil::CountWords(Memes.MemeV[m].CStr()) < MinQtWrdLen ||
+						TStrUtil::CountWords(Memes.MemeV[m].CStr()) > MaxQtWrdLen)
+					Memes.MemeV[m].Clr();
+			}
+			if (Memes.MemeV.Len() >= 1) {
+				TInt CurrentDocId = DB->AddDoc(Memes.PostUrlStr, Memes.PubTm, Memes.ContentStr, Memes.LinkV);
+				for (int m = 0; m < Memes.MemeV.Len(); m++) {
+					QB->AddQuote(Memes.MemeV[m], CurrentDocId);
+				}
+			}
+		}
+	}
+	printf("\n2: Complete %d out of %d files\n", ++fileCnt, filelist.Len());
+	printf("SAVE: %d quotes\n", Len());
+	printf("LOADING DATA TO QUOTE BASE DONE!\n");
 	return 0;
 }
