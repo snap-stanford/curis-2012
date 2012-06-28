@@ -74,7 +74,7 @@ bool IsDuplicateUrl(TChA &Url) {
 
 // usage filelist directory
 int main(int argc, char *argv[]) {
-	TStr InFileName = "filename list";
+	TStr InFileName = "Spinn3rFileList.txt";
 
 	printf("Loading data from Spinn3r dataset to QuoteBase...\n");
 	int NSkip = 0, fileCnt = 0;
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
 
 	// Read files and count the quotes
 	TDataLoader Memes;
-	Memes.LoadFileList(InFileName, "/lfs/1/tmp/spinn3r-full3/");
+	Memes.LoadFileList(InFileName, "/lfs/1/tmp/curis/spinn3r/2012-01/");
 	while (Memes.LoadNextFile()) {
 		while (Memes.LoadNextEntry()) {
 			if (IsUrlInBlackList(Memes.PostUrlStr)) continue;
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
 	TQuoteBase *QB = new TQuoteBase;
 	TDocBase *DB = new TDocBase;
 	// Add frequent quote containing memes into quote base
-	Memes.LoadFileList(InFileName, "/lfs/1/tmp/spinn3r-full3/");
+	Memes.LoadFileList(InFileName, "/lfs/1/tmp/curis/spinn3r/2012-01/");
 	while (Memes.LoadNextFile()) {
 		while (Memes.LoadNextEntry()) {
 			if (IsUrlInBlackList(Memes.PostUrlStr)) continue;
