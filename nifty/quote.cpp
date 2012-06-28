@@ -53,7 +53,7 @@ TQuote* TQuoteBase::AddQuote(TStr ContentString) {
   }
 }
 
-TQuote* AddQuote(TStr ContentString, TInt SourceId) {
+TQuote* TQuoteBase::AddQuote(TStr ContentString, TInt SourceId) {
   TQuote* NewQuote = AddQuote(ContentString);
   NewQuote->AddSource(SourceId);
   return NewQuote;
@@ -92,4 +92,8 @@ TQuote* TQuoteBase::GetQuote(TInt QuoteId) {
   } else {
     return NULL;
   }
+}
+
+TInt TQuoteBase::Len() {
+  return IdToTQuotes.H.Len();
 }

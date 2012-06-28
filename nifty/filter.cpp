@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
 			for (int m = 0; m < Memes.MemeV.Len(); m++) {
 				if (IsEnglish(Memes.MemeV[m])) {
 					TStr QtStr = Memes.MemeV[m];
-					TQuoteBase::QuoteFilter(QtStr);
+					FilterSpacesAndSetLowercase(QtStr);
 					MemeCntH.AddDat(TMd5Sig(QtStr)) += 1;
 				}
 			}
@@ -107,12 +107,12 @@ int main(int argc, char *argv[]) {
 	// Find frequent quotes
 	THashSet<TMd5Sig> FreqMemeSet;
 	for (int i = 0; i < MemeCntH.Len(); i++) {
-		if (MemeCntH[i] >= MinMemeFq) {
+		if (MemeCntH[i] >= MinMemeFreq) {
 			FreqMemeSet.AddKey(MemeCntH.GetKey(i)); }
 	}
 	SeenUrlSet.Clr(true);
 	MemeCntH.Clr(true);
-	printf("Number of frequent quotes: %d\n", FqMemeSet.Len());
+	printf("Number of frequent quotes: %d\n", FreqMemeSet.Len());
 
 	NSkip = 0; 	fileCnt = 0;
 	TQuoteBase *QB = new TQuoteBase;
@@ -125,9 +125,9 @@ int main(int argc, char *argv[]) {
 			if (IsDuplicateUrl(Memes.PostUrlStr)) { NSkip++;continue; }
 			for (int m = 0; m < Memes.MemeV.Len(); m++) { // delete non-frequent memes
 				TStr qtStr = Memes.MemeV[m];
-				TQuoteBase::QuoteFilter(qtStr);
+				FilterSpacesAndSetLowercase(qtStr);
 				Memes.MemeV[m] = qtStr;
-				if (! FqMemeSet.IsKey(TMd5Sig(Memes.MemeV[m])) ||
+				if (! FreqMemeSet.IsKey(TMd5Sig(Memes.MemeV[m])) ||
 						TStrUtil::CountWords(Memes.MemeV[m].CStr()) < MinQtWrdLen ||
 						TStrUtil::CountWords(Memes.MemeV[m].CStr()) > MaxQtWrdLen)
 					Memes.MemeV[m].Clr();
@@ -140,8 +140,8 @@ int main(int argc, char *argv[]) {
 			}
 		}
 	}
-	printf("\n2: Complete %d out of %d files\n", ++fileCnt, filelist.Len());
-	printf("SAVE: %d quotes\n", Len());
+	printf("\n2: Complete %d out of %d files\n", ++fileCnt, Memes.GetNumFiles());
+	printf("SAVE: %d quotes\n", QB->Len());
 	printf("LOADING DATA TO QUOTE BASE DONE!\n");
 	return 0;
 }
