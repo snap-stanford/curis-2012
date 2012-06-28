@@ -7,7 +7,7 @@ class TDoc {
 private:
   TInt Id;
   TStr Url;
-  TTm Date;
+  TSecTm Date;
   TStr Content;
   TStrVP Links;
 
@@ -15,13 +15,13 @@ public:
   TDoc(TInt Id, TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links);
   TInt GetId() const;
   TStr GetUrl() const;
-  TTm GetDate() const;
+  TSecTm GetDate() const;
   TStr GetContent() const;
   TStrVP GetLinks() const;
 
   void SetId(TInt Id);
   void SetUrl(TStr Url);
-  void SetDate(TTm Date);
+  void SetDate(TSecTm Date);
   void SetContent(TStr Content);
   void AddLink(TStr Link);
 };
@@ -38,7 +38,7 @@ public:
   TInt GetAndIncNumDocs();
   TInt GetDocId(TStr Url) const;
   TDoc *GetDoc(TInt Id) const;
-  void AddDoc(TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links);
+  TInt AddDoc(TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links);
   void RemoveDoc(TDoc *Doc);
 };
 
