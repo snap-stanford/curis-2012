@@ -28,7 +28,7 @@ private:
 public:
   TQuoteBase();
   // returns true if new TQuote created, false otherwise.
-  void AddQuote(TStr ContentString);
+  TQuote* AddQuote(TStr ContentString);
   void RemoveQuote(TInt QuoteId);
   void RemoveQuote(TQuote *Quote);
   TInt GetQuoteId(TStrV& Content);

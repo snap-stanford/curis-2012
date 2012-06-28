@@ -39,15 +39,16 @@ TQuoteBase::TQuoteBase() {
 }
 
 /// Adds quote string to quote base; returns quote's quote id
-void TQuoteBase::AddQuote(TStr ContentString) {
+TQuote* TQuoteBase::AddQuote(TStr ContentString) {
   TStrV ContentVectorString = TQuote::ParseContentString(ContentString);
   TInt QuoteId = GetQuoteId(ContentVectorString);
   if (IdToTQuotes.H.IsKey(QuoteId)) {
-    return; // nothing to do here; quote is already in database
+    return IdToTQuotes.H.GetDat(QuoteId); // nothing to do here; quote is already in database
   } else {
     // otherwise, create the new TQuote and proceed.
     TQuote* NewQuote = new TQuote(QuoteId, ContentVectorString);
     IdToTQuotes.H.AddDat(QuoteId, NewQuote);
+    return NewQuote;
   }
 }
 
