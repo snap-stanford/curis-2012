@@ -1,13 +1,13 @@
-#include "quote.h"
 #include "stdafx.h"
+#include "quote.h"
 
-TQuote::TQuote(TInt QuoteId, TStrVP QuoteContent) {
-  Id = QuoteId;
-	Content(QuoteContent);
+TQuote::TQuote(TInt Id, TStrVP Content) {
+  this->Id = Id;
+  this->Content = Content;
 }
 
-TQuote::TQuote(TInt QuoteId, TStr ContentString) {
-  Id = QuoteId;
+TQuote::TQuote(TInt Id, TStr ContentString) {
+  this->Id = Id;
 	Content = TQuote::ParseContentString(ContentString);
 }
 
@@ -24,7 +24,6 @@ TStrVP TQuote::ParseContentString(TStr ContentString) {
   return NewStr;
 }
 
-#pragma QuoteBase
 TQuoteBase::TQuoteBase() {
   QuoteIdCounter = 0;
   //IdToTQuotes = PHash<TInt, TQuote*>::New();

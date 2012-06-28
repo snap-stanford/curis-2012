@@ -6,12 +6,12 @@
 class TQuote {
 private:
   TInt Id;
-  TStrV Content;
+  TStrVP Content;
   TIntV Sources;
 
 public:
-  TQuote(TInt QuoteId, TStrVP QuoteContent);
-  TQuote(TInt QuoteId, TStr ContentString);
+  TQuote(TInt Id, TStrVP Content);
+  TQuote(TInt Id, TStr ContentString);
   void AddSource(TInt SourceId);
   TIntV GetSources();
 
