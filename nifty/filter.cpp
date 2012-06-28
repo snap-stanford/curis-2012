@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "data_loader.h"
-
+#include "quote.h"
+#include "doc.h"
 
 // usage filelist directory
 int main(int argc, char *argv[]) {
