@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
 
 	// Read files and count the quotes
 	TDataLoader Memes;
-	Memes.LoadFileList(InFileName, "/lfs/hulk/0/datasets/spinn3r/spinn3r-full5/");
+	Memes.LoadFileList(InFileName, "/lfs/1/tmp/spinn3r-full3/");
 	while (Memes.LoadNextFile()) {
 		while (Memes.LoadNextEntry()) {
 			if (IsUrlInBlackList(Memes.PostUrlStr)) continue;
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
 	TQuoteBase *QB = new TQuoteBase;
 	TDocBase *DB = new TDocBase;
 	// Add frequent quote containing memes into quote base
-	Memes.LoadFileList(InFileName, "/lfs/hulk/0/datasets/spinn3r/spinn3r-full5/");
+	Memes.LoadFileList(InFileName, "/lfs/1/tmp/spinn3r-full3/");
 	while (Memes.LoadNextFile()) {
 		while (Memes.LoadNextEntry()) {
 			if (IsUrlInBlackList(Memes.PostUrlStr)) continue;
