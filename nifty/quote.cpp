@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "quote.h"
 
-TQuote::TQuote(TInt Id, TStrVP Content) {
+TQuote::TQuote(TInt Id, TStrV& Content) {
   this->Id = Id;
   this->Content = Content; // TODO: deep copy?
 }
@@ -11,7 +11,7 @@ TQuote::TQuote(TInt Id, TStr ContentString) {
 	Content = TQuote::ParseContentString(ContentString);
 }
 
-TStrVP TQuote::GetContent() {
+TStrV TQuote::GetContent() {
   return Content;
 }
 
@@ -27,8 +27,8 @@ TIntV TQuote::GetSources() {
   return Sources;
 }
 
-TStrVP TQuote::ParseContentString(TStr ContentString) {
-  TStrVP NewStr;
+TStrV TQuote::ParseContentString(TStr ContentString) {
+  TStrV NewStr;
   return NewStr;
 }
 
@@ -40,7 +40,7 @@ TQuoteBase::TQuoteBase() {
 
 /// Adds quote string to quote base; returns quote's quote id
 void TQuoteBase::AddQuote(TStr ContentString) {
-  TStrVP ContentVectorString = TQuote::ParseContentString(ContentString);
+  TStrV ContentVectorString = TQuote::ParseContentString(ContentString);
   TInt QuoteId = GetQuoteId(ContentVectorString);
   if (IdToTQuotes.H.IsKey(QuoteId)) {
     return; // nothing to do here; quote is already in database
@@ -66,7 +66,7 @@ void TQuoteBase::RemoveQuote(TQuote* Quote) {
   RemoveQuote(Quote->GetId());
 }
 
-TInt TQuoteBase::GetQuoteId(TStrVP Content) {
+TInt TQuoteBase::GetQuoteId(TStrV& Content) {
   if (QuoteToId.H.IsKey(Content)) {
     return QuoteToId.H.GetDat(Content);
   } else {

@@ -6,32 +6,32 @@
 class TQuote {
 private:
   TInt Id;
-  TStrVP Content;
+  TStrV Content;
   TIntV Sources;
 
 public:
-  TQuote(TInt Id, TStrVP Content);
+  TQuote(TInt Id, TStrV& Content);
   TQuote(TInt Id, TStr ContentString);
   void AddSource(TInt SourceId);
   TIntV GetSources();
-  TStrVP GetContent();
+  TStrV GetContent();
   TInt GetId();
 
-  static TStrVP ParseContentString(TStr ContentString);
+  static TStrV ParseContentString(TStr ContentString);
 };
 
 class TQuoteBase {
 private:
   TInt QuoteIdCounter;
   PHash<TInt, TQuote*> IdToTQuotes;
-  PHash<TStrVP, TInt> QuoteToId;
+  PHash<TStrV, TInt> QuoteToId;
 public:
   TQuoteBase();
   // returns true if new TQuote created, false otherwise.
   void AddQuote(TStr ContentString);
   void RemoveQuote(TInt QuoteId);
-  void RemoveQuote(TQuote* Quote);
-  TInt GetQuoteId(TStrVP Content);
+  void RemoveQuote(TQuote *Quote);
+  TInt GetQuoteId(TStrV& Content);
   TQuote* GetQuote(TInt QuoteId);
   static void QuoteFilter(TStr &QtStr);
 };
