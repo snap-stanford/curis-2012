@@ -53,6 +53,12 @@ TQuote* TQuoteBase::AddQuote(TStr ContentString) {
   }
 }
 
+TQuote* AddQuote(TStr ContentString, TInt SourceId) {
+  TQuote* NewQuote = AddQuote(ContentString);
+  NewQuote->AddSource(SourceId);
+  return NewQuote;
+}
+
 void TQuoteBase::RemoveQuote(TInt QuoteId) {
   // TODO: memory management
   if (IdToTQuotes.H.IsKey(QuoteId)) {
@@ -85,33 +91,5 @@ TQuote* TQuoteBase::GetQuote(TInt QuoteId) {
     return IdToTQuotes.H.GetDat(QuoteId);
   } else {
     return NULL;
-  }
-}
-
-// Removes all punctuation in the quotes and replace with spaces.
-// Also converts upper case to lower case.
-// Adapted (but modified) from memes.h because I want a white list, not a blacklist.
-// TODO: move to filter.cpp
-void TQuoteBase::QuoteFilter(TStr &QtStr) {
-  // Three passes...hopefully this isn't too slow.
-  /*for (int i = 0; i < QtStr.Len(); ++i) {
-    if (isalpha(QtStr[i]) || QtStr[i] == '\'') {
-      QtStr[i] = ' ';
-    }
-    QtStr[i] = tolower(QtStr[i]);
-  }
-  TStrV WordV;
-  QtStr.SplitOnAllAnyCh(" ", WordV);
-  QtStr.Clr();
-  for (int i = 0; i < WordV.Len(); ++i) {
-    if (i > 0)  QtStr.InsStr(QtStr.Len()," ");
-    QtStr.InsStr(QtStr.Len(), WordV[i]);
-  }*/ // how to replace character? :(
-  TStrV WordV;
-  QtStr.SplitOnAllAnyCh(" ?!()@#=&,.<>/\\:\";{}|", WordV);
-  QtStr.Clr();
-  for (int i = 0; i < WordV.Len(); ++i) {
-    if (i > 0)  QtStr.InsStr(QtStr.Len()," ");
-    QtStr.InsStr(QtStr.Len(), WordV[i]);
   }
 }

@@ -29,11 +29,11 @@ public:
   TQuoteBase();
   // returns true if new TQuote created, false otherwise.
   TQuote* AddQuote(TStr ContentString);
+  TQuote* AddQuote(TStr ContentString, TInt SourceId);
   void RemoveQuote(TInt QuoteId);
   void RemoveQuote(TQuote *Quote);
   TInt GetQuoteId(TStrV& Content);
   TQuote* GetQuote(TInt QuoteId);
-  static void QuoteFilter(TStr &QtStr);
 };
 
 #endif
