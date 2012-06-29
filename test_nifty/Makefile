@@ -1,5 +1,5 @@
-# CXXFLAGS += -std=c++98 -g -Wall
-# LDFLAGS += -lrt
+CXXFLAGS += -std=c++98 -g -Wall
+LDFLAGS += -lrt
 
 NAME = doc_test
 SNAP = ../../snap/snap-core
