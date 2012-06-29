@@ -102,8 +102,12 @@ void OutputQuoteInformation(TQuoteBase* QuoteBase, TStr FileName) {
   TIntV QuoteIds;
   QuoteBase->GetAllQuoteIds(QuoteIds);
   for (int i = 0; i < QuoteIds.Len(); ++i) {
-    TQuote* Quote = QuoteBase->GetQuote(QuoteIds[i]);
-    fprintf(F, "%d: %s\n", Quote->GetSources().Len(), Quote->GetContentString().CStr());
+    TQuote Quote;
+    bool IsInQB = QuoteBase->GetQuote(QuoteIds[i], Quote);
+    if (IsInQB) {
+      fprintf(F, "%d: %s\n", Quote.GetSources().Len(), Quote.GetContentString().CStr());
+      printf("%d: %s\n", Quote.GetSources().Len(), Quote.GetContentString().CStr());
+    }
   }
   //Save(QuotesFile);
   fclose(F);

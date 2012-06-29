@@ -11,6 +11,7 @@ private:
   TIntV Sources;
 
 public:
+  TQuote();
   TQuote(TInt Id, TStrV& Content);
   TQuote(TInt Id, TStr ContentString);
   void AddSource(TInt SourceId);
@@ -28,18 +29,17 @@ public:
 class TQuoteBase {
 private:
   TInt QuoteIdCounter;
-  THash<TInt, TQuote*> IdToTQuotes;
+  THash<TInt, TQuote> IdToTQuotes;
   THash<TStrV, TInt> QuoteToId;
 public:
   TQuoteBase();
   // returns true if new TQuote created, false otherwise.
-  TQuote* AddQuote(TStr ContentString);
-  TQuote* AddQuote(TStr ContentString, TInt SourceId);
+  TQuote AddQuote(TStr ContentString);
+  TQuote AddQuote(TStr ContentString, TInt SourceId);
   void RemoveQuote(TInt QuoteId);
-  void RemoveQuote(TQuote *Quote);
   TInt GetQuoteId(TStrV& Content);
   TInt GetNewQuoteId(TStrV& Content);
-  TQuote* GetQuote(TInt QuoteId);
+  bool GetQuote(TInt QuoteId, TQuote& RefQ);
   void GetAllQuoteIds(TIntV& KeyV);
   int Len();
 };
