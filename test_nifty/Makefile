@@ -1,7 +1,7 @@
 CXXFLAGS += -std=c++98 -g -Wall
 LDFLAGS += -lrt
 
-NAME = doc_test
+NAME = quote_test
 SNAP = ../../snap/snap-core
 GLIB = ../../snap/glib-core
 NIFTY = ../nifty
