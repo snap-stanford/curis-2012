@@ -57,8 +57,6 @@ void TDoc::AddLink(TStr Link) {
 }
 
 TDocBase::TDocBase() {
-  //IdToDoc.H = THash<TInt, TDoc *>();
-  //DocUrlToId.H = THash<TStr, TInt>();
   NextId = 0;
   NumDocs = 0;
 }
@@ -75,9 +73,9 @@ TInt TDocBase::GetDocId(TStr Url) const {
   }
 }
 
-bool TDocBase::GetDoc(TInt Id, TDoc &ret) {
+bool TDocBase::GetDoc(TInt Id, TDoc &RetDoc) const {
   if (IdToDoc.IsKey(Id)) {
-    ret = IdToDoc.GetDat(Id);
+    RetDoc = IdToDoc.GetDat(Id);
     return true;
   } else {
     return false;
@@ -107,4 +105,8 @@ void TDocBase::RemoveDoc(TInt DocId) {
     DocUrlToId.DelKey(Doc.GetUrl());
     NumDocs -= 1;
   }
+}
+
+void TDocBase::GetAllDocIds(TVec<TInt> &DocIds) const {
+  IdToDoc.GetKeyV(DocIds);
 }

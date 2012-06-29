@@ -39,9 +39,10 @@ public:
   TDocBase();
   TInt Len() const;
   TInt GetDocId(TStr Url) const;
-  bool GetDoc(TInt Id, TDoc &ret);
+  bool GetDoc(TInt Id, TDoc &RetDoc) const;
   TInt AddDoc(TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links);
   void RemoveDoc(TInt DocId);
+  void GetAllDocIds(TVec<TInt> &DocIds) const;
 };
 
 #endif
