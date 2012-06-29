@@ -7,6 +7,7 @@ class TQuote {
 private:
   TInt Id;
   TStrV Content;
+  TStrV ParsedContent;
   TIntV Sources;
 
 public:
@@ -15,16 +16,19 @@ public:
   void AddSource(TInt SourceId);
   TIntV GetSources();
   TStrV GetContent();
+  TStrV GetParsedContent();
+  TStr GetParsedContentString();
   TInt GetId();
 
   static TStrV ParseContentString(TStr ContentString);
+  static TStrV StemAndStopWordsContentString(TStrV ContentV);
 };
 
 class TQuoteBase {
 private:
   TInt QuoteIdCounter;
-  PHash<TInt, TQuote*> IdToTQuotes;
-  PHash<TStrV, TInt> QuoteToId;
+  THash<TInt, TQuote*> IdToTQuotes;
+  THash<TStrV, TInt> QuoteToId;
 public:
   TQuoteBase();
   // returns true if new TQuote created, false otherwise.
