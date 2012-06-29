@@ -96,11 +96,24 @@ bool IsDuplicateUrl(TChA &Url) {
 	return false;
 }
 
+void OutputQuoteInformation(TQuoteBase* QuoteBase, TStr FileName) {
+  TFOut QuotesFile(FileName);
+  Save(QuotesFile);
+
+}
+
 // usage filelist directory
 int main(int argc, char *argv[]) {
+  TStr InFileName = "Spinn3rFileList.txt";
+  TStr OutFileName = "QuoteFrequencies.txt";
+  if (argc >= 2) {
+    InFileName = TStr(argv[1]);
+  }
+  if (argc >= 3) {
+    OutFileName = TStr(argv[2]);
+  }
   LoadURLBlackList();
   LoadCommonEnglishWords();
-	TStr InFileName = "Spinn3rFileList.txt";
 
 	printf("Loading data from Spinn3r dataset to QuoteBase...\n");
 	int NSkip = 0, fileCnt = 0;
@@ -168,5 +181,8 @@ int main(int argc, char *argv[]) {
 	printf("\n2: Complete %d out of %d files\n", ++fileCnt, Memes.GetNumFiles());
 	printf("SAVE: %d quotes\n", QB->Len());
 	printf("LOADING DATA TO QUOTE BASE DONE!\n");
+	printf("Writing quote frequencies...");
+	OutputQuoteInformation(QB, OutFileName);
+	printf("Done done!");
 	return 0;
 }

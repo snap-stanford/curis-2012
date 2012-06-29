@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "quote.h"
-#include "resources/stemming.h"
+//#include "resources/stemming.h"
 //#include "../../snap/glib-core/stemming.h"
 
 TQuote::TQuote(TInt Id, TStrV& Content) {
@@ -76,7 +76,7 @@ TQuote* TQuoteBase::AddQuote(TStr ContentString) {
   } else {
     // otherwise, create the new TQuote and proceed.
     TQuote* NewQuote = new TQuote(QuoteId, ContentVectorString);
-    printf("%d: %s\n", QuoteId.Val, NewQuote->GetParsedContentString().CStr());
+    printf("%d: %s\n", QuoteId.Val, ContentString.CStr());
     IdToTQuotes.AddDat(QuoteId, NewQuote);
     return NewQuote;
   }
@@ -91,7 +91,7 @@ TQuote* TQuoteBase::AddQuote(TStr ContentString, TInt SourceId) {
 void TQuoteBase::RemoveQuote(TInt QuoteId) {
   // TODO: memory management
   if (IdToTQuotes.IsKey(QuoteId)) {
-    TQuote* CurQuote = IdToTQuotes.H.GetDat(QuoteId);
+    TQuote* CurQuote = IdToTQuotes.GetDat(QuoteId);
     if (QuoteToId.IsKey(CurQuote->GetContent())) {
       QuoteToId.DelKey(CurQuote->GetContent());
     }
