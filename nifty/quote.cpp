@@ -48,6 +48,7 @@ TQuote* TQuoteBase::AddQuote(TStr ContentString) {
   } else {
     // otherwise, create the new TQuote and proceed.
     TQuote* NewQuote = new TQuote(QuoteId, ContentVectorString);
+    //printf("%d: %s\n", QuoteId.Val, ContentString.CStr());
     IdToTQuotes.H.AddDat(QuoteId, NewQuote);
     return NewQuote;
   }

@@ -6,6 +6,7 @@
 const int MinMemeFreq = 5;
 const int MinQtWrdLen = 3;
 const int MaxQtWrdLen = 30;
+const double MinCommonEnglishRatio = 0.25;
 
 THashSet<TMd5Sig> SeenUrlSet(Mega(100), true);
 THashSet<TStr> URLBlackList;
@@ -32,8 +33,8 @@ bool IsRobustlyEnglish(TStr Quote) {
       EnglishCount++;
     }
   }
-  printf("%f: %s", EnglishCount * 1.0 / Parsed.Len(), Quote.CStr());
-  return true;
+  //printf("%f: %s\n", EnglishCount * 1.0 / Parsed.Len(), Quote.CStr());
+  return EnglishCount * 1.0 / Parsed.Len() >= MinCommonEnglishRatio;
 }
 
 void LoadURLBlackList() {
@@ -72,10 +73,11 @@ void FilterSpacesAndSetLowercase(TStr &QtStr) {
   // Three passes...hopefully this isn't too slow.
   TChA QtChA(QtStr);
   for (int i = 0; i < QtChA.Len(); ++i) {
-    if (isalpha(QtChA[i]) || QtChA[i] == '\'') {
+    if (!(isalpha(QtChA[i]) || QtChA[i] == '\'')) {
       QtChA[i] = ' ';
+    } else {
+      QtChA[i] = tolower(QtStr[i]);
     }
-    QtChA[i] = tolower(QtStr[i]);
   }
   QtStr = TStr(QtChA);
   TStrV WordV;
@@ -97,6 +99,7 @@ bool IsDuplicateUrl(TChA &Url) {
 // usage filelist directory
 int main(int argc, char *argv[]) {
   LoadURLBlackList();
+  LoadCommonEnglishWords();
 	TStr InFileName = "Spinn3rFileList.txt";
 
 	printf("Loading data from Spinn3r dataset to QuoteBase...\n");
