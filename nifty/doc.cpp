@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "doc.h"
 
+TDoc::TDoc() {
+}
+
 TDoc::TDoc(TInt Id, TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links) {
   // TODO: Check that URLs are not repeated
   this->Url = TStr(Url);
@@ -65,47 +68,43 @@ TInt TDocBase::Len() const {
 }
 
 TInt TDocBase::GetDocId(TStr Url) const {
-  if (DocUrlToId.H.IsKey(Url)) {
-    return DocUrlToId.H.GetDat(Url);
+  if (DocUrlToId.IsKey(Url)) {
+    return DocUrlToId.GetDat(Url);
   } else {
     return -1;
   }
 }
 
-TDoc *TDocBase::GetDoc(TInt Id) const {
-  if (IdToDoc.H.IsKey(Id)) {
-    return IdToDoc.H.GetDat(Id);
+bool TDocBase::GetDoc(TInt Id, TDoc &ret) {
+  if (IdToDoc.IsKey(Id)) {
+    ret = IdToDoc.GetDat(Id);
+    return true;
   } else {
-    return NULL;
+    return false;
   }
 }
 
 /// Forms a new TDoc from the document information and adds it to the doc base.
 TInt TDocBase::AddDoc(TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links) {
-  if (!DocUrlToId.H.IsKey(TStr(Url))) {
+  if (!DocUrlToId.IsKey(TStr(Url))) {
     TInt DocId = NextId;
     NextId += 1;
     NumDocs += 1;
-    TDoc *NewDoc = new TDoc(DocId, Url, Date, Content, Links);
-    IdToDoc.H.AddDat(DocId, NewDoc);
-    DocUrlToId.H.AddDat(TStr(Url), DocId);
+    TDoc NewDoc = TDoc(DocId, Url, Date, Content, Links);
+    IdToDoc.AddDat(DocId, NewDoc);
+    DocUrlToId.AddDat(TStr(Url), DocId);
     return DocId;
   } else {
     return GetDocId(TStr(Url));
   }
 }
 
-void TDocBase::RemoveDoc(TDoc *Doc) {
-  if (IdToDoc.H.IsKey(Doc->GetId())) {
-    IdToDoc.H.DelKey(Doc->GetId());
-    DocUrlToId.H.DelKey(Doc->GetUrl());
-    NumDocs -= 1;
-  }
-}
-
 void TDocBase::RemoveDoc(TInt DocId) {
-  if (IdToDoc.H.IsKey(DocId)) {
-    TDoc *Doc = GetDoc(DocId);
-    RemoveDoc(Doc);
+  if (IdToDoc.IsKey(DocId)) {
+    TDoc Doc;
+    GetDoc(DocId, Doc);
+    IdToDoc.DelKey(Doc.GetId());
+    DocUrlToId.DelKey(Doc.GetUrl());
+    NumDocs -= 1;
   }
 }

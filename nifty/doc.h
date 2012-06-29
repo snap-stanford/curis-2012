@@ -9,9 +9,11 @@ private:
   TStr Url;
   TSecTm Date;
   TStr Content;
-  TStrV Links;
+
 
 public:
+  TStrV Links;
+  TDoc();
   TDoc(TInt Id, TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links);
   TInt GetId() const;
   TStr GetUrl() const;
@@ -28,8 +30,8 @@ public:
 
 class TDocBase {
 private:
-  PHash<TInt, TDoc *> IdToDoc;
-  PHash<TStr, TInt> DocUrlToId;
+  THash<TInt, TDoc> IdToDoc;
+  THash<TStr, TInt> DocUrlToId;
   TInt NumDocs;
   TInt NextId;
 
@@ -37,9 +39,8 @@ public:
   TDocBase();
   TInt Len() const;
   TInt GetDocId(TStr Url) const;
-  TDoc *GetDoc(TInt Id) const;
+  bool GetDoc(TInt Id, TDoc &ret);
   TInt AddDoc(TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links);
-  void RemoveDoc(TDoc *Doc);
   void RemoveDoc(TInt DocId);
 };
 
