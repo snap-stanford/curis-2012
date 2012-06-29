@@ -6,7 +6,7 @@ TDoc::TDoc(TInt Id, TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links) {
   this->Url = TStr(Url);
   this->Date = Date;
   this->Content = TStr(Content);
-  this->Links = TStrVP();
+  this->Links = TStrV();
   for (int i = 0; i < Links.Len(); i++) {
     TStr ToAdd = TStr(Links.GetVal(i));
     AddLink(ToAdd);
@@ -54,18 +54,14 @@ void TDoc::AddLink(TStr Link) {
 }
 
 TDocBase::TDocBase() {
-  IdToDoc.H = THash<TInt, TDoc *>();
-  DocUrlToId.H = THash<TStr, TInt>();
+  //IdToDoc.H = THash<TInt, TDoc *>();
+  //DocUrlToId.H = THash<TStr, TInt>();
+  NextId = 0;
   NumDocs = 0;
 }
 
-TInt TDocBase::GetNumDocs() const {
+TInt TDocBase::Len() const {
   return NumDocs;
-}
-
-TInt TDocBase::GetAndIncNumDocs() {
-  NumDocs = NumDocs + 1;
-  return NumDocs - 1;
 }
 
 TInt TDocBase::GetDocId(TStr Url) const {
@@ -84,13 +80,15 @@ TDoc *TDocBase::GetDoc(TInt Id) const {
   }
 }
 
+/// Forms a new TDoc from the document information and adds it to the doc base.
 TInt TDocBase::AddDoc(TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links) {
   if (!DocUrlToId.H.IsKey(TStr(Url))) {
-    TInt DocId = NumDocs;
+    TInt DocId = NextId;
+    NextId += 1;
     NumDocs += 1;
     TDoc *NewDoc = new TDoc(DocId, Url, Date, Content, Links);
     IdToDoc.H.AddDat(DocId, NewDoc);
-    DocUrlToId.H.AddDat(Url, DocId);
+    DocUrlToId.H.AddDat(TStr(Url), DocId);
     return DocId;
   } else {
     return GetDocId(TStr(Url));
@@ -100,8 +98,14 @@ TInt TDocBase::AddDoc(TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links) {
 void TDocBase::RemoveDoc(TDoc *Doc) {
   if (IdToDoc.H.IsKey(Doc->GetId())) {
     IdToDoc.H.DelKey(Doc->GetId());
-  }
-  if (DocUrlToId.H.IsKey(Doc->GetUrl())) {
     DocUrlToId.H.DelKey(Doc->GetUrl());
+    NumDocs -= 1;
+  }
+}
+
+void TDocBase::RemoveDoc(TInt DocId) {
+  if (IdToDoc.H.IsKey(DocId)) {
+    TDoc *Doc = GetDoc(DocId);
+    RemoveDoc(Doc);
   }
 }
