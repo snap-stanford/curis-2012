@@ -3,6 +3,9 @@
 //#include "resources/stemming.h"
 //#include "../../snap/glib-core/stemming.h"
 
+TQuote::TQuote() {
+}
+
 TQuote::TQuote(TInt Id, TStrV& Content) {
   this->Id = Id;
   this->Content = Content; // TODO: deep copy?
@@ -77,39 +80,35 @@ TQuoteBase::TQuoteBase() {
 }
 
 /// Adds quote string to quote base; returns quote's quote id
-TQuote* TQuoteBase::AddQuote(TStr ContentString) {
+TQuote TQuoteBase::AddQuote(TStr ContentString) {
   TStrV ContentVectorString = TQuote::ParseContentString(ContentString);
   TInt QuoteId = GetNewQuoteId(ContentVectorString);
   if (IdToTQuotes.IsKey(QuoteId)) {
     return IdToTQuotes.GetDat(QuoteId); // nothing to do here; quote is already in database
   } else {
     // otherwise, create the new TQuote and proceed.
-    TQuote* NewQuote = new TQuote(QuoteId, ContentVectorString);
     //printf("%d: %s\n", QuoteId.Val, ContentString.CStr());
+    TQuote NewQuote(QuoteId, ContentVectorString);
     IdToTQuotes.AddDat(QuoteId, NewQuote);
     return NewQuote;
   }
 }
 
-TQuote* TQuoteBase::AddQuote(TStr ContentString, TInt SourceId) {
-  TQuote* NewQuote = AddQuote(ContentString);
-  NewQuote->AddSource(SourceId);
+TQuote TQuoteBase::AddQuote(TStr ContentString, TInt SourceId) {
+  TQuote NewQuote = AddQuote(ContentString);
+  NewQuote.AddSource(SourceId);
   return NewQuote;
 }
 
 void TQuoteBase::RemoveQuote(TInt QuoteId) {
   // TODO: memory management
   if (IdToTQuotes.IsKey(QuoteId)) {
-    TQuote* CurQuote = IdToTQuotes.GetDat(QuoteId);
-    if (QuoteToId.IsKey(CurQuote->GetContent())) {
-      QuoteToId.DelKey(CurQuote->GetContent());
+    TQuote CurQuote = IdToTQuotes.GetDat(QuoteId);
+    if (QuoteToId.IsKey(CurQuote.GetContent())) {
+      QuoteToId.DelKey(CurQuote.GetContent());
     }
     IdToTQuotes.DelKey(QuoteId);
   }
-}
-
-void TQuoteBase::RemoveQuote(TQuote* Quote) {
-  RemoveQuote(Quote->GetId());
 }
 
 TInt TQuoteBase::GetNewQuoteId(TStrV& Content) {
@@ -132,12 +131,12 @@ TInt TQuoteBase::GetQuoteId(TStrV& Content) {
   }
 }
 
-TQuote* TQuoteBase::GetQuote(TInt QuoteId) {
+bool TQuoteBase::GetQuote(TInt QuoteId, TQuote& RefQ) {
   if (IdToTQuotes.IsKey(QuoteId)) {
-    return IdToTQuotes.GetDat(QuoteId);
-  } else {
-    return NULL;
+    RefQ = IdToTQuotes.GetDat(QuoteId);
+    return true;
   }
+  return false;
 }
 
 int TQuoteBase::Len() {
