@@ -16,6 +16,7 @@ public:
   void AddSource(TInt SourceId);
   TIntV GetSources();
   TStrV GetContent();
+  TStr GetContentString();
   TStrV GetParsedContent();
   TStr GetParsedContentString();
   TInt GetId();
@@ -39,6 +40,7 @@ public:
   TInt GetQuoteId(TStrV& Content);
   TInt GetNewQuoteId(TStrV& Content);
   TQuote* GetQuote(TInt QuoteId);
+  void GetAllQuoteIds(TIntV& KeyV);
   int Len();
 };
 

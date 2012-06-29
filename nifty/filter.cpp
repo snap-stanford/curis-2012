@@ -97,9 +97,16 @@ bool IsDuplicateUrl(TChA &Url) {
 }
 
 void OutputQuoteInformation(TQuoteBase* QuoteBase, TStr FileName) {
+  FILE *F = fopen(FileName.CStr(), "wt");
   TFOut QuotesFile(FileName);
-  Save(QuotesFile);
-
+  TIntV QuoteIds;
+  QuoteBase->GetAllQuoteIds(QuoteIds);
+  for (int i = 0; i < QuoteIds.Len(); ++i) {
+    TQuote* Quote = QuoteBase->GetQuote(QuoteIds[i]);
+    fprintf(F, "%d: %s\n", Quote->GetSources().Len(), Quote->GetContentString().CStr());
+  }
+  //Save(QuotesFile);
+  fclose(F);
 }
 
 // usage filelist directory

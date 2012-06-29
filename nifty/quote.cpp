@@ -19,6 +19,15 @@ TStrV TQuote::GetContent() {
   return Content;
 }
 
+TStr TQuote::GetContentString() {
+  TStr String;
+    for (int i = 0; i < Content.Len(); ++i) {
+        if (i > 0)  String.InsStr(String.Len()," ");
+        String.InsStr(String.Len(), Content[i]);
+    }
+    return String;
+}
+
 TStrV TQuote::GetParsedContent() {
   return ParsedContent;
 }
@@ -76,7 +85,7 @@ TQuote* TQuoteBase::AddQuote(TStr ContentString) {
   } else {
     // otherwise, create the new TQuote and proceed.
     TQuote* NewQuote = new TQuote(QuoteId, ContentVectorString);
-    printf("%d: %s\n", QuoteId.Val, ContentString.CStr());
+    //printf("%d: %s\n", QuoteId.Val, ContentString.CStr());
     IdToTQuotes.AddDat(QuoteId, NewQuote);
     return NewQuote;
   }
@@ -133,4 +142,8 @@ TQuote* TQuoteBase::GetQuote(TInt QuoteId) {
 
 int TQuoteBase::Len() {
   return IdToTQuotes.Len();
+}
+
+void TQuoteBase::GetAllQuoteIds(TIntV& KeyV) {
+  IdToTQuotes.GetKeyV(KeyV);
 }
