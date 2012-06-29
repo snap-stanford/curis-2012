@@ -8,13 +8,16 @@ int main(int argc, char *argv[]) {
   TVec<TChA> Links;
   Links.Add(TChA("http://www.google.com"));
   Links.Add(TChA("http://www.yahoo.com"));
+  printf("Number of documents: %d\n", DocBase.Len().Val);
   
   printf("%d\n", DocBase.AddDoc(Url, Date, Content, Links));
-  printf("Number of documents: %d\n", DocBase.GetNumDocs().Val);
   
-  TDoc *t = DocBase.GetDoc(0);
-  printf("%s\n", t->GetUrl().CStr());
+  TDoc t;
+  DocBase.GetDoc(0, t);
+  printf("%s\n", t.GetUrl().CStr());
   
-  printf("%s\n", t->GetLinks()[0].CStr());
+  printf("%s\n", t.Links[0].CStr());
+  printf("%s\n", t.Links[1].CStr());
+
   return 0;
 }
