@@ -6,7 +6,11 @@
 
 class LSH {
 public:
+  static const int BAND_SIZE = 5;
+  static const int NUM_BANDS = 20;
+
   static void HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TIntSet>& ShingleToQuoteIds);
+  static void MinHash(THash<TMd5Sig, TIntSet>& ShingleToQuoteIds);
 };
 
 #endif
