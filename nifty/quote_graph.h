@@ -8,6 +8,7 @@ public:
   QuoteGraph(TQuoteBase *QB);
 
 private:
+  PNGraph QGraph;
   TQuoteBase *QB;
   void CreateNodes();
   void CreateEdges();
