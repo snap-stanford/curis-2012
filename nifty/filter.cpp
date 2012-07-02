@@ -108,7 +108,6 @@ void OutputQuoteInformation(TQuoteBase* QuoteBase, TStr FileName) {
   TFOut QuotesFile(FileName);
   TIntV QuoteIds;
   QuoteBase->GetAllQuoteIds(QuoteIds);
-  printf("Length: %d", QuoteIds.Len());
   for (int i = 0; i < QuoteIds.Len(); ++i) {
     TQuote Quote;
     bool IsInQB = QuoteBase->GetQuote(QuoteIds[i], Quote);
