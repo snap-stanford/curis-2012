@@ -16,6 +16,22 @@ TDoc::TDoc(TInt Id, TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links) {
   }
 }
 
+void TDoc::Save(TSOut& SOut) const {
+  Id.Save(SOut);
+  Url.Save(SOut);
+  Date.Save(SOut);
+  Content.Save(SOut);
+  Links.Save(SOut);
+}
+
+void TDoc::Load(TSIn& SIn) {
+  Id.Load(SIn);
+  Url.Load(SIn);
+  Date.Load(SIn);
+  Content.Load(SIn);
+  Links.Load(SIn);
+}
+
 TInt TDoc::GetId() const {
   return Id;
 }
@@ -59,6 +75,20 @@ void TDoc::AddLink(TStr Link) {
 TDocBase::TDocBase() {
   NextId = 0;
   NumDocs = 0;
+}
+
+void TDocBase::Save(TSOut& SOut) const {
+  IdToDoc.Save(SOut);
+  DocUrlToId.Save(SOut);
+  NumDocs.Save(SOut);
+  NextId.Save(SOut);
+}
+
+void TDocBase::Load(TSIn& SIn) {
+  IdToDoc.Load(SIn);
+  DocUrlToId.Load(SIn);
+  NumDocs.Load(SIn);
+  NextId.Load(SIn);
 }
 
 TInt TDocBase::Len() const {
@@ -110,3 +140,4 @@ void TDocBase::RemoveDoc(TInt DocId) {
 void TDocBase::GetAllDocIds(TVec<TInt> &DocIds) const {
   IdToDoc.GetKeyV(DocIds);
 }
+

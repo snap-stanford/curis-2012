@@ -195,6 +195,9 @@ int main(int argc, char *argv[]) {
 	printf("Writing quote frequencies...\n");
 	OutputQuoteInformation(QB, OutFileName);
 	printf("Done done!\n");
+	TFOut FOut("/lfs/1/tmp/curis/QBDB.bin");
+	QB->Save(FOut);
+	DB->Save(FOut);
 	delete QB;
 	delete DB;
 	return 0;

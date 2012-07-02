@@ -15,6 +15,9 @@ public:
   TStrV Links;
   TDoc();
   TDoc(TInt Id, TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links);
+  TDoc(TSIn& SIn) : Id(SIn), Url(SIn), Date(SIn), Content(SIn), Links(SIn) { }
+  void Save(TSOut& SOut) const;
+  void Load(TSIn& SIn);
   TInt GetId() const;
   TStr GetUrl() const;
   TSecTm GetDate() const;
@@ -37,6 +40,8 @@ private:
 
 public:
   TDocBase();
+  void Save(TSOut& SOut) const;
+  void Load(TSIn& SIn);
   TInt Len() const;
   TInt GetDocId(TStr Url) const;
   bool GetDoc(TInt Id, TDoc &RetDoc) const;
