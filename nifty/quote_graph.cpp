@@ -29,7 +29,17 @@ void QuoteGraph::CreateEdges() {
     TIntV::TIter BucketEnd = Buckets.EndI();
     for (TIntV::TIter BucketSig = 0; BucketSig < BucketEnd; Bucket++) {
       TIntSet Bucket  = BucketsVector[i].GetDat(*BucketSig);
-      //
+      for (TIntSet::TIter Quote1 = Bucket.BegI(); Quote1 < Bucket.EndI(); Quote1++) {
+        for (TIntSet::TIter Quote2 = Quote1; Quote1 < Bucket.EndI(); Quote1++) {
+          if (EdgeShouldBeAdded(Quote1.GetKey(), Quote2.GetKey())) {
+            QGraph->AddEdge(Quote1.GetKey(), Quote2.GetKey()); // EDGE ADDED!
+          }
+        }
+      }
     }
   }
+}
+
+bool QuoteGraph::EdgeShouldBeCreated(TInt Quote1, TInt Quote2) {
+  return true; //TODO: Obviously change this
 }

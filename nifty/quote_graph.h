@@ -12,6 +12,7 @@ private:
   TQuoteBase *QB;
   void CreateNodes();
   void CreateEdges();
+  bool EdgeShouldBeCreated(TInt Quote1, TInt Quote2);
 };
 
 #endif
