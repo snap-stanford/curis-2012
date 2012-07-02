@@ -1,7 +1,5 @@
 #include "stdafx.h"
 #include "quote.h"
-//#include "resources/stemming.h"
-//#include "../../snap/glib-core/stemming.h"
 
 TQuote::TQuote() {
 }
