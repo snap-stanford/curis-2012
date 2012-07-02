@@ -106,7 +106,7 @@ void OutputQuoteInformation(TQuoteBase* QuoteBase, TStr FileName) {
     bool IsInQB = QuoteBase->GetQuote(QuoteIds[i], Quote);
     if (IsInQB) {
       fprintf(F, "%d: %s\n", Quote.GetSources().Len(), Quote.GetContentString().CStr());
-      printf("%d: %s\n", Quote.GetSources().Len(), Quote.GetContentString().CStr());
+      //printf("%d: %s\n", Quote.GetSources().Len(), Quote.GetContentString().CStr());
     }
   }
   //Save(QuotesFile);

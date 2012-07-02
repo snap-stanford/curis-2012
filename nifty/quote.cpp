@@ -79,16 +79,14 @@ TStrV TQuote::ParseContentString(TStr ContentString) {
 }
 
 TStrV TQuote::StemAndStopWordsContentString(TStrV ContentV) {
-  /*for (int i = 0; i < ContentV.Len(); ++i) {
-    TStr CurString = ContentV[i];
-    TPorterStemmer TPort;
-    TPorterStemmer::TestMethod();
-    TInt J = 3;
-    TStr test = TPorterStemmer::StemX(CurString);
-    //TStr test = TPorterStemmer::StemX(ContentV[i]);
-    //ContentV[i] = TPorterStemmer::StemX(ContentV[i]);
-  }*/
-  return ContentV;
+  PSwSet StopWordSet = new TSwSet(swstEnMsdn);
+  TStrV NewContent;
+  for (int i = 0; i < ContentV.Len(); ++i) {
+    if (!StopWordSet->IsIn(ContentV[i], false)) {
+      NewContent.Add(TPorterStemmer::StemX(ContentV[i]).GetLc());
+    }
+  }
+  return NewContent;
 }
 
 TQuoteBase::TQuoteBase() {
