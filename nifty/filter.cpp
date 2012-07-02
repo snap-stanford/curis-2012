@@ -2,6 +2,9 @@
 #include "data_loader.h"
 #include "quote.h"
 #include "doc.h"
+#include <stdio.h>
+
+PSwSet TQuote::StopWordSet;
 
 const int MinMemeFreq = 5;
 const int MinQtWrdLen = 3;
@@ -43,6 +46,10 @@ void LoadURLBlackList() {
   while (!BlackListFile->Eof() && BlackListFile->GetNextLn(BadURL)) {
     URLBlackList.AddKey(BadURL);
   }
+}
+
+void LoadStopWords() {
+  TQuote::StopWordSet = new TSwSet(swstEnMsdn);
 }
 
 bool IsUrlInBlackList(TChA &Url) {
@@ -101,12 +108,12 @@ void OutputQuoteInformation(TQuoteBase* QuoteBase, TStr FileName) {
   TFOut QuotesFile(FileName);
   TIntV QuoteIds;
   QuoteBase->GetAllQuoteIds(QuoteIds);
+  printf("Length: %d", QuoteIds.Len());
   for (int i = 0; i < QuoteIds.Len(); ++i) {
     TQuote Quote;
     bool IsInQB = QuoteBase->GetQuote(QuoteIds[i], Quote);
     if (IsInQB) {
       fprintf(F, "%d: %s\n", Quote.GetSources().Len(), Quote.GetContentString().CStr());
-      //printf("%d: %s\n", Quote.GetSources().Len(), Quote.GetContentString().CStr());
     }
   }
   //Save(QuotesFile);
@@ -125,6 +132,7 @@ int main(int argc, char *argv[]) {
   }
   LoadURLBlackList();
   LoadCommonEnglishWords();
+  LoadStopWords();
 
 	printf("Loading data from Spinn3r dataset to QuoteBase...\n");
 	int NSkip = 0, fileCnt = 0;

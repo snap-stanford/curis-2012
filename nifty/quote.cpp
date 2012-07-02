@@ -79,7 +79,6 @@ TStrV TQuote::ParseContentString(TStr ContentString) {
 }
 
 TStrV TQuote::StemAndStopWordsContentString(TStrV ContentV) {
-  PSwSet StopWordSet = new TSwSet(swstEnMsdn);
   TStrV NewContent;
   for (int i = 0; i < ContentV.Len(); ++i) {
     if (!StopWordSet->IsIn(ContentV[i], false)) {
