@@ -193,8 +193,13 @@ int main(int argc, char *argv[]) {
 	printf("\n2: Complete %d out of %d files\n", ++fileCnt, Memes.GetNumFiles());
 	printf("SAVE: %d quotes\n", QB->Len());
 	printf("LOADING DATA TO QUOTE BASE DONE!\n");
-	printf("Writing quote frequencies...");
+	printf("Writing quote frequencies...\n");
 	OutputQuoteInformation(QB, OutFileName);
-	printf("Done done!");
+	printf("Done done!\n");
+	TFOut FOut("/lfs/1/tmp/curis/QBDB.bin");
+	QB->Save(FOut);
+	DB->Save(FOut);
+	delete QB;
+	delete DB;
 	return 0;
 }
