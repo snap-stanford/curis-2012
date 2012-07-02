@@ -18,6 +18,21 @@ TQuote::TQuote(TInt Id, TStr ContentString) {
 	ParsedContent = TQuote::StemAndStopWordsContentString(Content);
 }
 
+void TQuote::Save(TSOut& SOut) const {
+  Id.Save(SOut);
+  Content.Save(SOut);
+  ParsedContent.Save(SOut);
+  Sources.Save(SOut);
+}
+
+void TQuote::Load(TSIn& SIn) {
+  Id.Load(SIn);
+  Content.Load(SIn);
+  ParsedContent.Load(SIn);
+  Sources.Load(SIn);
+}
+
+
 TStrV TQuote::GetContent() {
   return Content;
 }
@@ -162,4 +177,16 @@ int TQuoteBase::Len() {
 
 void TQuoteBase::GetAllQuoteIds(TIntV& KeyV) {
   IdToTQuotes.GetKeyV(KeyV);
+}
+
+void TQuoteBase::Save(TSOut& SOut) const {
+  QuoteIdCounter.Save(SOut);
+  IdToTQuotes.Save(SOut);
+  QuoteToId.Save(SOut);
+}
+
+void TQuoteBase::Load(TSIn& SIn) {
+  QuoteIdCounter.Load(SIn);
+  IdToTQuotes.Load(SIn);
+  QuoteToId.Load(SIn);
 }
