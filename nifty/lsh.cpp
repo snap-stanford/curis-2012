@@ -1,0 +1,34 @@
+#include "stdafx.h"
+#include "lsh.h"
+
+// For every quote, add it to corresponding bucket for each hashed x-character shingle of the quote
+void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TIntSet>& ShingleToQuoteIds) {
+  printf("Hashing shingles...\n");
+  TIntV QuoteIds;
+  QuoteBase->GetAllQuoteIds(QuoteIds);
+  for (int qt = 0; qt < QuoteIds.Len(); qt++) {
+    if (qt % 100000 == 0) {
+      printf("%d out of %d completed\n", qt, QuoteIds.Len());
+    }
+    TQuote Q;
+    QuoteBase->GetQuote(QuoteIds[qt], Q);
+
+    // Put x-character shingles into hash table; x is specified by ShingleLen parameter
+    TStr QContentStr = Q.GetParsedContentString();
+    TChA QContentChA = TChA(QContentStr);
+    
+    for (int i = 0; i < QContentChA.Len()-ShingleLen+1; i++) {
+      TStr Shingle = TStr();
+      for (int j = 0; j < ShingleLen; j++) {
+        Shingle += (const char *) QContentChA[i + j];
+      }
+      const TMd5Sig ShingleMd5(Shingle);
+      TIntSet ShingleQuoteIds;
+      if (ShingleToQuoteIds.IsKey(ShingleMd5)) {
+        ShingleQuoteIds = ShingleToQuoteIds.GetDat(ShingleMd5);
+      }
+      ShingleQuoteIds.AddKey(QuoteIds[qt]);
+      ShingleToQuoteIds.AddDat(ShingleMd5, ShingleQuoteIds);
+    }
+  }
+}

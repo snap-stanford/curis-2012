@@ -25,6 +25,7 @@ public:
   TStr GetParsedContentString();
   TInt GetId();
 
+  static PSwSet StopWordSet;
   static TStrV ParseContentString(TStr ContentString);
   static TStrV StemAndStopWordsContentString(TStrV ContentV);
 };

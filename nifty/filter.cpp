@@ -4,6 +4,8 @@
 #include "doc.h"
 #include <stdio.h>
 
+PSwSet TQuote::StopWordSet;
+
 const int MinMemeFreq = 5;
 const int MinQtWrdLen = 3;
 const int MaxQtWrdLen = 30;
@@ -44,6 +46,10 @@ void LoadURLBlackList() {
   while (!BlackListFile->Eof() && BlackListFile->GetNextLn(BadURL)) {
     URLBlackList.AddKey(BadURL);
   }
+}
+
+void LoadStopWords() {
+  TQuote::StopWordSet = new TSwSet(swstEnMsdn);
 }
 
 bool IsUrlInBlackList(TChA &Url) {
@@ -126,6 +132,7 @@ int main(int argc, char *argv[]) {
   }
   LoadURLBlackList();
   LoadCommonEnglishWords();
+  LoadStopWords();
 
 	printf("Loading data from Spinn3r dataset to QuoteBase...\n");
 	int NSkip = 0, fileCnt = 0;
