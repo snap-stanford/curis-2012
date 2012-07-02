@@ -50,6 +50,7 @@ TInt TQuote:: GetId() {
 
 void TQuote::AddSource(TInt SourceId) {
   Sources.Add(SourceId); // TODO: check to see if adding duplicate source?
+  //printf("Source added. Source ID: %d. Num sources: %d", SourceId, Sources.Len().Val());
 }
 
 TIntV TQuote::GetSources() {
@@ -95,9 +96,25 @@ TQuote TQuoteBase::AddQuote(TStr ContentString) {
 }
 
 TQuote TQuoteBase::AddQuote(TStr ContentString, TInt SourceId) {
-  TQuote NewQuote = AddQuote(ContentString);
-  NewQuote.AddSource(SourceId);
-  return NewQuote;
+  //TQuote NewQuote = AddQuote(ContentString);
+  //NewQuote.AddSource(SourceId);
+  //return NewQuote;
+
+  TStrV ContentVectorString = TQuote::ParseContentString(ContentString);
+  TInt QuoteId = GetNewQuoteId(ContentVectorString);
+  if (IdToTQuotes.IsKey(QuoteId)) {
+    TQuote CurQuote =  IdToTQuotes.GetDat(QuoteId); // nothing to do here; quote is already in database
+    CurQuote.AddSource(SourceId);
+    IdToTQuotes.AddDat(QuoteId, CurQuote);
+    return CurQuote;
+  } else {
+    // otherwise, create the new TQuote and proceed.
+    //printf("%d: %s\n", QuoteId.Val, ContentString.CStr());
+    TQuote NewQuote(QuoteId, ContentVectorString);
+    NewQuote.AddSource(SourceId);
+    IdToTQuotes.AddDat(QuoteId, NewQuote);
+    return NewQuote;
+  }
 }
 
 void TQuoteBase::RemoveQuote(TInt QuoteId) {
