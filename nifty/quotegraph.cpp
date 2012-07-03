@@ -43,7 +43,10 @@ void QuoteGraph::CreateEdges() {
 bool QuoteGraph::EdgeShouldBeCreated(TInt Id1, TInt Id2) {
   TQuote Quote1, Quote2;
   if (QB->GetQuote(Id1, Quote1) && QB->GetQuote(Id2, Quote2)) {
-
+    TStr Content1 = Quote1.GetParsedContentString();
+    TStr Content2 = Quote2.GetParsedContentString();
+    TInt LDistance = LevenshteinDistance(Content1, Content2);
+    // TODO: decision tree in memecluster paper
   }
   return true; //TODO: Obviously change this
 }
