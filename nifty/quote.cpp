@@ -1,5 +1,8 @@
 #include "stdafx.h"
 #include "quote.h"
+#include "doc.h"
+
+PSwSet TQuote::StopWordSet;
 
 TQuote::TQuote() {
 }
@@ -57,8 +60,23 @@ TStr TQuote::GetParsedContentString() {
   return ParsedString;
 }
 
-TInt TQuote:: GetId() {
+TInt TQuote::GetId() {
   return Id;
+}
+
+TInt TQuote::GetNumDomains(TDocBase *DocBase) {
+  THashSet<TStr> DomSet;
+  for (int u = 0; u < Sources.Len(); u++) {
+    TDoc Doc;
+    if(DocBase->GetDoc(Sources[u], Doc)) {
+      DomSet.AddKey(TStrUtil::GetDomNm(Doc.GetUrl()));
+    }
+  }
+  return DomSet.Len();
+}
+
+TInt TQuote::GetNumSources() {
+  return Sources.Len();
 }
 
 void TQuote::AddSource(TInt SourceId) {

@@ -42,10 +42,11 @@ public:
   TDocBase();
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
-  TInt Len() const;
+  int Len() const;
   TInt GetDocId(TStr Url) const;
   bool GetDoc(TInt Id, TDoc &RetDoc) const;
   TInt AddDoc(TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links);
+  TInt AddDoc(TDoc Doc);
   void RemoveDoc(TInt DocId);
   void GetAllDocIds(TVec<TInt> &DocIds) const;
 };

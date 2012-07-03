@@ -91,7 +91,7 @@ void TDocBase::Load(TSIn& SIn) {
   NextId.Load(SIn);
 }
 
-TInt TDocBase::Len() const {
+int TDocBase::Len() const {
   return NumDocs;
 }
 
@@ -124,6 +124,20 @@ TInt TDocBase::AddDoc(TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links) {
     return DocId;
   } else {
     return GetDocId(TStr(Url));
+  }
+}
+
+TInt TDocBase::AddDoc(TDoc Doc) {
+  if (!DocUrlToId.IsKey(TStr(Doc.GetUrl()))) {
+    TInt DocId = NextId;
+    NextId += 1;
+    NumDocs += 1;
+    Doc.SetId(NextId);
+    IdToDoc.AddDat(DocId, Doc);
+    DocUrlToId.AddDat(TStr(Doc.GetUrl()), DocId);
+    return DocId;
+  } else {
+    return GetDocId(TStr(Doc.GetUrl()));
   }
 }
 
