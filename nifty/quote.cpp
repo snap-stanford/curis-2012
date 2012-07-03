@@ -19,7 +19,7 @@ TQuote::TQuote(TInt Id, TStr ContentString) {
 	Init();
 }
 
-TQuote::Init() {
+void TQuote::Init() {
   this->ParsedContent = TQuote::StemAndStopWordsContentString(Content);
   for (int i = 0; i < ParsedContent.Len(); ++i) {
     if (i > 0) this->ParsedContentString.InsStr(ParsedContentString.Len()," ");

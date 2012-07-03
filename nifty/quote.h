@@ -15,7 +15,6 @@ private:
   void Init();
 
 public:
-  TIntV Sources;
   TQuote();
   TQuote(TInt Id, TStrV& Content);
   TQuote(TInt Id, TStr ContentString);
