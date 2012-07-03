@@ -2,7 +2,7 @@
 #include "quote.h"
 #include "doc.h"
 
-PSwSet TQuote::StopWordSet;
+PSwSet TQuote::StopWordSet = new TSwSet(swstEnMsdn);
 
 TQuote::TQuote() {
 }
@@ -31,6 +31,7 @@ void TQuote::Save(TSOut& SOut) const {
   Id.Save(SOut);
   Content.Save(SOut);
   ParsedContent.Save(SOut);
+  ParsedContentString.Save(SOut);
   Sources.Save(SOut);
 }
 
@@ -38,6 +39,7 @@ void TQuote::Load(TSIn& SIn) {
   Id.Load(SIn);
   Content.Load(SIn);
   ParsedContent.Load(SIn);
+  ParsedContentString.Load(SIn);
   Sources.Load(SIn);
 }
 
@@ -87,8 +89,8 @@ void TQuote::AddSource(TInt SourceId) {
   //printf("Source added. Source ID: %d. Num sources: %d", SourceId, Sources.Len().Val());
 }
 
-TIntV TQuote::GetSources() {
-  return Sources;
+void TQuote::GetSources(TIntV &RefS) {
+  RefS = Sources;
 }
 
 TStrV TQuote::ParseContentString(TStr ContentString) {

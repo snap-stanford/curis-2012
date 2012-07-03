@@ -16,8 +16,10 @@ int main(int argc, char *argv[]) {
   DocBase->GetDoc(0, t);
   printf("URL: %s\n", t.GetUrl().CStr());
   
-  printf("Link1: %s\n", t.Links[0].CStr());
-  printf("Link2: %s\n", t.Links[1].CStr());
+  TStrV l;
+  t.GetLinks(l);
+  printf("Link1: %s\n", l[0].CStr());
+  printf("Link2: %s\n", l[1].CStr());
 
   { TFOut FOut("tmp.bin"); DocBase->Save(FOut); }
   printf("Save data successfully\n");
@@ -35,8 +37,9 @@ int main(int argc, char *argv[]) {
   DocBase2->GetDoc(0, t2);
   printf("URL: %s\n", t2.GetUrl().CStr());
 
-  printf("Link1: %s\n", t2.Links[0].CStr());
-  printf("Link2: %s\n", t2.Links[1].CStr());
+  t2.GetLinks(l);
+  printf("Link1: %s\n", l[0].CStr());
+  printf("Link2: %s\n", l[1].CStr());
 
   delete DocBase2;
   return 0;

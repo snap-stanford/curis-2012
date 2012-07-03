@@ -46,10 +46,6 @@ void LoadURLBlackList() {
   }
 }
 
-void LoadStopWords() {
-  TQuote::StopWordSet = new TSwSet(swstEnMsdn);
-}
-
 bool IsUrlInBlackList(TChA &Url) {
   TStr UrlStr(Url);
   TStrV PeriodVector;
@@ -109,7 +105,7 @@ void OutputQuoteInformation(TQuoteBase* QuoteBase, TStr FileName) {
     TQuote Quote;
     bool IsInQB = QuoteBase->GetQuote(QuoteIds[i], Quote);
     if (IsInQB) {
-      fprintf(F, "%d: %s\n", Quote.GetSources().Len(), Quote.GetContentString().CStr());
+      fprintf(F, "%d: %s\n", Quote.GetNumSources(), Quote.GetContentString().CStr());
     }
   }
   //Save(QuotesFile);
@@ -128,7 +124,6 @@ int main(int argc, char *argv[]) {
   }
   LoadURLBlackList();
   LoadCommonEnglishWords();
-  LoadStopWords();
 
   printf("Loading data from Spinn3r dataset to QuoteBase...\n");
   printf("1: Initial Filtering:\n");
@@ -181,9 +176,11 @@ int main(int argc, char *argv[]) {
     if (Q.GetNumSources() >= MinMemeFreq &&
         Q.GetNumSources() >= 4 * Q.GetNumDomains(TmpDB) &&
         IsRobustlyEnglish(Q.GetContentString())) {
-      for (int j = 0; j < Q.Sources.Len(); j++) {
+      TIntV Sources;
+      Q.GetSources(Sources);
+      for (int j = 0; j < Sources.Len(); j++) {
         TDoc D;
-        TmpDB->GetDoc(Q.Sources[j], D);
+        TmpDB->GetDoc(Sources[j], D);
         TInt NewSourceId = DB->AddDoc(D);
         QB->AddQuote(Q.GetContentString(), NewSourceId);
       }

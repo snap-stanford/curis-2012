@@ -18,11 +18,11 @@ public:
   TQuote();
   TQuote(TInt Id, TStrV& Content);
   TQuote(TInt Id, TStr ContentString);
-  TQuote(TSIn& SIn) : Id(SIn), Content(SIn), ParsedContent(SIn), Sources(SIn) { }
+  TQuote(TSIn& SIn) : Id(SIn), Content(SIn), ParsedContent(SIn), ParsedContentString(SIn), Sources(SIn) { }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   void AddSource(TInt SourceId);
-  TIntV GetSources();
+  void GetSources(TIntV &RefS);
   TStrV GetContent();
   TStr GetContentString();
   TStrV GetParsedContent();

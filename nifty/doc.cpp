@@ -48,8 +48,8 @@ TStr TDoc::GetContent() const {
   return Content;
 }
 
-TStrVP TDoc::GetLinks() const {
-  return Links;
+void TDoc::GetLinks(TStrV &RefL) {
+  RefL = Links;
 }
 
 void TDoc::SetId(TInt Id) {

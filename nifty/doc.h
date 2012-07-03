@@ -9,10 +9,9 @@ private:
   TStr Url;
   TSecTm Date;
   TStr Content;
-
+  TStrV Links;
 
 public:
-  TStrV Links;
   TDoc();
   TDoc(TInt Id, TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links);
   TDoc(TSIn& SIn) : Id(SIn), Url(SIn), Date(SIn), Content(SIn), Links(SIn) { }
@@ -22,7 +21,7 @@ public:
   TStr GetUrl() const;
   TSecTm GetDate() const;
   TStr GetContent() const;
-  TStrVP GetLinks() const;
+  void GetLinks(TStrV &RefL);
 
   void SetId(TInt Id);
   void SetUrl(TStr Url);
