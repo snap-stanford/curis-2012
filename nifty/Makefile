@@ -10,8 +10,8 @@ opt: CXXFLAGS += -O4
 opt: LDFLAGS += -O4
 opt: $(NAME)
 
-$(NAME): $(NAME).cpp Snap.o data_loader.o doc.o quote.o lsh.o
-	g++ -o $(NAME) $(NAME).cpp Snap.o data_loader.o doc.o quote.o lsh.o -I$(GLIB) -I$(SNAP) $(LDFLAGS) 
+$(NAME): $(NAME).cpp Snap.o dataloader.o doc.o quote.o lsh.o
+	g++ -o $(NAME) $(NAME).cpp Snap.o dataloader.o doc.o quote.o lsh.o -I$(GLIB) -I$(SNAP) $(LDFLAGS) 
 
 Snap.o: 
 	g++ -c $(CXXFLAGS) $(SNAP)/Snap.cpp -I$(GLIB) -I$(SNAP)

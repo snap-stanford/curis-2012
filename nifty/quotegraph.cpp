@@ -51,9 +51,11 @@ bool QuoteGraph::EdgeShouldBeCreated(TInt Id1, TInt Id2) {
   return true; //TODO: Obviously change this
 }
 
-TInt QuoteGraph::LevenshteinDistance(TSTr Content1, TStr Content2) {
+// TODO: Merge this and below into a thing that takes something with a .Len() and an == operator
+// because duplicate code is bad.
+TInt QuoteGraph::WordLevenshteinDistance(TStrV Content1, TStrV Content2) {
   TInt C1Len = Content1.Len() + 1, C2Len = Content2.Len() + 1;
-  TInt d[Content1.Len()][Content2.Len()];
+  TInt d[C1Len][C2Len];
 
   for (int i = 0; i < C1Len ; i++) {
     for (int j = 0; j < C2Len; j++) {
@@ -78,9 +80,42 @@ TInt QuoteGraph::LevenshteinDistance(TSTr Content1, TStr Content2) {
         d[i][j] = d[i-1][j] + 1; // a deletion
         if (d[i][j-1] + 1 < d[i][j]) d[i][j] = d[i][j-1] + 1; // an insertion
         if (d[i-1][j-1] + 1 < d[i][j]) d[i][j] = d[i-1][j-1] + 1; // a substitution
+      }
+    }
+  }
+  return d[C1Len][C2Len];
+}
+
+TInt QuoteGraph::LevenshteinDistance(TSTr Content1, TStr Content2) {
+  TInt C1Len = Content1.Len() + 1, C2Len = Content2.Len() + 1;
+  TInt d[C1Len][C2Len];
+
+  for (int i = 0; i < C1Len ; i++) {
+    for (int j = 0; j < C2Len; j++) {
+      d[i][j] = 0;
     }
   }
 
+  for (int i = 0; i < C1Len; i++) {
+    d[i, 0] = i;
+  }
+
+  for (int j = 0; j < C2Len; j++) {
+    d[0, j] = j;
+  }
+
+  for (int j = 1; j < C2Len; j++) {
+    for (int i = 1; i < C1Len; i++)
+    {
+      if (Content1[i-1] == Content2[j-1]) {
+        d[i][j] = d[i-1][j-1];
+      } else {
+        d[i][j] = d[i-1][j] + 1; // a deletion
+        if (d[i][j-1] + 1 < d[i][j]) d[i][j] = d[i][j-1] + 1; // an insertion
+        if (d[i-1][j-1] + 1 < d[i][j]) d[i][j] = d[i-1][j-1] + 1; // a substitution
+      }
+    }
+  }
   return d[C1Len][C2Len];
 }
 

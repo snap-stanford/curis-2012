@@ -14,6 +14,7 @@ private:
   void CreateEdges();
   bool EdgeShouldBeCreated(TInt Id1, TInt Id2);
   TInt LevenshteinDistance(TSTr Content1, TStr Content2);
+  TInt QuoteGraph::WordLevenshteinDistance(TStrV Content1, TStrV Content2);
 };
 
 #endif
