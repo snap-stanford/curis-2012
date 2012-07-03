@@ -18,10 +18,11 @@ void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TI
     TChA QContentChA = TChA(QContentStr);
     
     for (int i = 0; i < QContentChA.Len()-ShingleLen+1; i++) {
-      TStr Shingle = TStr();
+      TChA ShingleChA = TChA();
       for (int j = 0; j < ShingleLen; j++) {
-        Shingle += (const char *) QContentChA[i + j];
+        ShingleChA.AddCh(QContentChA.GetCh(i + j));
       }
+      TStr Shingle = TStr(ShingleChA);
       const TMd5Sig ShingleMd5(Shingle);
       TIntSet ShingleQuoteIds;
       if (ShingleToQuoteIds.IsKey(ShingleMd5)) {
