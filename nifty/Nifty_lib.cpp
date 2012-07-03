@@ -11,3 +11,6 @@
 #include "data_loader.cpp"
 //#include "filter.cpp"
 
+// graph creation
+#include "lsh.cpp"
+

@@ -5,7 +5,7 @@ SNAP = ../../snap/snap-core
 GLIB = ../../snap/glib-core
 NIFTY = ../nifty
 
-all: doc_test quote_test
+all: doc_test lsh_test quote_test
 
 opt: CXXFLAGS += -O4
 opt: LDFLAGS += -O4
@@ -13,10 +13,13 @@ opt: $(NAME)
 
 debug: CXXFLAGS += -rdynamic -O0 -g -ggdb3 -pg
 debug: LDFLAGS += -rdynamic -O0 -g -ggdb3 -pg
-debug: doc_test quote_test
+debug: doc_test lsh_test quote_test
 
 doc_test: doc_test.cpp Snap.o Nifty_lib.o
 	g++ -o doc_test doc_test.cpp Snap.o Nifty_lib.o -I$(GLIB) -I$(SNAP) $(LDFLAGS) 
+
+lsh_test: lsh_test.cpp Snap.o Nifty_lib.o
+	g++ -o lsh_test lsh_test.cpp Snap.o Nifty_lib.o -I$(GLIB) -I$(SNAP) $(LDFLAGS)
 
 quote_test: quote_test.cpp Snap.o Nifty_lib.o
 	g++ -o quote_test quote_test.cpp Snap.o Nifty_lib.o -I$(GLIB) -I$(SNAP) $(LDFLAGS)
