@@ -179,6 +179,7 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < QuoteIds.Len(); i++) {
     TQuote Q;
     TmpQB->GetQuote(QuoteIds[i], Q);
+    TIntV QSources = Q.GetSources();
     if (Q.GetNumSources() >= MinMemeFreq &&
         Q.GetNumSources() >= 4 * Q.GetNumDomains(TmpDB) &&
         IsRobustlyEnglish(Q.GetContentString())) {
