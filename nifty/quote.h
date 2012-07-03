@@ -8,7 +8,10 @@ private:
   TInt Id;
   TStrV Content;
   TStrV ParsedContent;
+  TStr ParsedContentString;
   TIntV Sources;
+
+  void Init();
 
 public:
   TQuote();

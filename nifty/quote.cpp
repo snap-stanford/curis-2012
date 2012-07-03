@@ -7,13 +7,21 @@ TQuote::TQuote() {
 TQuote::TQuote(TInt Id, TStrV& Content) {
   this->Id = Id;
   this->Content = Content; // TODO: deep copy?
-  this->ParsedContent = TQuote::StemAndStopWordsContentString(Content);
+  Init();
 }
 
 TQuote::TQuote(TInt Id, TStr ContentString) {
   this->Id = Id;
 	Content = TQuote::ParseContentString(ContentString);
-	ParsedContent = TQuote::StemAndStopWordsContentString(Content);
+	Init();
+}
+
+TQuote::Init() {
+  this->ParsedContent = TQuote::StemAndStopWordsContentString(Content);
+  for (int i = 0; i < ParsedContent.Len(); ++i) {
+    if (i > 0) this->ParsedContentString.InsStr(ParsedContentString.Len()," ");
+    this->ParsedContentString.InsStr(ParsedContentString.Len(), ParsedContent[i]);
+  }
 }
 
 void TQuote::Save(TSOut& SOut) const {
@@ -49,12 +57,7 @@ TStrV TQuote::GetParsedContent() {
 }
 
 TStr TQuote::GetParsedContentString() {
-  TStr ParsedString;
-  for (int i = 0; i < ParsedContent.Len(); ++i) {
-      if (i > 0)  ParsedString.InsStr(ParsedString.Len()," ");
-      ParsedString.InsStr(ParsedString.Len(), ParsedContent[i]);
-  }
-  return ParsedString;
+  return ParsedContentString;
 }
 
 TInt TQuote:: GetId() {
