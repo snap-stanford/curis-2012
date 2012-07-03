@@ -19,7 +19,17 @@ int main(int argc, char *argv[]) {
 
   THash<TMd5Sig, TIntSet> ShingleToQuoteIds;
   LSH::HashShingles(QuoteBase, 4, ShingleToQuoteIds);
-    
+  
+  for (THash<TMd5Sig, TIntSet>::TIter Shingle = ShingleToQuoteIds.BegI(); Shingle < ShingleToQuoteIds.EndI(); Shingle++) {
+    printf("Shingle: %s\n", Shingle.GetKey().GetStr().CStr());
+    printf("Quote Ids: \n");
+    TIntSet QuoteIds = Shingle.GetDat();
+    for (TIntSet::TIter Quote = QuoteIds.BegI(); Quote < QuoteIds.EndI(); Quote++) {
+      printf("\t%s\n", Quote.GetKey().GetStr().CStr());
+    }
+  }
 
+  delete QuoteBase;
+  
   return 0;
 }
