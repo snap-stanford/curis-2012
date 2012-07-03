@@ -12,7 +12,8 @@ private:
   TQuoteBase *QB;
   void CreateNodes();
   void CreateEdges();
-  bool EdgeShouldBeCreated(TInt Quote1, TInt Quote2);
+  bool EdgeShouldBeCreated(TInt Id1, TInt Id2);
+  TInt LevenshteinDistance(TSTr Content1, TStr Content2);
 };
 
 #endif
