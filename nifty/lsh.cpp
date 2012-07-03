@@ -33,7 +33,7 @@ void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TI
   }
 }
 
-void  LSH::MinHash(THash<TMd5Sig, TIntSet>& ShingleToQuoteIds, TVec<THash>& SignatureBandBuckets) {
+void  LSH::MinHash(THash<TMd5Sig, TIntSet>& ShingleToQuoteIds, TVec<THash<TIntV, TIntSet> >& SignatureBandBuckets) {
   TRnd RandomGenerator; // TODO: make this "more random" by incorporating time
   for(int i = 0; i < NUM_BANDS; ++i) {
     THash<TInt, TIntV> Inverted; // (QuoteID, QuoteSignatureForBand)
