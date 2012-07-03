@@ -46,10 +46,6 @@ void LoadURLBlackList() {
   }
 }
 
-void LoadStopWords() {
-  TQuote::StopWordSet = new TSwSet(swstEnMsdn);
-}
-
 bool IsUrlInBlackList(TChA &Url) {
   TStr UrlStr(Url);
   TStrV PeriodVector;
@@ -129,7 +125,6 @@ int main(int argc, char *argv[]) {
   }
   LoadURLBlackList();
   LoadCommonEnglishWords();
-  LoadStopWords();
 
   printf("Loading data from Spinn3r dataset to QuoteBase...\n");
   printf("1: Initial Filtering:\n");
