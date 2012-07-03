@@ -2,6 +2,7 @@
 #define quote_h
 
 #include "stdafx.h"
+#include "doc.h"
 
 class TQuote {
 private:
@@ -14,6 +15,7 @@ private:
   void Init();
 
 public:
+  TIntV Sources;
   TQuote();
   TQuote(TInt Id, TStrV& Content);
   TQuote(TInt Id, TStr ContentString);
@@ -27,6 +29,8 @@ public:
   TStrV GetParsedContent();
   TStr GetParsedContentString();
   TInt GetId();
+  TInt GetNumDomains(TDocBase *DocBase);
+  TInt GetNumSources();
 
   static PSwSet StopWordSet;
   static TStrV ParseContentString(TStr ContentString);

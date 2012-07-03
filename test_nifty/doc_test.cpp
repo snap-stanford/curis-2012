@@ -1,5 +1,4 @@
 #include "stdafx.h"
-PSwSet TQuote::StopWordSet;
 
 int main(int argc, char *argv[]) {
   TDocBase *DocBase = new TDocBase;
@@ -11,7 +10,7 @@ int main(int argc, char *argv[]) {
   Links.Add(TChA("http://www.yahoo.com"));
   DocBase->AddDoc(Url, Date, Content, Links);
 
-  printf("Number of documents: %d\n", DocBase->Len().Val);
+  printf("Number of documents: %d\n", DocBase->Len());
   
   TDoc t;
   DocBase->GetDoc(0, t);
@@ -30,7 +29,7 @@ int main(int argc, char *argv[]) {
   TDocBase *DocBase2 = new TDocBase;
   DocBase2->Load(FIn);
 
-  printf("Number of documents: %d\n", DocBase2->Len().Val);
+  printf("Number of documents: %d\n", DocBase2->Len());
 
   TDoc t2;
   DocBase2->GetDoc(0, t2);
