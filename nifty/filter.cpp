@@ -179,12 +179,13 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < QuoteIds.Len(); i++) {
     TQuote Q;
     TmpQB->GetQuote(QuoteIds[i], Q);
+    TIntV QSources = Q.GetSources();
     if (Q.GetNumSources() >= MinMemeFreq &&
         Q.GetNumSources() >= 4 * Q.GetNumDomains(TmpDB) &&
         IsRobustlyEnglish(Q.GetContentString())) {
-      for (int j = 0; j < Q.Sources.Len(); j++) {
+      for (int j = 0; j < QSources.Len(); j++) {
         TDoc D;
-        TmpDB->GetDoc(Q.Sources[j], D);
+        TmpDB->GetDoc(QSources[j], D);
         TInt NewSourceId = DB->AddDoc(D);
         QB->AddQuote(Q.GetContentString(), NewSourceId);
       }
