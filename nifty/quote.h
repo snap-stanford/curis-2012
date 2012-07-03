@@ -22,7 +22,7 @@ public:
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   void AddSource(TInt SourceId);
-  TIntV GetSources();
+  void GetSources(TIntV &RefS);
   TStrV GetContent();
   TStr GetContentString();
   TStrV GetParsedContent();

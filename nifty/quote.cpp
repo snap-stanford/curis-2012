@@ -87,8 +87,8 @@ void TQuote::AddSource(TInt SourceId) {
   //printf("Source added. Source ID: %d. Num sources: %d", SourceId, Sources.Len().Val());
 }
 
-TIntV TQuote::GetSources() {
-  return Sources;
+void TQuote::GetSources(TIntV &RefS) {
+  RefS = Sources;
 }
 
 TStrV TQuote::ParseContentString(TStr ContentString) {
