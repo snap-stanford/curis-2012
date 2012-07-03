@@ -1,4 +1,5 @@
 #include "stdafx.h"
+PSwSet TQuote::StopWordSet;
 
 int main(int argc, char *argv[]) {
   TQuoteBase *QuoteBase = new TQuoteBase;
