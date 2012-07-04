@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "quote_graph.h"
+#include "quotegraph.h"
 #include "quote.h"
 
 void QuoteGraph::QuoteGraph(TQuoteBase *QB) {
@@ -45,10 +45,28 @@ bool QuoteGraph::EdgeShouldBeCreated(TInt Id1, TInt Id2) {
   if (QB->GetQuote(Id1, Quote1) && QB->GetQuote(Id2, Quote2)) {
     TStr Content1 = Quote1.GetParsedContentString();
     TStr Content2 = Quote2.GetParsedContentString();
-    TInt LDistance = LevenshteinDistance(Content1, Content2);
-    // TODO: decision tree in memecluster paper
+    TStrV Content1V;
+    TStrV Content2V;
+    Content1.SplitOnWs(Content1V);
+    Content2.SplitOnWs(Content2V);
+    TInt LDistance = WordLevenshteinDistance(Content1V, Content2V);
+
+    // Decision tree from clustering methods paper
+    MinStopLen = min(Content1V.Len(), Content2V.Len());
+    MinLen = min(Quote1.GetContent().Len(), Quote2.GetContent().Len());
+    if (LDistance == 0) {
+      return true;
+    } else if (MinLen == 4 && LDistance <= 1 && MinStopLen == 4) {
+      return true;
+    } else if (MinLen == 5 && LDistance <= 1 && MinStopLen > 4) {
+      return true;
+    } else if (MinLen == 6 && LDistance <= 1 && MinStopLen >= 5) {
+      return true;
+    } else if (MinLen > 6 && LDistance <= 2 && MinStopLen > 3) {
+      return true;
+    }
   }
-  return true; //TODO: Obviously change this
+  return false;
 }
 
 // TODO: Merge this and below into a thing that takes something with a .Len() and an == operator

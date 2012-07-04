@@ -16,8 +16,8 @@ $(NAME): $(NAME).cpp Snap.o dataloader.o doc.o quote.o lsh.o
 Snap.o: 
 	g++ -c $(CXXFLAGS) $(SNAP)/Snap.cpp -I$(GLIB) -I$(SNAP)
 	
-data_loader.o:
-	g++ -c $(CXXFLAGS) data_loader.cpp -I$(GLIB) -I$(SNAP)
+dataloader.o:
+	g++ -c $(CXXFLAGS) dataloader.cpp -I$(GLIB) -I$(SNAP)
 	
 doc.o:
 	g++ -c $(CXXFLAGS) doc.cpp -I$(GLIB) -I$(SNAP)

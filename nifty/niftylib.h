@@ -1,5 +1,5 @@
-#ifndef nifty_lib_h
-#define nifty_lib_h
+#ifndef niftylib_h
+#define niftylib_h
 
 //Nifty library
 
@@ -10,7 +10,7 @@
 #include "quote.h"
 
 // filtering
-#include "data_loader.h"
+#include "dataloader.h"
 
 // graph creation
 #include "lsh.h"

@@ -1,5 +1,5 @@
-#ifndef quote_graph_h
-#define quote_graph_h
+#ifndef quotegraph_h
+#define quotegraph_h
 
 #include "quote.h"
 

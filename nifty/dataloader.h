@@ -1,5 +1,5 @@
-#ifndef data_loader_h
-#define data_loader_h
+#ifndef dataloader_h
+#define dataloader_h
 
 #include "../../snap/snap-core/Snap.h"
 

@@ -1,6 +1,5 @@
 #include "stdafx.h"
-#include "data_loader.h"
-
+#include "dataloader.h"
 
 bool TDataLoader::LoadNextFile() {
 	if (CurrentFileId == FileList.Len()) {
