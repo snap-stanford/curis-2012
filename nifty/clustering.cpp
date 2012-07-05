@@ -71,8 +71,7 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
   }
 }
 
-void Clustering::SortClustersByFreq(TVec<TPair<TStr, TInt> >& RepQuotesAndFreq,
-                                    TVec<TIntV>& Clusters, TQuoteBase *QuoteBase) {
+void Clustering::SortClustersByFreq(TVec<TPair<TStr, TInt> >& RepQuotesAndFreq, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase) {
   for (int i = 0; i < Clusters.Len(); i++) {
     TIntV Cluster = Clusters[i];
     TPair<TStr, TInt> ClusterRepQuoteAndFreq;
