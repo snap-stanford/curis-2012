@@ -21,13 +21,14 @@ void LoadCommonEnglishWords() {
   }
 }
 
-bool IsEnglish(TChA &quote) {
+bool IsEnglish(const TChA &quote) {
   return quote.CountCh('?') <= quote.Len()/2;
 }
 
 /// Assumes lower case characters only format
 bool IsRobustlyEnglish(TStr Quote) {
-  TStrV Parsed = TQuote::ParseContentString(Quote);
+  TStrV Parsed;
+  TQuote::ParseContentString(Quote, Parsed);
   TInt EnglishCount = 0;
   for (int i = 0; i < Parsed.Len(); ++i) {
     if (CommonEnglishWordsList.IsKey(Parsed[i])) {
@@ -46,7 +47,7 @@ void LoadURLBlackList() {
   }
 }
 
-bool IsUrlInBlackList(TChA &Url) {
+bool IsUrlInBlackList(const TChA &Url) {
   TStr UrlStr(Url);
   TStrV PeriodVector;
   UrlStr.SplitOnAllAnyCh(".", PeriodVector);
@@ -90,7 +91,7 @@ void FilterSpacesAndSetLowercase(TStr &QtStr) {
   }
 }
 
-bool IsDuplicateUrl(TChA &Url) {
+bool IsDuplicateUrl(const TChA &Url) {
   TMd5Sig UrlSig = TMd5Sig(Url);
   if (SeenUrlSet.IsKey(UrlSig)) { return true; }
     SeenUrlSet.AddKey(UrlSig);
@@ -106,7 +107,9 @@ void OutputQuoteInformation(TQuoteBase* QuoteBase, TStr FileName) {
     TQuote Quote;
     bool IsInQB = QuoteBase->GetQuote(QuoteIds[i], Quote);
     if (IsInQB) {
-      fprintf(F, "%d: %s\n", Quote.GetNumSources(), Quote.GetContentString().CStr());
+      TStr ContentString;
+      Quote.GetContentString(ContentString);
+      fprintf(F, "%d: %s\n", Quote.GetNumSources().Val, ContentString.CStr());
     }
   }
   //Save(QuotesFile);
@@ -141,8 +144,8 @@ int main(int argc, char *argv[]) {
       bool ContainValidQuote = false;
       for (int m = 0; m < Memes.MemeV.Len(); m++) {
         if (IsEnglish(Memes.MemeV[m]) &&
-            TStrUtil::CountWords(Memes.MemeV[m].CStr()) >= MinQtWrdLen &&
-            TStrUtil::CountWords(Memes.MemeV[m].CStr()) <= MaxQtWrdLen) {
+            TStrUtil::CountWords(Memes.MemeV[m]) >= MinQtWrdLen &&
+            TStrUtil::CountWords(Memes.MemeV[m]) <= MaxQtWrdLen) {
           TStr QtStr = Memes.MemeV[m];
           FilterSpacesAndSetLowercase(QtStr);
           ContainValidQuote = true;
@@ -174,16 +177,18 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < QuoteIds.Len(); i++) {
     TQuote Q;
     TmpQB->GetQuote(QuoteIds[i], Q);
+    TStr QContentString;
+    Q.GetContentString(QContentString);
     if (Q.GetNumSources() >= MinMemeFreq &&
         Q.GetNumSources() >= 4 * Q.GetNumDomains(TmpDB) &&
-        IsRobustlyEnglish(Q.GetContentString())) {
+        IsRobustlyEnglish(QContentString)) {
       TIntV Sources;
       Q.GetSources(Sources);
       for (int j = 0; j < Sources.Len(); j++) {
         TDoc D;
         TmpDB->GetDoc(Sources[j], D);
         TInt NewSourceId = DB->AddDoc(D);
-        QB->AddQuote(Q.GetContentString(), NewSourceId);
+        QB->AddQuote(QContentString, NewSourceId);
       }
     }
     if (i % 5000 == 4999) {

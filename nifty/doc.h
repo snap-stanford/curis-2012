@@ -13,21 +13,21 @@ private:
 
 public:
   TDoc();
-  TDoc(TInt Id, TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links);
+  TDoc(TInt Id, const TChA &Url, TSecTm Date, const TChA &Content, const TVec<TChA> &Links);
   TDoc(TSIn& SIn) : Id(SIn), Url(SIn), Date(SIn), Content(SIn), Links(SIn) { }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   TInt GetId() const;
-  TStr GetUrl() const;
+  void GetUrl(TStr &Ref);
   TSecTm GetDate() const;
-  TStr GetContent() const;
+  void GetContent(TStr &Ref);
   void GetLinks(TStrV &RefL);
 
   void SetId(TInt Id);
-  void SetUrl(TStr Url);
+  void SetUrl(const TStr &Url);
   void SetDate(TSecTm Date);
-  void SetContent(TStr Content);
-  void AddLink(TStr Link);
+  void SetContent(const TStr &Content);
+  void AddLink(const TStr &Link);
 };
 
 class TDocBase {
@@ -42,10 +42,10 @@ public:
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   int Len() const;
-  TInt GetDocId(TStr Url) const;
+  TInt GetDocId(const TStr &Url) const;
   bool GetDoc(TInt Id, TDoc &RetDoc) const;
-  TInt AddDoc(TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links);
-  TInt AddDoc(TDoc Doc);
+  TInt AddDoc(const TChA &Url, TSecTm Date, const TChA &Content, const TVec<TChA> &Links);
+  TInt AddDoc(TDoc &Doc);
   void RemoveDoc(TInt DocId);
   void GetAllDocIds(TVec<TInt> &DocIds) const;
 };

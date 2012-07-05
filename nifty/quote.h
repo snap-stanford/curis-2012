@@ -16,24 +16,24 @@ private:
 
 public:
   TQuote();
-  TQuote(TInt Id, TStrV& Content);
-  TQuote(TInt Id, TStr ContentString);
+  TQuote(TInt Id, const TStrV& Content);
+  TQuote(TInt Id, const TStr& ContentString);
   TQuote(TSIn& SIn) : Id(SIn), Content(SIn), ParsedContent(SIn), ParsedContentString(SIn), Sources(SIn) { }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   void AddSource(TInt SourceId);
   void GetSources(TIntV &RefS);
-  TStrV GetContent();
-  TStr GetContentString();
-  TStrV GetParsedContent();
-  TStr GetParsedContentString();
+  void GetContent(TStrV &Ref);
+  void GetContentString(TStr &Ref);
+  void GetParsedContent(TStrV &Ref);
+  void GetParsedContentString(TStr &Ref);
   TInt GetId();
   TInt GetNumDomains(TDocBase *DocBase);
   TInt GetNumSources();
 
   static PSwSet StopWordSet;
-  static TStrV ParseContentString(TStr ContentString);
-  static TStrV StemAndStopWordsContentString(TStrV ContentV);
+  static void ParseContentString(const TStr &ContentString, TStrV &ParsedString);
+  static void StemAndStopWordsContentString(const TStrV &ContentV, TStrV &NewContent);
 };
 
 class TQuoteBase {
@@ -46,13 +46,13 @@ public:
   // returns true if new TQuote created, false otherwise.
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
-  TQuote AddQuote(TStr ContentString);
-  TQuote AddQuote(TStr ContentString, TInt SourceId);
+  TQuote AddQuote(const TStr &ContentString);
+  TQuote AddQuote(const TStr &ContentString, TInt SourceId);
   void RemoveQuote(TInt QuoteId);
-  TInt GetQuoteId(TStrV& Content);
-  TInt GetNewQuoteId(TStrV& Content);
-  bool GetQuote(TInt QuoteId, TQuote& RefQ);
-  void GetAllQuoteIds(TIntV& KeyV);
+  TInt GetQuoteId(const TStrV &Content);
+  TInt GetNewQuoteId(const TStrV &Content);
+  bool GetQuote(TInt QuoteId, TQuote &RefQ);
+  void GetAllQuoteIds(TIntV &KeyV);
   int Len();
 };
 

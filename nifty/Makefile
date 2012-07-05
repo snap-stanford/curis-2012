@@ -6,9 +6,12 @@ SNAP = ../../snap/snap-core
 GLIB = ../../snap/glib-core
 
 all: $(NAME)
-opt: CXXFLAGS += -O4
-opt: LDFLAGS += -O4
+opt: CXXFLAGS += -O3
+opt: LDFLAGS += -O3
 opt: $(NAME)
+profile: CXXFLAGS += -pg
+profile: LDFLAGS += -pg
+profile: $(NAME)
 
 $(NAME): $(NAME).cpp Snap.o data_loader.o doc.o quote.o lsh.o
 	g++ -o $(NAME) $(NAME).cpp Snap.o data_loader.o doc.o quote.o lsh.o -I$(GLIB) -I$(SNAP) $(LDFLAGS) 

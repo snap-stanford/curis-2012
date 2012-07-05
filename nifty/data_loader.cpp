@@ -1,16 +1,25 @@
 #include "stdafx.h"
 #include "data_loader.h"
 
+TDataLoader::TDataLoader() {
+  CurrentFileId = -1;
+}
 
 bool TDataLoader::LoadNextFile() {
-	if (CurrentFileId == FileList.Len()) {
+	if (CurrentFileId == FileList.Len() || CurrentFileId == -1) {
 		return false;
 	} else {
 	  printf("%s\n", FileList[CurrentFileId].CStr());
 		SInPt = TZipIn::New(Prefix + FileList[CurrentFileId]);
-		CurrentFileId++;
+	  //SInPt = TFIn::New(Prefix + FileList[CurrentFileId]);
+	  CurrentFileId++;
 		return true;
 	}
+}
+
+void TDataLoader::LoadFile(const TStr& InFileName) {
+  SInPt = TZipIn::New(InFileName);
+  CurrentFileId = -1;
 }
 
 void TDataLoader::LoadFileList(const TStr& InFileName, const TStr& Directory) {

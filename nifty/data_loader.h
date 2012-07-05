@@ -20,8 +20,10 @@ public:
   TVec<TChA> LinkV;       // link url
   TVec<TInt> LinkPosV;    // url begins at ContentStr[LinkPosV[i]]
 public:
+  TDataLoader();
   void Clr();
   void LoadFileList(const TStr&, const TStr&);
+  void LoadFile(const TStr&);
   bool LoadNextFile();
   bool LoadNextEntry();
   int GetNumFiles() { return FileList.Len(); }
