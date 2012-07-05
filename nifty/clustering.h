@@ -8,6 +8,8 @@ class Clustering {
 private:
   PNGraph QGraph;
 public:
+  void Save(TSOut& SOut) const;
+  void Load(TSIn& SIn);
   void SetGraph(PNGraph QGraph);
   void GetRootNodes(TIntSet& RootNodes);
   void BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase *QB);
