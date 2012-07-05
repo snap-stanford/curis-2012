@@ -1,20 +1,22 @@
 CXXFLAGS += -std=c++98 -g -Wall
 LDFLAGS += -lrt
 
-NAME = filter
 SNAP = ../../snap/snap-core
 GLIB = ../../snap/glib-core
 
-all: $(NAME)
+all: filter memecluster
 opt: CXXFLAGS += -O3
 opt: LDFLAGS += -O3
-opt: $(NAME)
+opt: filter memecluster
 profile: CXXFLAGS += -pg
 profile: LDFLAGS += -pg
-profile: $(NAME)
+profile: filter memecluster
 
-$(NAME): $(NAME).cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o clustering.o
-	g++ -o $(NAME) $(NAME).cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o clustering.o -I$(GLIB) -I$(SNAP) $(LDFLAGS) 
+filter: filter.cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o clustering.o
+	g++ -o filter filter.cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o clustering.o -I$(GLIB) -I$(SNAP) $(LDFLAGS) 
+	
+memecluster: memecluster.cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o clustering.o
+	g++ -o memecluster memecluster.cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o clustering.o -I$(GLIB) -I$(SNAP) $(LDFLAGS)
 
 Snap.o: 
 	g++ -c $(CXXFLAGS) $(SNAP)/Snap.cpp -I$(GLIB) -I$(SNAP)

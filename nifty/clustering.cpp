@@ -1,6 +1,18 @@
 #include "stdafx.h"
 #include "clustering.h"
 
+void Clustering::Save(TSOut &SOut) const {
+  //QuoteIdCounter.Save(SOut);
+  //IdToTQuotes.Save(SOut);
+  //QuoteToId.Save(SOut);
+}
+
+void Clustering::Load(TSIn& SIn) {
+  //QuoteIdCounter.Load(SIn);
+  //IdToTQuotes.Load(SIn);
+  //QuoteToId.Load(SIn);
+}
+
 void Clustering::SetGraph(PNGraph QGraph) {
   this->QGraph = QGraph;
 }
