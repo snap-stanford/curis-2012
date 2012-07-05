@@ -44,7 +44,11 @@ void QuoteGraph::AddEdgeIfSimilar(TInt Id1, TInt Id2) {
   TQuote Quote1, Quote2;
   if (QB->GetQuote(Id1, Quote1) && QB->GetQuote(Id2, Quote2)) {
     if (EdgeShouldBeCreated(Quote1, Quote2)) {
-        QGraph->AddEdge(Id1, Id2); // EDGE ADDED!
+      if (Quote1.GetParsedContent().Len() > Quote2.GetParsedContent().Len()) {
+        QGraph->AddEdge(Id2, Id1); // EDGE ADDED!
+      } else if (Quote2.GetParsedContent().Len() > Quote1.GetParsedContent().Len()) {
+        QGraph->AddEdge(Id1, Id2); // TODO: we don't account for the "quotes are equal length" case because we're not too sure how to deal with that.
+      }
     }
   }
 }
