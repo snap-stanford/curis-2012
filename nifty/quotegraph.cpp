@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "quotegraph.h"
 #include "quote.h"
+#include "lsh.h"
 
 void QuoteGraph::QuoteGraph(TQuoteBase *QB) {
   this->QB = QB;
@@ -27,7 +28,7 @@ void QuoteGraph::CreateEdges() {
     TIntV Buckets;
     BucketsVector[i].GetKeyV(Buckets);
     TIntV::TIter BucketEnd = Buckets.EndI();
-    for (TIntV::TIter BucketSig = 0; BucketSig < BucketEnd; Bucket++) {
+    for (TIntV::TIter BucketSig = 0; BucketSig < BucketEnd; BucketSig++) {
       TIntSet Bucket  = BucketsVector[i].GetDat(*BucketSig);
       for (TIntSet::TIter Quote1 = Bucket.BegI(); Quote1 < Bucket.EndI(); Quote1++) {
         for (TIntSet::TIter Quote2 = Quote1; Quote1 < Bucket.EndI(); Quote1++) {
