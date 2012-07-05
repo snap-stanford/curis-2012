@@ -1,6 +1,10 @@
 #include "stdafx.h"
 #include "lsh.h"
 
+const int LSH::BandSize = 5;
+const int LSH::NumBands = 20;
+const int LSH::ShingleLen = 4;
+
 // For every quote, add it to corresponding bucket for each hashed x-character shingle of the quote
 void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TIntSet>& ShingleToQuoteIds) {
   printf("Hashing shingles...\n");

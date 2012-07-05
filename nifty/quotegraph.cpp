@@ -3,46 +3,47 @@
 #include "quote.h"
 #include "lsh.h"
 
-void QuoteGraph::QuoteGraph(TQuoteBase *QB) {
+QuoteGraph::QuoteGraph(TQuoteBase *QB) {
   this->QB = QB;
-  CreateGraph();
+  CreateGraph();CreateGraph();
   CreateEdges();
 }
 
 void QuoteGraph::CreateGraph() {
   QGraph = TNGraph::New();
-  TIntV QuoteIds = QB->GetAllQuoteIds();
-  TVec::TIter QuoteIdsEnd = QuoteIds.EndI();
-  for (TVec::TIter QuoteId = QuoteIds.BegI(); QuoteId < QuoteIds.EndI(); QuoteId++) {
+  TIntV QuoteIds;
+  QB->GetAllQuoteIds(QuoteIds);
+  TIntV::TIter QuoteIdsEnd = QuoteIds.EndI();
+  for (TIntV::TIter QuoteId = QuoteIds.BegI(); QuoteId < QuoteIdsEnd; QuoteId++) {
     QGraph->AddNode(*QuoteId);
   }
 }
 
 void QuoteGraph::CreateEdges() {
   THash<TMd5Sig, TIntSet> Shingles;
-  LSH::HashShingles(QB, Shingles);
+  LSH::HashShingles(QB, LSH::ShingleLen, Shingles);
   TVec<THash<TIntV, TIntSet> > BucketsVector;
   LSH::MinHash(Shingles, BucketsVector);
 
   for (int i = 0; i < BucketsVector.Len(); i++) {
-    TIntV Buckets;
+    TVec<TIntV> Buckets;
     BucketsVector[i].GetKeyV(Buckets);
-    TIntV::TIter BucketEnd = Buckets.EndI();
-    for (TIntV::TIter BucketSig = 0; BucketSig < BucketEnd; BucketSig++) {
+    TVec<TIntV>::TIter BucketEnd = Buckets.EndI();
+    for (TVec<TIntV>::TIter BucketSig = 0; BucketSig < BucketEnd; BucketSig++) {
       TIntSet Bucket  = BucketsVector[i].GetDat(*BucketSig);
       for (TIntSet::TIter Quote1 = Bucket.BegI(); Quote1 < Bucket.EndI(); Quote1++) {
         for (TIntSet::TIter Quote2 = Quote1; Quote1 < Bucket.EndI(); Quote1++) {
-          AddEdgeIfSimilar(Quote1.GetVal(), Quote2.GetVal());
+          AddEdgeIfSimilar(Quote1.GetKey(), Quote2.GetKey());
         }
       }
     }
   }
 }
 
-void QuoteGraph::AddEdgeIfSimilar(TIntId1, TIntId2) {
+void QuoteGraph::AddEdgeIfSimilar(TInt Id1, TInt Id2) {
   TQuote Quote1, Quote2;
   if (QB->GetQuote(Id1, Quote1) && QB->GetQuote(Id2, Quote2)) {
-    if (EdgeShouldBeAdded(Quote1, Quote2)) {
+    if (EdgeShouldBeCreated(Quote1, Quote2)) {
         QGraph->AddEdge(Id1, Id2); // EDGE ADDED!
     }
   }
@@ -58,8 +59,8 @@ bool QuoteGraph::EdgeShouldBeCreated(TQuote Quote1, TQuote Quote2) {
   TInt LDistance = WordLevenshteinDistance(Content1V, Content2V);
 
   // Decision tree from clustering methods paper
-  MinStopLen = min(Content1V.Len(), Content2V.Len());
-  MinLen = min(Quote1.GetContent().Len(), Quote2.GetContent().Len());
+  int MinStopLen = min(Content1V.Len(), Content2V.Len());
+  int MinLen = min(Quote1.GetContent().Len(), Quote2.GetContent().Len());
   if (LDistance == 0) {
     return true;
   } else if (MinLen == 4 && LDistance <= 1 && MinStopLen == 4) {
@@ -78,7 +79,7 @@ bool QuoteGraph::EdgeShouldBeCreated(TQuote Quote1, TQuote Quote2) {
 // because duplicate code is bad.
 TInt QuoteGraph::WordLevenshteinDistance(TStrV Content1, TStrV Content2) {
   TInt C1Len = Content1.Len() + 1, C2Len = Content2.Len() + 1;
-  TInt d[C1Len][C2Len];
+  TInt d[C1Len.Val][C2Len.Val];
 
   for (int i = 0; i < C1Len ; i++) {
     for (int j = 0; j < C2Len; j++) {
@@ -87,11 +88,11 @@ TInt QuoteGraph::WordLevenshteinDistance(TStrV Content1, TStrV Content2) {
   }
 
   for (int i = 0; i < C1Len; i++) {
-    d[i, 0] = i;
+    d[i][0] = i;
   }
 
   for (int j = 0; j < C2Len; j++) {
-    d[0, j] = j;
+    d[0][j] = j;
   }
 
   for (int j = 1; j < C2Len; j++) {
@@ -109,9 +110,9 @@ TInt QuoteGraph::WordLevenshteinDistance(TStrV Content1, TStrV Content2) {
   return d[C1Len][C2Len];
 }
 
-TInt QuoteGraph::LevenshteinDistance(TSTr Content1, TStr Content2) {
+TInt QuoteGraph::LevenshteinDistance(TStr Content1, TStr Content2) {
   TInt C1Len = Content1.Len() + 1, C2Len = Content2.Len() + 1;
-  TInt d[C1Len][C2Len];
+  TInt d[C1Len.Val][C2Len.Val];
 
   for (int i = 0; i < C1Len ; i++) {
     for (int j = 0; j < C2Len; j++) {
@@ -120,11 +121,11 @@ TInt QuoteGraph::LevenshteinDistance(TSTr Content1, TStr Content2) {
   }
 
   for (int i = 0; i < C1Len; i++) {
-    d[i, 0] = i;
+    d[i][0] = i;
   }
 
   for (int j = 0; j < C2Len; j++) {
-    d[0, j] = j;
+    d[0][j] = j;
   }
 
   for (int j = 1; j < C2Len; j++) {
