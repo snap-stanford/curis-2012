@@ -10,6 +10,8 @@ public:
   void SetGraph(PNGraph QGraph);
   void GetRootNodes(TIntSet& RootNodes);
   void BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters);
+  void SortClustersByFreq(TVec<TPair<TStr, TInt> >& RepQuotesAndFreq,
+                          TVec<TIntV>& Clusters, TQuoteBase *QuoteBase);
 };
 
 #endif

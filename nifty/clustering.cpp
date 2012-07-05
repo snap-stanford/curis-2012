@@ -58,3 +58,36 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters) {
     Clusters.Add(CnComV[i].NIdV);
   }
 }
+
+void Clustering::SortClustersByFreq(TVec<TPair<TStr, TInt> >& RepQuotesAndFreq,
+                                    TVec<TIntV>& Clusters, TInt NumClusters, TQuoteBase *QuoteBase) {
+  for (int i = 0; i < NumClusters.Len(); i++) {
+    TIntV Cluster = NumClusters[i];
+    TPair<TStr, TInt> ClusterRepQuoteAndFreq;
+    for (int j = 0; j < Cluster.Len(); j++) {
+      TInt QId = Cluster[j];
+      TQuote Q;
+      QuoteBase->GetQuote(QId, Q);
+      ClusterRepQuoteAndFreq.Val2 += Q.GetNumSources();
+      TNGraph::TNode = QGraph->GetNodeC(Q.GetId());
+      if (TNode.GetOutDeg() == 0) {
+        Q.GetContentString(ClusterRepQuoteAndFreq.Val1);
+      }
+    }
+  }
+
+  RepQuotesAndFreq.SortCmp(CompareByFreq);
+}
+
+class CompareByFreq {
+public:
+  int operator(TPair<TStr, TInt>& First, TPair<TStr, TInt>& Second) {
+    if (First.Val1 < Second.Val1) {
+      return -1;
+    } else if (First.Val1 == Second.Val1) {
+      return 0;
+    } else {
+      return 1;
+    }
+  }
+}
