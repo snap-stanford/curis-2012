@@ -5,12 +5,16 @@
 
 QuoteGraph::QuoteGraph(TQuoteBase *QB) {
   this->QB = QB;
-  CreateGraph();CreateGraph();
-  CreateEdges();
 }
 
-void QuoteGraph::CreateGraph() {
-  QGraph = TNGraph::New();
+void QuoteGraph::CreateGraph(PNGraph& QGraph) {
+  this->QGraph = TNGraph::New();
+  CreateNodes();
+  CreateEdges();
+  QGraph = this->QGraph;
+}
+
+void QuoteGraph::CreateNodes() {
   TIntV QuoteIds;
   QB->GetAllQuoteIds(QuoteIds);
   TIntV::TIter QuoteIdsEnd = QuoteIds.EndI();
