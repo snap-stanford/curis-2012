@@ -27,6 +27,8 @@ public:
   void GetContentString(TStr &Ref);
   void GetParsedContent(TStrV &Ref);
   void GetParsedContentString(TStr &Ref);
+  TInt GetContentNumWords();
+  TInt GetParsedContentNumWords();
   TInt GetId();
   TInt GetNumDomains(TDocBase *DocBase);
   TInt GetNumSources();

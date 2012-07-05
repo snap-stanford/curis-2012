@@ -63,6 +63,14 @@ void TQuote::GetParsedContentString(TStr &Ref) {
   Ref = ParsedContentString;
 }
 
+TInt TQuote::GetContentNumWords() {
+  return Content.Len();
+}
+
+TInt TQuote::GetParsedContentNumWords() {
+  return ParsedContent.Len();
+}
+
 TInt TQuote::GetId() {
   return Id;
 }

@@ -50,8 +50,10 @@ void QuoteGraph::AddEdgeIfSimilar(TInt Id1, TInt Id2) {
 }
 
 bool QuoteGraph::EdgeShouldBeCreated(TQuote& Quote1, TQuote& Quote2) {
-  TStr Content1 = Quote1.GetParsedContentString();
-  TStr Content2 = Quote2.GetParsedContentString();
+  TStr Content1;
+  Quote1.GetParsedContentString(Content1);
+  TStr Content2;
+  Quote2.GetParsedContentString(Content2);
   TStrV Content1V;
   TStrV Content2V;
   Content1.SplitOnWs(Content1V);
@@ -60,7 +62,7 @@ bool QuoteGraph::EdgeShouldBeCreated(TQuote& Quote1, TQuote& Quote2) {
 
   // Decision tree from clustering methods paper
   int MinStopLen = min(Content1V.Len(), Content2V.Len());
-  int MinLen = min(Quote1.GetContent().Len(), Quote2.GetContent().Len());
+  int MinLen = min(Quote1.GetContentNumWords(), Quote2.GetContentNumWords());
   if (LDistance == 0) {
     return true;
   } else if (MinLen == 4 && LDistance <= 1 && MinStopLen == 4) {
