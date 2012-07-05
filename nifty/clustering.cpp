@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "clustering.h"
+#include "quote.h"
 
 void Clustering::SetGraph(PNGraph QGraph) {
   this->QGraph = QGraph;
@@ -14,7 +15,7 @@ void Clustering::GetRootNodes(TIntSet& RootNodes) {
   }
 }
 
-void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters) {
+void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase* QB) {
   // currently deletes all edges but the one leading to phrase that is most frequently cited.
   // TODO: Make more efficient? At 10k nodes this is ok
   TNGraph::TNodeI EndNode = QGraph->EndNI();
@@ -29,7 +30,7 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters) {
       for (int i = 0; i < NodeDegree; ++i) {
         TInt CurNode = Node.GetOutNId(i);
         TQuote CurQuote;
-        if (GetQuote(CurNode, CurQuote) && CurQuote.GetNumSources() > MaxCites) {
+        if (QB->GetQuote(CurNode, CurQuote) && CurQuote.GetNumSources() > MaxCites) {
           MaxCites = CurQuote.GetNumSources();
           MaxNodeId = CurNode;
         }
@@ -55,6 +56,6 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters) {
       IAssert(! SeenSet.IsKey(Components[i].NIdV[n]));
       SeenSet.AddKey(Components[i].NIdV[n]);
     }
-    Clusters.Add(CnComV[i].NIdV);
+    Clusters.Add(Components[i].NIdV);
   }
 }
