@@ -18,7 +18,8 @@ void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TI
     QuoteBase->GetQuote(QuoteIds[qt], Q);
 
     // Put x-character shingles into hash table; x is specified by ShingleLen parameter
-    TStr QContentStr = Q.GetParsedContentString();
+    TStr QContentStr;
+    Q.GetParsedContentString(QContentStr);
     TChA QContentChA = TChA(QContentStr);
     
     for (int i = 0; i < QContentChA.Len()-ShingleLen+1; i++) {

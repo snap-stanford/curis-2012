@@ -7,20 +7,20 @@ PSwSet TQuote::StopWordSet = new TSwSet(swstEnMsdn);
 TQuote::TQuote() {
 }
 
-TQuote::TQuote(TInt Id, TStrV& Content) {
+TQuote::TQuote(TInt Id, const TStrV& Content) {
   this->Id = Id;
   this->Content = Content; // TODO: deep copy?
   Init();
 }
 
-TQuote::TQuote(TInt Id, TStr ContentString) {
+TQuote::TQuote(TInt Id, const TStr &ContentString) {
   this->Id = Id;
-	Content = TQuote::ParseContentString(ContentString);
+	ParseContentString(ContentString, Content);
 	Init();
 }
 
 void TQuote::Init() {
-  this->ParsedContent = TQuote::StemAndStopWordsContentString(Content);
+  StemAndStopWordsContentString(Content, ParsedContent);
   for (int i = 0; i < ParsedContent.Len(); ++i) {
     if (i > 0) this->ParsedContentString.InsStr(ParsedContentString.Len()," ");
     this->ParsedContentString.InsStr(ParsedContentString.Len(), ParsedContent[i]);
@@ -44,25 +44,31 @@ void TQuote::Load(TSIn& SIn) {
 }
 
 
-TStrV TQuote::GetContent() {
-  return Content;
+void TQuote::GetContent(TStrV &Ref) {
+  Ref = Content;
 }
 
-TStr TQuote::GetContentString() {
-  TStr String;
-    for (int i = 0; i < Content.Len(); ++i) {
-        if (i > 0)  String.InsStr(String.Len()," ");
-        String.InsStr(String.Len(), Content[i]);
-    }
-    return String;
+void TQuote::GetContentString(TStr &Ref) {
+  for (int i = 0; i < Content.Len(); ++i) {
+    if (i > 0)  Ref.InsStr(Ref.Len()," ");
+    Ref.InsStr(Ref.Len(), Content[i]);
+  }
 }
 
-TStrV TQuote::GetParsedContent() {
-  return ParsedContent;
+void TQuote::GetParsedContent(TStrV &Ref) {
+  Ref = ParsedContent;
 }
 
-TStr TQuote::GetParsedContentString() {
-  return ParsedContentString;
+void TQuote::GetParsedContentString(TStr &Ref) {
+  Ref = ParsedContentString;
+}
+
+TInt TQuote::GetContentNumWords() {
+  return Content.Len();
+}
+
+TInt TQuote::GetParsedContentNumWords() {
+  return ParsedContent.Len();
 }
 
 TInt TQuote::GetId() {
@@ -74,7 +80,9 @@ TInt TQuote::GetNumDomains(TDocBase *DocBase) {
   for (int u = 0; u < Sources.Len(); u++) {
     TDoc Doc;
     if(DocBase->GetDoc(Sources[u], Doc)) {
-      DomSet.AddKey(TStrUtil::GetDomNm(Doc.GetUrl()));
+      TStr DocUrl;
+      Doc.GetUrl(DocUrl);
+      DomSet.AddKey(TStrUtil::GetDomNm(DocUrl));
     }
   }
   return DomSet.Len();
@@ -93,20 +101,16 @@ void TQuote::GetSources(TIntV &RefS) {
   RefS = Sources;
 }
 
-TStrV TQuote::ParseContentString(TStr ContentString) {
-  TStrV ParsedString;
+void TQuote::ParseContentString(const TStr &ContentString, TStrV &ParsedString) {
   ContentString.SplitOnAllAnyCh(" ", ParsedString);
-  return ParsedString;
 }
 
-TStrV TQuote::StemAndStopWordsContentString(TStrV ContentV) {
-  TStrV NewContent;
+void TQuote::StemAndStopWordsContentString(const TStrV &ContentV, TStrV &NewContent) {
   for (int i = 0; i < ContentV.Len(); ++i) {
     if (!StopWordSet->IsIn(ContentV[i], false)) {
       NewContent.Add(TPorterStemmer::StemX(ContentV[i]).GetLc());
     }
   }
-  return NewContent;
 }
 
 TQuoteBase::TQuoteBase() {
@@ -114,8 +118,9 @@ TQuoteBase::TQuoteBase() {
 }
 
 /// Adds quote string to quote base; returns quote's quote id
-TQuote TQuoteBase::AddQuote(TStr ContentString) {
-  TStrV ContentVectorString = TQuote::ParseContentString(ContentString);
+TQuote TQuoteBase::AddQuote(const TStr &ContentString) {
+  TStrV ContentVectorString;
+  TQuote::ParseContentString(ContentString, ContentVectorString);
   TInt QuoteId = GetNewQuoteId(ContentVectorString);
   if (IdToTQuotes.IsKey(QuoteId)) {
     return IdToTQuotes.GetDat(QuoteId); // nothing to do here; quote is already in database
@@ -128,12 +133,13 @@ TQuote TQuoteBase::AddQuote(TStr ContentString) {
   }
 }
 
-TQuote TQuoteBase::AddQuote(TStr ContentString, TInt SourceId) {
+TQuote TQuoteBase::AddQuote(const TStr &ContentString, TInt SourceId) {
   //TQuote NewQuote = AddQuote(ContentString);
   //NewQuote.AddSource(SourceId);
   //return NewQuote;
 
-  TStrV ContentVectorString = TQuote::ParseContentString(ContentString);
+  TStrV ContentVectorString;
+  TQuote::ParseContentString(ContentString, ContentVectorString);
   TInt QuoteId = GetNewQuoteId(ContentVectorString);
   if (IdToTQuotes.IsKey(QuoteId)) {
     TQuote CurQuote =  IdToTQuotes.GetDat(QuoteId); // nothing to do here; quote is already in database
@@ -154,14 +160,16 @@ void TQuoteBase::RemoveQuote(TInt QuoteId) {
   // TODO: memory management
   if (IdToTQuotes.IsKey(QuoteId)) {
     TQuote CurQuote = IdToTQuotes.GetDat(QuoteId);
-    if (QuoteToId.IsKey(CurQuote.GetContent())) {
-      QuoteToId.DelKey(CurQuote.GetContent());
+    TStrV CurContent;
+    CurQuote.GetContent(CurContent);
+    if (QuoteToId.IsKey(CurContent)) {
+      QuoteToId.DelKey(CurContent);
     }
     IdToTQuotes.DelKey(QuoteId);
   }
 }
 
-TInt TQuoteBase::GetNewQuoteId(TStrV& Content) {
+TInt TQuoteBase::GetNewQuoteId(const TStrV& Content) {
   if (QuoteToId.IsKey(Content)) {
     return QuoteToId.GetDat(Content);
   } else {
@@ -173,7 +181,7 @@ TInt TQuoteBase::GetNewQuoteId(TStrV& Content) {
   }
 }
 
-TInt TQuoteBase::GetQuoteId(TStrV& Content) {
+TInt TQuoteBase::GetQuoteId(const TStrV &Content) {
   if (QuoteToId.IsKey(Content)) {
     return QuoteToId.GetDat(Content);
   } else {
@@ -181,7 +189,7 @@ TInt TQuoteBase::GetQuoteId(TStrV& Content) {
   }
 }
 
-bool TQuoteBase::GetQuote(TInt QuoteId, TQuote& RefQ) {
+bool TQuoteBase::GetQuote(TInt QuoteId, TQuote &RefQ) {
   if (IdToTQuotes.IsKey(QuoteId)) {
     RefQ = IdToTQuotes.GetDat(QuoteId);
     return true;
@@ -193,11 +201,11 @@ int TQuoteBase::Len() {
   return IdToTQuotes.Len();
 }
 
-void TQuoteBase::GetAllQuoteIds(TIntV& KeyV) {
+void TQuoteBase::GetAllQuoteIds(TIntV &KeyV) {
   IdToTQuotes.GetKeyV(KeyV);
 }
 
-void TQuoteBase::Save(TSOut& SOut) const {
+void TQuoteBase::Save(TSOut &SOut) const {
   QuoteIdCounter.Save(SOut);
   IdToTQuotes.Save(SOut);
   QuoteToId.Save(SOut);

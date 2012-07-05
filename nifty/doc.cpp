@@ -4,7 +4,7 @@
 TDoc::TDoc() {
 }
 
-TDoc::TDoc(TInt Id, TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links) {
+TDoc::TDoc(TInt Id, const TChA &Url, TSecTm Date, const TChA &Content, const TVec<TChA> &Links) {
   // TODO: Check that URLs are not repeated
   this->Url = TStr(Url);
   this->Date = Date;
@@ -36,16 +36,16 @@ TInt TDoc::GetId() const {
   return Id;
 }
 
-TStr TDoc::GetUrl() const {
-  return Url;
+void TDoc::GetUrl(TStr &Ref) {
+  Ref = Url;
 }
 
 TSecTm TDoc::GetDate() const {
   return Date;
 }
 
-TStr TDoc::GetContent() const {
-  return Content;
+void TDoc::GetContent(TStr &Ref) {
+  Ref = Content;
 }
 
 void TDoc::GetLinks(TStrV &RefL) {
@@ -56,7 +56,7 @@ void TDoc::SetId(TInt Id) {
   this->Id = Id;
 }
 
-void TDoc::SetUrl(TStr Url) {
+void TDoc::SetUrl(const TStr &Url) {
   this->Url = Url;
 }
 
@@ -64,11 +64,11 @@ void TDoc::SetDate(TSecTm Date) {
   this->Date = Date;
 }
 
-void TDoc::SetContent(TStr Content) {
+void TDoc::SetContent(const TStr &Content) {
   this->Content = Content;
 }
 
-void TDoc::AddLink(TStr Link) {
+void TDoc::AddLink(const TStr &Link) {
   Links.Add(Link);
 }
 
@@ -95,7 +95,7 @@ int TDocBase::Len() const {
   return NumDocs;
 }
 
-TInt TDocBase::GetDocId(TStr Url) const {
+TInt TDocBase::GetDocId(const TStr &Url) const {
   if (DocUrlToId.IsKey(Url)) {
     return DocUrlToId.GetDat(Url);
   } else {
@@ -113,7 +113,7 @@ bool TDocBase::GetDoc(TInt Id, TDoc &RetDoc) const {
 }
 
 /// Forms a new TDoc from the document information and adds it to the doc base.
-TInt TDocBase::AddDoc(TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links) {
+TInt TDocBase::AddDoc(const TChA &Url, TSecTm Date, const TChA &Content, const TVec<TChA> &Links) {
   if (!DocUrlToId.IsKey(TStr(Url))) {
     TInt DocId = NextId;
     NextId += 1;
@@ -127,17 +127,19 @@ TInt TDocBase::AddDoc(TChA Url, TSecTm Date, TChA Content, TVec<TChA> Links) {
   }
 }
 
-TInt TDocBase::AddDoc(TDoc Doc) {
-  if (!DocUrlToId.IsKey(TStr(Doc.GetUrl()))) {
+TInt TDocBase::AddDoc(TDoc &Doc) {
+  TStr DocUrl;
+  Doc.GetUrl(DocUrl);
+  if (!DocUrlToId.IsKey(DocUrl)) {
     TInt DocId = NextId;
     NextId += 1;
     NumDocs += 1;
     Doc.SetId(NextId);
     IdToDoc.AddDat(DocId, Doc);
-    DocUrlToId.AddDat(TStr(Doc.GetUrl()), DocId);
+    DocUrlToId.AddDat(DocUrl, DocId);
     return DocId;
   } else {
-    return GetDocId(TStr(Doc.GetUrl()));
+    return GetDocId(DocUrl);
   }
 }
 
@@ -145,8 +147,11 @@ void TDocBase::RemoveDoc(TInt DocId) {
   if (IdToDoc.IsKey(DocId)) {
     TDoc Doc;
     GetDoc(DocId, Doc);
+    TStr DocUrl;
+    Doc.GetUrl(DocUrl);
+
     IdToDoc.DelKey(Doc.GetId());
-    DocUrlToId.DelKey(Doc.GetUrl());
+    DocUrlToId.DelKey(DocUrl);
     NumDocs -= 1;
   }
 }

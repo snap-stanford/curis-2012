@@ -14,7 +14,9 @@ int main(int argc, char *argv[]) {
   
   TDoc t;
   DocBase->GetDoc(0, t);
-  printf("URL: %s\n", t.GetUrl().CStr());
+  TStr tUrl;
+  t.GetUrl(tUrl);
+  printf("URL: %s\n", tUrl.CStr());
   
   TStrV l;
   t.GetLinks(l);
@@ -35,7 +37,9 @@ int main(int argc, char *argv[]) {
 
   TDoc t2;
   DocBase2->GetDoc(0, t2);
-  printf("URL: %s\n", t2.GetUrl().CStr());
+  TStr t2Url;
+  t2.GetUrl(t2Url);
+  printf("URL: %s\n", t2Url.CStr());
 
   t2.GetLinks(l);
   printf("Link1: %s\n", l[0].CStr());
