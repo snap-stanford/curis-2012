@@ -3,6 +3,6 @@
 
 #include <iostream>
 #include "../../snap/snap-core/Snap.h"
-#include "../nifty/Nifty_lib.h"
+#include "../nifty/niftylib.h"
 
 #endif

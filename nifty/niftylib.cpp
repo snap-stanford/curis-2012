@@ -1,14 +1,14 @@
 //Nifty library
 
 #include "stdafx.h"
-#include "Nifty_lib.h"
+#include "niftylib.h"
 
 // data structures
 #include "doc.cpp"
 #include "quote.cpp"
 
 // filtering
-#include "data_loader.cpp"
+#include "dataloader.cpp"
 //#include "filter.cpp"
 
 // graph creation

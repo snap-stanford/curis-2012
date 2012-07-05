@@ -13,14 +13,14 @@ profile: CXXFLAGS += -pg
 profile: LDFLAGS += -pg
 profile: $(NAME)
 
-$(NAME): $(NAME).cpp Snap.o data_loader.o doc.o quote.o lsh.o
-	g++ -o $(NAME) $(NAME).cpp Snap.o data_loader.o doc.o quote.o lsh.o -I$(GLIB) -I$(SNAP) $(LDFLAGS) 
+$(NAME): $(NAME).cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o clustering.o
+	g++ -o $(NAME) $(NAME).cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o clustering.o -I$(GLIB) -I$(SNAP) $(LDFLAGS) 
 
 Snap.o: 
 	g++ -c $(CXXFLAGS) $(SNAP)/Snap.cpp -I$(GLIB) -I$(SNAP)
 	
-data_loader.o:
-	g++ -c $(CXXFLAGS) data_loader.cpp -I$(GLIB) -I$(SNAP)
+dataloader.o:
+	g++ -c $(CXXFLAGS) dataloader.cpp -I$(GLIB) -I$(SNAP)
 	
 doc.o:
 	g++ -c $(CXXFLAGS) doc.cpp -I$(GLIB) -I$(SNAP)
@@ -30,6 +30,12 @@ quote.o:
 
 lsh.o:
 	g++ -c $(CXXFLAGS) lsh.cpp -I$(GLIB) -I$(SNAP)
+
+quotegraph.o:
+	g++ -c $(CXXFLAGS) quotegraph.cpp -I$(GLIB) -I$(SNAP)
+	
+clustering.o:
+	g++ -c $(CXXFLAGS) clustering.cpp -I$(GLIB) -I$(SNAP)
 
 clean:	
 	rm -f *.o *.png *.plt *.tab $(NAME) $(NAME).exe

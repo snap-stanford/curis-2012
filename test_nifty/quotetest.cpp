@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
   QuoteBase->GetQuote(0, Q);
   printf("Content: %s\n", Q.GetContentString().CStr());
   printf("Parsed Content: %s\n", Q.GetParsedContentString().CStr());
-  printf("NumSources: %d\n", Q.GetNumSources());
+  printf("NumSources: %d\n", Q.GetNumSources().Val);
 
   { TFOut FOut("tmp.bin"); QuoteBase->Save(FOut); }
   printf("Save data successfully\n");
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
   QuoteBase2->GetQuote(0, Q2);
   printf("Content: %s\n", Q2.GetContentString().CStr());
   printf("Parsed Content: %s\n", Q2.GetParsedContentString().CStr());
-  printf("NumSources: %d\n", Q2.GetNumSources());
+  printf("NumSources: %d\n", Q2.GetNumSources().Val);
 
   delete QuoteBase2;
 

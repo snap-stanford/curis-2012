@@ -1,9 +1,10 @@
 #include "stdafx.h"
-#include "data_loader.h"
+#include "dataloader.h"
 
 TDataLoader::TDataLoader() {
   CurrentFileId = -1;
 }
+
 
 bool TDataLoader::LoadNextFile() {
 	if (CurrentFileId == FileList.Len() || CurrentFileId == -1) {

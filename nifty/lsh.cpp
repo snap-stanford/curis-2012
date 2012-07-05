@@ -1,6 +1,10 @@
 #include "stdafx.h"
 #include "lsh.h"
 
+const int LSH::BandSize = 5;
+const int LSH::NumBands = 20;
+const int LSH::ShingleLen = 4;
+
 // For every quote, add it to corresponding bucket for each hashed x-character shingle of the quote
 void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TIntSet>& ShingleToQuoteIds) {
   printf("Hashing shingles...\n");
@@ -19,10 +23,11 @@ void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TI
     TChA QContentChA = TChA(QContentStr);
     
     for (int i = 0; i < QContentChA.Len()-ShingleLen+1; i++) {
-      TStr Shingle = TStr();
+      TChA ShingleChA = TChA();
       for (int j = 0; j < ShingleLen; j++) {
-        Shingle += (const char *) QContentChA[i + j];
+        ShingleChA.AddCh(QContentChA.GetCh(i + j));
       }
+      TStr Shingle = TStr(ShingleChA);
       const TMd5Sig ShingleMd5(Shingle);
       TIntSet ShingleQuoteIds;
       if (ShingleToQuoteIds.IsKey(ShingleMd5)) {
@@ -36,10 +41,10 @@ void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TI
 
 void  LSH::MinHash(THash<TMd5Sig, TIntSet>& ShingleToQuoteIds, TVec<THash<TIntV, TIntSet> >& SignatureBandBuckets) {
   TRnd RandomGenerator; // TODO: make this "more random" by incorporating time
-  for(int i = 0; i < NUM_BANDS; ++i) {
+  for(int i = 0; i < NumBands; ++i) {
     THash<TInt, TIntV> Inverted; // (QuoteID, QuoteSignatureForBand)
     THash<TIntV, TIntSet> BandBuckets; // (BandSignature, QuoteIDs)
-    for (int j = 0; j < BAND_SIZE; ++j) {
+    for (int j = 0; j < BandSize; ++j) {
       // Create new signature
       TVec<TMd5Sig> Signature;
       ShingleToQuoteIds.GetKeyV(Signature);
@@ -80,6 +85,6 @@ void  LSH::MinHash(THash<TMd5Sig, TIntSet>& ShingleToQuoteIds, TVec<THash<TIntV,
     }
 
     SignatureBandBuckets.Add(BandBuckets);
-    printf("%d out of %d band signatures computed", i, NUM_BANDS);
+    printf("%d out of %d band signatures computed", i, NumBands);
   }
 }

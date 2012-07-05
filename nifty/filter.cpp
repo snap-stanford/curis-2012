@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "data_loader.h"
+#include "dataloader.h"
 #include "quote.h"
 #include "doc.h"
 #include <stdio.h>
@@ -70,7 +70,6 @@ bool IsUrlInBlackList(const TChA &Url) {
 // Removes all punctuation in the quotes and replace with spaces.
 // Also converts upper case to lower case.
 // Adapted (but modified) from memes.h because I want a white list, not a blacklist.
-// TODO: move to filter.cpp
 void FilterSpacesAndSetLowercase(TStr &QtStr) {
   // Three passes...hopefully this isn't too slow.
   TChA QtChA(QtStr);
