@@ -10,8 +10,8 @@ opt: CXXFLAGS += -O4
 opt: LDFLAGS += -O4
 opt: $(NAME)
 
-$(NAME): $(NAME).cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o
-	g++ -o $(NAME) $(NAME).cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o -I$(GLIB) -I$(SNAP) $(LDFLAGS) 
+$(NAME): $(NAME).cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o clustering.o
+	g++ -o $(NAME) $(NAME).cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o clustering.o -I$(GLIB) -I$(SNAP) $(LDFLAGS) 
 
 Snap.o: 
 	g++ -c $(CXXFLAGS) $(SNAP)/Snap.cpp -I$(GLIB) -I$(SNAP)
@@ -30,6 +30,9 @@ lsh.o:
 
 quotegraph.o:
 	g++ -c $(CXXFLAGS) quotegraph.cpp -I$(GLIB) -I$(SNAP)
+	
+clustering.o:
+	g++ -c $(CXXFLAGS) clustering.cpp -I$(GLIB) -I$(SNAP)
 
 clean:	
 	rm -f *.o *.png *.plt *.tab $(NAME) $(NAME).exe
