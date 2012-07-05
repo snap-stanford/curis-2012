@@ -108,7 +108,7 @@ void OutputQuoteInformation(TQuoteBase* QuoteBase, TStr FileName) {
     if (IsInQB) {
       TStr ContentString;
       Quote.GetContentString(ContentString);
-      fprintf(F, "%d: %s\n", Quote.GetNumSources().Val, ContentString.CStr());
+      fprintf(F, "%d\t%s\n", Quote.GetNumSources().Val, ContentString.CStr());
     }
   }
   //Save(QuotesFile);
