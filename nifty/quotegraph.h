@@ -12,9 +12,9 @@ private:
   TQuoteBase *QB;
   void CreateNodes();
   void CreateEdges();
-  bool EdgeShouldBeCreated(TInt Id1, TInt Id2);
+  void AddEdgeIfSimilar(TIntId1, TIntId2);
+  bool EdgeShouldBeCreated(TQuote Quote1, TQuote Quote2);
   TInt LevenshteinDistance(TSTr Content1, TStr Content2);
-  TInt QuoteGraph::WordLevenshteinDistance(TStrV Content1, TStrV Content2);
 };
 
 #endif

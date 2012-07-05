@@ -31,40 +31,44 @@ void QuoteGraph::CreateEdges() {
       TIntSet Bucket  = BucketsVector[i].GetDat(*BucketSig);
       for (TIntSet::TIter Quote1 = Bucket.BegI(); Quote1 < Bucket.EndI(); Quote1++) {
         for (TIntSet::TIter Quote2 = Quote1; Quote1 < Bucket.EndI(); Quote1++) {
-          if (EdgeShouldBeAdded(Quote1.GetKey(), Quote2.GetKey())) {
-            QGraph->AddEdge(Quote1.GetKey(), Quote2.GetKey()); // EDGE ADDED!
-          }
+          AddEdgeIfSimilar(Quote1.GetVal(), Quote2.GetVal());
         }
       }
     }
   }
 }
 
-bool QuoteGraph::EdgeShouldBeCreated(TInt Id1, TInt Id2) {
+void QuoteGraph::AddEdgeIfSimilar(TIntId1, TIntId2) {
   TQuote Quote1, Quote2;
   if (QB->GetQuote(Id1, Quote1) && QB->GetQuote(Id2, Quote2)) {
-    TStr Content1 = Quote1.GetParsedContentString();
-    TStr Content2 = Quote2.GetParsedContentString();
-    TStrV Content1V;
-    TStrV Content2V;
-    Content1.SplitOnWs(Content1V);
-    Content2.SplitOnWs(Content2V);
-    TInt LDistance = WordLevenshteinDistance(Content1V, Content2V);
-
-    // Decision tree from clustering methods paper
-    MinStopLen = min(Content1V.Len(), Content2V.Len());
-    MinLen = min(Quote1.GetContent().Len(), Quote2.GetContent().Len());
-    if (LDistance == 0) {
-      return true;
-    } else if (MinLen == 4 && LDistance <= 1 && MinStopLen == 4) {
-      return true;
-    } else if (MinLen == 5 && LDistance <= 1 && MinStopLen > 4) {
-      return true;
-    } else if (MinLen == 6 && LDistance <= 1 && MinStopLen >= 5) {
-      return true;
-    } else if (MinLen > 6 && LDistance <= 2 && MinStopLen > 3) {
-      return true;
+    if (EdgeShouldBeAdded(Quote1, Quote2)) {
+        QGraph->AddEdge(Id1, Id2); // EDGE ADDED!
     }
+  }
+}
+
+bool QuoteGraph::EdgeShouldBeCreated(TQuote Quote1, TQuote Quote2) {
+  TStr Content1 = Quote1.GetParsedContentString();
+  TStr Content2 = Quote2.GetParsedContentString();
+  TStrV Content1V;
+  TStrV Content2V;
+  Content1.SplitOnWs(Content1V);
+  Content2.SplitOnWs(Content2V);
+  TInt LDistance = WordLevenshteinDistance(Content1V, Content2V);
+
+  // Decision tree from clustering methods paper
+  MinStopLen = min(Content1V.Len(), Content2V.Len());
+  MinLen = min(Quote1.GetContent().Len(), Quote2.GetContent().Len());
+  if (LDistance == 0) {
+    return true;
+  } else if (MinLen == 4 && LDistance <= 1 && MinStopLen == 4) {
+    return true;
+  } else if (MinLen == 5 && LDistance <= 1 && MinStopLen > 4) {
+    return true;
+  } else if (MinLen == 6 && LDistance <= 1 && MinStopLen >= 5) {
+    return true;
+  } else if (MinLen > 6 && LDistance <= 2 && MinStopLen > 3) {
+    return true;
   }
   return false;
 }
@@ -138,7 +142,7 @@ TInt QuoteGraph::LevenshteinDistance(TSTr Content1, TStr Content2) {
 }
 
 
-double TQuoteBs::QuoteDistance(TInt Qt1, TInt Qt2, THash<TInt, TIntV>& QtToWordIdVH) {
+/*double TQuoteBs::QuoteDistance(TInt Qt1, TInt Qt2, THash<TInt, TIntV>& QtToWordIdVH) {
   int idx1 = 0, idx2 = 0, SkipTy = 0;
   const TIntV& WIdV1 = QtToWordIdVH.GetDat(Qt1);
   const TIntV& WIdV2 = QtToWordIdVH.GetDat(Qt2);
@@ -150,4 +154,4 @@ double TQuoteBs::QuoteDistance(TInt Qt1, TInt Qt2, THash<TInt, TIntV>& QtToWordI
   if (ShortLen <= 0 || Overlap > 6) return 0;
   if (Overlap < 2) return (1 - Overlap/double(ShortLen));
   else return (1 - Overlap/double(ShortLen)) * (1 - Overlap / 7.0);
-}
+}*/

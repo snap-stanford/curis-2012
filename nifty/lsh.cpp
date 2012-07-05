@@ -36,10 +36,10 @@ void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TI
 
 void  LSH::MinHash(THash<TMd5Sig, TIntSet>& ShingleToQuoteIds, TVec<THash<TIntV, TIntSet> >& SignatureBandBuckets) {
   TRnd RandomGenerator; // TODO: make this "more random" by incorporating time
-  for(int i = 0; i < NUM_BANDS; ++i) {
+  for(int i = 0; i < NumBands; ++i) {
     THash<TInt, TIntV> Inverted; // (QuoteID, QuoteSignatureForBand)
     THash<TIntV, TIntSet> BandBuckets; // (BandSignature, QuoteIDs)
-    for (int j = 0; j < BAND_SIZE; ++j) {
+    for (int j = 0; j < BandSize; ++j) {
       // Create new signature
       TVec<TMd5Sig> Signature;
       ShingleToQuoteIds.GetKeyV(Signature);
@@ -80,6 +80,6 @@ void  LSH::MinHash(THash<TMd5Sig, TIntSet>& ShingleToQuoteIds, TVec<THash<TIntV,
     }
 
     SignatureBandBuckets.Add(BandBuckets);
-    printf("%d out of %d band signatures computed", i, NUM_BANDS);
+    printf("%d out of %d band signatures computed", i, NumBands);
   }
 }

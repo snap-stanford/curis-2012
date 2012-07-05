@@ -6,8 +6,8 @@
 
 class LSH {
 public:
-  static const int BAND_SIZE = 5;
-  static const int NUM_BANDS = 20;
+  static const int BandSize = 5;
+  static const int NumBands = 20; // TODO: CHANGE EVERYTHING
 
   static void HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TIntSet>& ShingleToQuoteIds);
   static void MinHash(THash<TMd5Sig, TIntSet>& ShingleToQuoteIds, TVec<THash<TIntV, TIntSet> >& SignatureBandBuckets);
