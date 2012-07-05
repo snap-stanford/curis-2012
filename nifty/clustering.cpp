@@ -88,6 +88,6 @@ void Clustering::SortClustersByFreq(TVec<TPair<TStr, TInt> >& RepQuotesAndFreq,
     }
   }
 
-  TClusterCompareByFreq Cmp;
+  TClusterCompareByFreq Cmp(*this);
   RepQuotesAndFreq.SortCmp(Cmp);
 }
