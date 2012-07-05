@@ -7,6 +7,19 @@
 class Clustering {
 private:
   PNGraph QGraph;
+  class TClusterCompareByFreq {
+  public:
+    int operator () (const TPair<TStr, TInt>& First, const TPair<TStr, TInt>& Second) {
+      if (First.Val1 < Second.Val1) {
+        return -1;
+      } else if (First.Val1 == Second.Val1) {
+        return 0;
+      } else {
+        return 1;
+      }
+    }
+  };
+
 public:
   void SetGraph(PNGraph QGraph);
   void GetRootNodes(TIntSet& RootNodes);

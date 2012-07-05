@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "clustering.h"
-#include "quote.h"
 
 void Clustering::SetGraph(PNGraph QGraph) {
   this->QGraph = QGraph;
@@ -15,7 +14,7 @@ void Clustering::GetRootNodes(TIntSet& RootNodes) {
   }
 }
 
-void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase* QB) {
+void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase *QB) {
   // currently deletes all edges but the one leading to phrase that is most frequently cited.
   // TODO: Make more efficient? At 10k nodes this is ok
   TNGraph::TNodeI EndNode = QGraph->EndNI();
@@ -61,34 +60,22 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
 }
 
 void Clustering::SortClustersByFreq(TVec<TPair<TStr, TInt> >& RepQuotesAndFreq,
-                                    TVec<TIntV>& Clusters, TInt NumClusters, TQuoteBase *QuoteBase) {
-  for (int i = 0; i < NumClusters.Len(); i++) {
-    TIntV Cluster = NumClusters[i];
+                                    TVec<TIntV>& Clusters, TQuoteBase *QuoteBase) {
+  for (int i = 0; i < Clusters.Len(); i++) {
+    TIntV Cluster = Clusters[i];
     TPair<TStr, TInt> ClusterRepQuoteAndFreq;
     for (int j = 0; j < Cluster.Len(); j++) {
       TInt QId = Cluster[j];
       TQuote Q;
       QuoteBase->GetQuote(QId, Q);
       ClusterRepQuoteAndFreq.Val2 += Q.GetNumSources();
-      TNGraph::TNode = QGraph->GetNodeC(Q.GetId());
-      if (TNode.GetOutDeg() == 0) {
+      TNGraph::TNode Node = QGraph->GetNodeC(Q.GetId());
+      if (Node.GetOutDeg() == 0) {
         Q.GetContentString(ClusterRepQuoteAndFreq.Val1);
       }
     }
   }
 
-  RepQuotesAndFreq.SortCmp(CompareByFreq);
-}
-
-class CompareByFreq {
-public:
-  int operator(TPair<TStr, TInt>& First, TPair<TStr, TInt>& Second) {
-    if (First.Val1 < Second.Val1) {
-      return -1;
-    } else if (First.Val1 == Second.Val1) {
-      return 0;
-    } else {
-      return 1;
-    }
-  }
+  TClusterCompareByFreq Cmp;
+  RepQuotesAndFreq.SortCmp(Cmp);
 }
