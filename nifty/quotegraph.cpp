@@ -49,7 +49,7 @@ void QuoteGraph::AddEdgeIfSimilar(TInt Id1, TInt Id2) {
   }
 }
 
-bool QuoteGraph::EdgeShouldBeCreated(TQuote Quote1, TQuote Quote2) {
+bool QuoteGraph::EdgeShouldBeCreated(TQuote& Quote1, TQuote& Quote2) {
   TStr Content1 = Quote1.GetParsedContentString();
   TStr Content2 = Quote2.GetParsedContentString();
   TStrV Content1V;
@@ -77,7 +77,7 @@ bool QuoteGraph::EdgeShouldBeCreated(TQuote Quote1, TQuote Quote2) {
 
 // TODO: Merge this and below into a thing that takes something with a .Len() and an == operator
 // because duplicate code is bad.
-TInt QuoteGraph::WordLevenshteinDistance(TStrV Content1, TStrV Content2) {
+TInt QuoteGraph::WordLevenshteinDistance(TStrV& Content1, TStrV& Content2) {
   TInt C1Len = Content1.Len() + 1, C2Len = Content2.Len() + 1;
   TInt d[C1Len.Val][C2Len.Val];
 
@@ -110,7 +110,7 @@ TInt QuoteGraph::WordLevenshteinDistance(TStrV Content1, TStrV Content2) {
   return d[C1Len][C2Len];
 }
 
-TInt QuoteGraph::LevenshteinDistance(TStr Content1, TStr Content2) {
+TInt QuoteGraph::LevenshteinDistance(TStr& Content1, TStr& Content2) {
   TInt C1Len = Content1.Len() + 1, C2Len = Content2.Len() + 1;
   TInt d[C1Len.Val][C2Len.Val];
 
