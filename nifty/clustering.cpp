@@ -96,9 +96,10 @@ void Clustering::SortClustersByFreq(TVec<TPair<TStr, TInt> >& RepQuotesAndFreq, 
         Q.GetContentString(ClusterRepQuoteAndFreq.Val1);
       }
     }
+    RepQuotesAndFreq.Add(ClusterRepQuoteAndFreq);
   }
 
-  TClusterCompareByFreq Cmp(*this);
+  TClusterCompareByFreq Cmp;
   RepQuotesAndFreq.SortCmp(Cmp);
   printf("Sorted: %d\n", RepQuotesAndFreq.Len());
 }

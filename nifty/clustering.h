@@ -9,7 +9,7 @@ private:
   PNGraph QGraph;
   class TClusterCompareByFreq {
   public:
-    TClusterCompareByFreq(Clustering& _C) { }
+    TClusterCompareByFreq() { }
     int operator () (const TPair<TStr, TInt>& First, const TPair<TStr, TInt>& Second) const {
       if (First.Val1 < Second.Val1) {
         return -1;

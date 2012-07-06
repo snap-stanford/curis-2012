@@ -5,7 +5,7 @@ SNAP = ../../snap/snap-core
 GLIB = ../../snap/glib-core
 NIFTY = ../nifty
 
-all: doctest lshtest quotetest
+all: clusteringtest doctest lshtest quotetest
 
 opt: CXXFLAGS += -O4
 opt: LDFLAGS += -O4
@@ -14,6 +14,9 @@ opt: $(NAME)
 debug: CXXFLAGS += -rdynamic -O0 -g -ggdb3 -pg
 debug: LDFLAGS += -rdynamic -O0 -g -ggdb3 -pg
 debug: doctest lshtest quotetest
+
+clusteringtest: clusteringtest.cpp Snap.o niftylib.o
+	g++ -o clusteringtest clusteringtest.cpp Snap.o niftylib.o -I$(GLIB) -I$(SNAP) $(LDFLAGS)
 
 doctest: doctest.cpp Snap.o niftylib.o
 	g++ -o doctest doctest.cpp Snap.o niftylib.o -I$(GLIB) -I$(SNAP) $(LDFLAGS) 

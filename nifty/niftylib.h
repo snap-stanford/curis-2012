@@ -12,7 +12,9 @@
 // filtering
 #include "dataloader.h"
 
-// graph creation
+// graph creation and clustering
 #include "lsh.h"
+#include "quotegraph.h"
+#include "clustering.h"
 
 #endif

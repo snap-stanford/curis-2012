@@ -11,6 +11,8 @@
 #include "dataloader.cpp"
 //#include "filter.cpp"
 
-// graph creation
+// graph creation and clustering
 #include "lsh.cpp"
+#include "quotegraph.cpp"
+#include "clustering.cpp"
 
