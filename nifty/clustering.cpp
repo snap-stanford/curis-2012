@@ -81,6 +81,7 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
   }
 }
 
+/// Sorts clusters in decreasing order, and finds representative quote for each cluster
 void Clustering::SortClustersByFreq(TVec<TPair<TStr, TInt> >& RepQuotesAndFreq, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase) {
   printf("Sorting clusters by frequency: %d\n", RepQuotesAndFreq.Len());
   for (int i = 0; i < Clusters.Len(); i++) {
@@ -99,7 +100,6 @@ void Clustering::SortClustersByFreq(TVec<TPair<TStr, TInt> >& RepQuotesAndFreq, 
     RepQuotesAndFreq.Add(ClusterRepQuoteAndFreq);
   }
 
-  TClusterCompareByFreq Cmp;
-  RepQuotesAndFreq.SortCmp(Cmp);
+  RepQuotesAndFreq.SortCmp(TCmpPairByVal2<TStr, TInt>(false));
   printf("Sorted: %d\n", RepQuotesAndFreq.Len());
 }

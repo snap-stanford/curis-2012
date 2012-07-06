@@ -7,19 +7,6 @@
 class Clustering {
 private:
   PNGraph QGraph;
-  class TClusterCompareByFreq {
-  public:
-    TClusterCompareByFreq() { }
-    int operator () (const TPair<TStr, TInt>& First, const TPair<TStr, TInt>& Second) const {
-      if (First.Val1 < Second.Val1) {
-        return -1;
-      } else if (First.Val1 == Second.Val1) {
-        return 0;
-      } else {
-        return 1;
-      }
-    }
-  };
 
 public:
   void Save(TSOut& SOut) const;

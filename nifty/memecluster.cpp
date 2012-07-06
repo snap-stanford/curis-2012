@@ -10,7 +10,7 @@ void OutputClusterInformation(TQuoteBase* QuoteBase, TVec<TPair<TStr, TInt> >& R
   TFOut ClusterFile(FileName);
 
   for (int i = 0; i < RepQuotesAndFreq.Len(); i++) {
-    fprintf(F, "%d\t%s", RepQuotesAndFreq[i].Val2.Val, RepQuotesAndFreq[i].Val1.CStr());
+    fprintf(F, "%d\t%s\n", RepQuotesAndFreq[i].Val2.Val, RepQuotesAndFreq[i].Val1.CStr());
   }
   //Save(QuotesFile);
   fclose(F);
