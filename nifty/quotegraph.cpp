@@ -5,6 +5,7 @@
 
 QuoteGraph::QuoteGraph(TQuoteBase *QB) {
   this->QB = QB;
+  EdgeCount = 0;
 }
 
 void QuoteGraph::CreateGraph(PNGraph& QGraph) {
@@ -29,28 +30,37 @@ void QuoteGraph::CreateEdges() {
   TVec<THash<TIntV, TIntSet> > BucketsVector;
   LSH::MinHash(Shingles, BucketsVector);
 
+  printf("Beginning edge creation step...\n");
   for (int i = 0; i < BucketsVector.Len(); i++) {
+    printf("Processing band signature %d of %d\n", i+1, BucketsVector.Len());
     TVec<TIntV> Buckets;
     BucketsVector[i].GetKeyV(Buckets);
     TVec<TIntV>::TIter BucketEnd = Buckets.EndI();
-    for (TVec<TIntV>::TIter BucketSig = 0; BucketSig < BucketEnd; BucketSig++) {
+    for (TVec<TIntV>::TIter BucketSig = Buckets.BegI(); BucketSig < BucketEnd; BucketSig++) {
       TIntSet Bucket  = BucketsVector[i].GetDat(*BucketSig);
       for (TIntSet::TIter Quote1 = Bucket.BegI(); Quote1 < Bucket.EndI(); Quote1++) {
-        for (TIntSet::TIter Quote2 = Quote1; Quote1 < Bucket.EndI(); Quote1++) {
+        TIntSet::TIter Quote1Copy = Quote1;
+        Quote1Copy++;
+        for (TIntSet::TIter Quote2 = Quote1Copy; Quote2 < Bucket.EndI(); Quote2++) {
           AddEdgeIfSimilar(Quote1.GetKey(), Quote2.GetKey());
         }
       }
     }
   }
+  printf("Edge creation complete! %d edges created.\n", EdgeCount.Val);
 }
 
 void QuoteGraph::AddEdgeIfSimilar(TInt Id1, TInt Id2) {
-  TQuote Quote1, Quote2;
-  if (QB->GetQuote(Id1, Quote1) && QB->GetQuote(Id2, Quote2)) {
+  TQuote Quote1, Quote2; // TODO: Why is Id being sorted in its own bucket? {
+  if (Id1 != Id2 && QB->GetQuote(Id1, Quote1) && QB->GetQuote(Id2, Quote2)) {
     if (EdgeShouldBeCreated(Quote1, Quote2)) {
       if (Quote1.GetContentNumWords() > Quote2.GetContentNumWords()) {
+        EdgeCount++;
+        printf("%d --> %d\n", Id2.Val, Id1.Val);
         QGraph->AddEdge(Id2, Id1); // EDGE ADDED!
       } else if (Quote2.GetContentNumWords() > Quote1.GetContentNumWords()) {
+        EdgeCount++;
+        printf("%d --> %d\n", Id1.Val, Id2.Val);
         QGraph->AddEdge(Id1, Id2); // TODO: we don't account for the "quotes are equal length" case because we're not too sure how to deal with that.
       }
     }
@@ -71,6 +81,9 @@ bool QuoteGraph::EdgeShouldBeCreated(TQuote& Quote1, TQuote& Quote2) {
   // Decision tree from clustering methods paper
   int MinStopLen = min(Content1V.Len(), Content2V.Len());
   int MinLen = min(Quote1.GetContentNumWords(), Quote2.GetContentNumWords());
+  //printf("L Distance: %d\tMinStopLen: %d\n", LDistance.Val, MinStopLen);
+  //printf("%s\n", Content1.CStr());
+  //printf("%s\n", Content2.CStr());
   if (LDistance == 0) {
     return true;
   } else if (MinLen == 4 && LDistance <= 1 && MinStopLen == 4) {
@@ -117,7 +130,7 @@ TInt QuoteGraph::WordLevenshteinDistance(TStrV& Content1, TStrV& Content2) {
       }
     }
   }
-  return d[C1Len][C2Len];
+  return d[C1Len-1][C2Len-1];
 }
 
 TInt QuoteGraph::LevenshteinDistance(TStr& Content1, TStr& Content2) {
@@ -150,7 +163,7 @@ TInt QuoteGraph::LevenshteinDistance(TStr& Content1, TStr& Content2) {
       }
     }
   }
-  return d[C1Len][C2Len];
+  return d[C1Len-1][C2Len-1];
 }
 
 

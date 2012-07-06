@@ -9,6 +9,7 @@ public:
   void CreateGraph(PNGraph& QGraph);
 
 private:
+  TInt EdgeCount;
   PNGraph QGraph;
   TQuoteBase *QB;
   void CreateNodes();

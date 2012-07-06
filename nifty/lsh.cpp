@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "lsh.h"
 
-const int LSH::BandSize = 5;
+const int LSH::BandSize = 1;
 const int LSH::NumBands = 20;
 const int LSH::ShingleLen = 4;
 
@@ -11,7 +11,7 @@ void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TI
   TIntV QuoteIds;
   QuoteBase->GetAllQuoteIds(QuoteIds);
   for (int qt = 0; qt < QuoteIds.Len(); qt++) {
-    if (qt % 100000 == 0) {
+    if (qt % 1000 == 0) {
       printf("%d out of %d completed\n", qt, QuoteIds.Len());
     }
     TQuote Q;
@@ -58,7 +58,7 @@ void  LSH::MinHash(THash<TMd5Sig, TIntSet>& ShingleToQuoteIds, TVec<THash<TIntV,
           TInt Key = l.GetKey();
           if (Inverted.IsKey(Key)) {
             TIntV CurSignature = Inverted.GetDat(Key);
-            if (CurSignature.Len() < j) {
+            if (CurSignature.Len() <= j) {
               CurSignature.Add(k);
               Inverted.AddDat(Key, CurSignature);
             }
@@ -85,6 +85,7 @@ void  LSH::MinHash(THash<TMd5Sig, TIntSet>& ShingleToQuoteIds, TVec<THash<TIntV,
     }
 
     SignatureBandBuckets.Add(BandBuckets);
-    printf("%d out of %d band signatures computed", i, NumBands);
+    printf("%d out of %d band signatures computed\n", i+1, NumBands);
   }
+  printf("Minhash step complete!\n");
 }

@@ -44,6 +44,9 @@ int main(int argc, char *argv[]) {
   ClusterJob.BuildClusters(RootNodes, Clusters, QB);
   TVec<TPair<TStr, TInt> > RepQuotesAndFreq;
   ClusterJob.SortClustersByFreq(RepQuotesAndFreq, Clusters, QB);
-
+  OutputClusterInformation(QB, RepQuotesAndFreq, OutputString);
+  delete QB;
+  delete DB;
+  printf("Done!\n");
   return 0;
 }
