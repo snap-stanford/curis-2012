@@ -2,6 +2,8 @@
 #include "quote.h"
 #include "doc.h"
 
+const uint TQuote::NumSecondsInHour = 3600;
+
 PSwSet TQuote::StopWordSet = new TSwSet(swstEnMsdn);
 
 TQuote::TQuote() {
@@ -111,6 +113,54 @@ void TQuote::StemAndStopWordsContentString(const TStrV &ContentV, TStrV &NewCont
       NewContent.Add(TPorterStemmer::StemX(ContentV[i]).GetLc());
     }
   }
+}
+
+bool TQuote::GraphFreqOverTime(TDocBase *DocBase) {
+  printf("Graphing frequency over time\n");
+  if (Sources.Len() == 0) {
+    return false;
+  }
+
+  TIntV SourcesSorted(Sources);
+  SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
+
+  TIntPrV FreqV;
+  TDoc PrevDoc;
+  DocBase->GetDoc(SourcesSorted[0], PrevDoc);
+  TUInt StartTime = TUInt(PrevDoc.GetDate().GetAbsSecs());
+  TInt Freq = TInt(1);
+  TInt HourNum = 0;
+
+  for (int i = 1; i < SourcesSorted.Len(); ++i) {
+    TDoc CurrDoc;
+    DocBase->GetDoc(SourcesSorted[i], CurrDoc);
+    TUInt CurrTime = TUInt(CurrDoc.GetDate().GetAbsSecs());
+    if (CurrTime - StartTime < NumSecondsInHour) {
+      // Increment the number of quotes seen in this hour-long period by one
+      Freq += 1;
+    } else {
+      FreqV.Add(TIntPr(HourNum, Freq));
+      TInt NumHoursAhead = (CurrTime - StartTime) / NumSecondsInHour;
+      //printf("PrevDoc Date: %s, CurrDoc Date: %s, NumHoursAhead: %d\n", PrevDoc.GetDate().GetYmdTmStr().GetCStr(), CurrDoc.GetDate().GetYmdTmStr().GetCStr(), NumHoursAhead.Val);
+      // Add frequencies of 0 if there are hours in between the two occurrences
+      for (int j = 1; j < NumHoursAhead; ++j) {
+        FreqV.Add(TIntPr(HourNum + j, 0));
+      }
+      HourNum += NumHoursAhead;
+      //printf("HourNum: %d\n", HourNum.Val);
+      Freq.Val = 1;
+      StartTime = StartTime + ((CurrTime - StartTime) / NumSecondsInHour) * NumSecondsInHour;
+    }
+  }
+  FreqV.Add(TIntPr(HourNum, Freq));
+
+  printf("Creating the plot...\n");
+  TStr ContentStr;
+  GetContentString(ContentStr);
+  TGnuPlot GP("Quote" + Id.GetStr() + "-FreqOverTime", "Frequency of Quote " + Id.GetStr() + " Over Time: " + ContentStr);
+  GP.AddPlot(FreqV, gpwLinesPoints, "Frequency");
+  GP.SavePng();
+  return true;
 }
 
 TQuoteBase::TQuoteBase() {
