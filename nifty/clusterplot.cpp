@@ -1,14 +1,8 @@
 #include "stdafx.h"
 #include "clusterplot.h"
 
-ClusterPlot::ClusterPlot(TStr& RootDirectory) {
+ClusterPlot::ClusterPlot(TStr RootDirectory) {
   this->RootDirectory = RootDirectory;
-}
-
-void ClusterPlot::PlotAllGraphs() {
-  PlotClusterSizeUnique();
-  PlotClusterSize();
-  PlotQuoteFrequencies();
 }
 
 void calculate_distribution(const TVec<THash<TInt, TInt> >& list,
@@ -34,19 +28,19 @@ TIntPrV& ret) {
 void ClusterPlot::PlotClusterSizeUnique(TVec<TIntV> Clusters) {
   TGnuPlot Plot = TGnuPlot(RootDirectory + "plot_unique_clusters", "Cluster Size Frequency - Unique Quotes", false);
   Plot.SetXYLabel("number of unique quotes", "number of clusters");
-  SetScale(gpsLog2XY);
+  Plot.SetScale(gpsLog2XY);
 
-  RepQuotesAndFreq.SortCmp(TCmp<TIntV>(false));
-  TInt ClusterLen = RepQuotesAndFreq.Len();
+  Clusters.SortCmp(TCmpIntV(false));
+  TInt ClusterLen = Clusters.Len();
   TIntPrV Coordinates;
   int count = 0;
   TInt LastFrequency = -1;
   for (int i = 0; i < ClusterLen; ++i) {
     int j = i;
-    while (j < ClusterLen && RepQuotesAndFreq[j].Len() == RepQuotesAndFreq[i].Len()) {
+    while (j < ClusterLen && Clusters[j].Len() == Clusters[i].Len()) {
       j++;
     }
-    Coordinates.Add(TIntPr(RepQuotesAndFreq[i], j - i));
+    Coordinates.Add(TIntPr(Clusters[i].Len(), j - i));
     i = j - 1;
   }
 
@@ -57,10 +51,10 @@ void ClusterPlot::PlotClusterSizeUnique(TVec<TIntV> Clusters) {
 /*2) x-axis: total frequency quotes in the cluster, y-axis: number of
 clusters of frequency x
 3) x-axis: frequency of a quote, y-axis: number of quotes with freq. x. */
-void ClusterPlot::PlotClusterSize(TVec<TPair<TQuote, TInt> > RepQuotesAndFreq) {
+void ClusterPlot::PlotClusterSize(TVec<TPair<TPair<TInt, TInt>, TIntV> >& RepQuotesAndFreq) {
   TGnuPlot Plot = TGnuPlot(RootDirectory + "plot_cluster_size", "Cluster Size Frequency - Total Quotes", false);
   Plot.SetXYLabel("number of unique quotes", "number of clusters");
-  SetScale(gpsLog2XY);
+  Plot.SetScale(gpsLog2XY);
 
   TInt ClusterLen = RepQuotesAndFreq.Len();
   TIntPrV Coordinates;
@@ -68,10 +62,10 @@ void ClusterPlot::PlotClusterSize(TVec<TPair<TQuote, TInt> > RepQuotesAndFreq) {
   TInt LastFrequency = -1;
   for (int i = 0; i < ClusterLen; ++i) {
     int j = i;
-    while (j < ClusterLen && RepQuotesAndFreq[j].Val2 == RepQuotesAndFreq[i].Val2) {
+    while (j < ClusterLen && RepQuotesAndFreq[j].Val1.Val2 == RepQuotesAndFreq[i].Val1.Val2) {
       j++;
     }
-    Coordinates.Add(TIntPr(RepQuotesAndFreq[i], j - i));
+    Coordinates.Add(TIntPr(RepQuotesAndFreq[i].Val1.Val2, j - i));
     i = j - 1;
   }
 
@@ -80,6 +74,10 @@ void ClusterPlot::PlotClusterSize(TVec<TPair<TQuote, TInt> > RepQuotesAndFreq) {
 }
 
 void ClusterPlot::PlotQuoteFrequencies(TQuoteBase* QB) {
+  TGnuPlot Plot = TGnuPlot(RootDirectory + "plot_quote_frequencies", "Quote Frequency", false);
+  Plot.SetXYLabel("number of sources", "number of quotes");
+  Plot.SetScale(gpsLog2XY);
+
   TIntV QuoteIds;
   QB->GetAllQuoteIds(QuoteIds);
 

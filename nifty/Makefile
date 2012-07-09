@@ -12,11 +12,11 @@ profile: CXXFLAGS += -pg
 profile: LDFLAGS += -pg
 profile: filter memecluster
 
-filter: filter.cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o clustering.o
-	g++ -o filter filter.cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o clustering.o -I$(GLIB) -I$(SNAP) $(LDFLAGS) 
+filter: filter.cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o clustering.o clusterplot.o
+	g++ -o filter filter.cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o clustering.o clusterplot.o -I$(GLIB) -I$(SNAP) $(LDFLAGS) 
 	
-memecluster: memecluster.cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o clustering.o
-	g++ -o memecluster memecluster.cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o clustering.o -I$(GLIB) -I$(SNAP) $(LDFLAGS)
+memecluster: memecluster.cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o clustering.o clusterplot.o
+	g++ -o memecluster memecluster.cpp Snap.o dataloader.o doc.o quote.o lsh.o quotegraph.o clustering.o clusterplot.o -I$(GLIB) -I$(SNAP) $(LDFLAGS)
 
 Snap.o: 
 	g++ -c $(CXXFLAGS) $(SNAP)/Snap.cpp -I$(GLIB) -I$(SNAP)
@@ -38,6 +38,9 @@ quotegraph.o:
 	
 clustering.o:
 	g++ -c $(CXXFLAGS) clustering.cpp -I$(GLIB) -I$(SNAP)
+	
+clusterplot.o:
+	g++ -c $(CXXFLAGS) clusterplot.cpp -I$(GLIB) -I$(SNAP)
 
 clean:	
 	rm -f *.o *.png *.plt *.tab $(NAME) $(NAME).exe
