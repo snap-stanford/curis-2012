@@ -54,15 +54,49 @@ void QuoteGraph::AddEdgeIfSimilar(TInt Id1, TInt Id2) {
   TQuote Quote1, Quote2; // TODO: Why is Id being sorted in its own bucket? {
   if (Id1 != Id2 && QB->GetQuote(Id1, Quote1) && QB->GetQuote(Id2, Quote2)) {
     if (EdgeShouldBeCreated(Quote1, Quote2)) {
-      if (Quote1.GetContentNumWords() > Quote2.GetContentNumWords()) {
-        EdgeCount++;
+      bool EdgeFromTwoToOne = false;
+      bool EdgeFromOneToTwo = false;
+      // Decide direction of edge between the two quotes
+      if (Quote1.GetParsedContentNumWords() > Quote2.GetParsedContentNumWords()) {
+        EdgeFromTwoToOne = true;
+      } else if (Quote2.GetParsedContentNumWords() > Quote1.GetParsedContentNumWords()) {
+        EdgeFromOneToTwo = true;
+      } else {
+        // Break tie based on number of words in original quotes
+        if (Quote1.GetContentNumWords() > Quote2.GetContentNumWords()) {
+          EdgeFromTwoToOne = true;
+        } else if (Quote2.GetContentNumWords() > Quote1.GetContentNumWords()) {
+          EdgeFromOneToTwo = true;
+        } else {
+          // Break tie based on number of characters in original quotes
+          TStr Quote1Str;
+          TStr Quote2Str;
+          Quote1.GetContentString(Quote1Str);
+          Quote2.GetContentString(Quote2Str);
+          if (Quote1Str.Len() > Quote2Str.Len()) {
+            EdgeFromTwoToOne = true;
+          } else if (Quote2Str.Len() > Quote1Str.Len()) {
+            EdgeFromOneToTwo = true;
+          } else {
+            // Break tie based on alphabetical order
+            if (Quote1Str < Quote2Str) {
+              EdgeFromOneToTwo = true;
+            } else {
+              EdgeFromTwoToOne = true;
+            }
+          }
+        }
+      }
+
+      if (EdgeFromTwoToOne) {
         printf("%d --> %d\n", Id2.Val, Id1.Val);
         QGraph->AddEdge(Id2, Id1); // EDGE ADDED!
-      } else if (Quote2.GetContentNumWords() > Quote1.GetContentNumWords()) {
-        EdgeCount++;
+      } else if (EdgeFromOneToTwo) {
         printf("%d --> %d\n", Id1.Val, Id2.Val);
-        QGraph->AddEdge(Id1, Id2); // TODO: we don't account for the "quotes are equal length" case because we're not too sure how to deal with that.
+        QGraph->AddEdge(Id1, Id2);
       }
+      EdgeCount++;
+        
     }
   }
 }

@@ -31,11 +31,13 @@ int main(int argc, char *argv[]) {
   TIntSet RootNodes;
   TVec<TIntV> Clusters;
   ClusterJob.BuildClusters(RootNodes, Clusters, QuoteBase);
-  TVec<TPair<TStr, TInt> > RepQuotesAndFreq;
+  TVec<TPair<TQuote, TInt> > RepQuotesAndFreq;
   ClusterJob.SortClustersByFreq(RepQuotesAndFreq, Clusters, QuoteBase);
 
   for (int i = 0; i < RepQuotesAndFreq.Len(); i++) {
-    printf("%d\t%s\n", RepQuotesAndFreq[i].Val2.Val, RepQuotesAndFreq[i].Val1.CStr());
+    TStr QuoteStr;
+    RepQuotesAndFreq[i].Val1.GetContentString(QuoteStr);
+    printf("%d\t%s\n", RepQuotesAndFreq[i].Val2.Val, QuoteStr.CStr());
   }
 
   delete QuoteBase;

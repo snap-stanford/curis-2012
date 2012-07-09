@@ -82,11 +82,11 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
 }
 
 /// Sorts clusters in decreasing order, and finds representative quote for each cluster
-void Clustering::SortClustersByFreq(TVec<TPair<TStr, TInt> >& RepQuotesAndFreq, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase) {
-  printf("Sorting clusters by frequency: %d\n", RepQuotesAndFreq.Len());
+void Clustering::SortClustersByFreq(TVec<TPair<TQuote, TInt> >& RepQuotesAndFreq, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase) {
+  printf("Sorting clusters by frequency\n");
   for (int i = 0; i < Clusters.Len(); i++) {
     TIntV Cluster = Clusters[i];
-    TPair<TStr, TInt> ClusterRepQuoteAndFreq;
+    TPair<TQuote, TInt> ClusterRepQuoteAndFreq;
     for (int j = 0; j < Cluster.Len(); j++) {
       TInt QId = Cluster[j];
       TQuote Q;
@@ -94,12 +94,13 @@ void Clustering::SortClustersByFreq(TVec<TPair<TStr, TInt> >& RepQuotesAndFreq, 
       ClusterRepQuoteAndFreq.Val2 += Q.GetNumSources();
       TNGraph::TNode Node = QGraph->GetNodeC(Q.GetId());
       if (Node.GetOutDeg() == 0) {
-        Q.GetContentString(ClusterRepQuoteAndFreq.Val1);
+        //Q.GetContentString(ClusterRepQuoteAndFreq.Val1);
+        ClusterRepQuoteAndFreq.Val1 = Q;
       }
     }
     RepQuotesAndFreq.Add(ClusterRepQuoteAndFreq);
   }
 
-  RepQuotesAndFreq.SortCmp(TCmpPairByVal2<TStr, TInt>(false));
+  RepQuotesAndFreq.SortCmp(TCmpPairByVal2<TQuote, TInt>(false));
   printf("Sorted: %d\n", RepQuotesAndFreq.Len());
 }

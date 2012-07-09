@@ -5,12 +5,14 @@
 #include "doc.h"
 #include <stdio.h>
 
-void OutputClusterInformation(TQuoteBase* QuoteBase, TVec<TPair<TStr, TInt> >& RepQuotesAndFreq, TStr FileName) {
+void OutputClusterInformation(TQuoteBase* QuoteBase, TVec<TPair<TQuote, TInt> >& RepQuotesAndFreq, TStr FileName) {
   FILE *F = fopen(FileName.CStr(), "wt");
   TFOut ClusterFile(FileName);
 
   for (int i = 0; i < RepQuotesAndFreq.Len(); i++) {
-    fprintf(F, "%d\t%s\n", RepQuotesAndFreq[i].Val2.Val, RepQuotesAndFreq[i].Val1.CStr());
+    TStr QuoteStr;
+    RepQuotesAndFreq[i].Val1.GetContentString(QuoteStr);
+    fprintf(F, "%d\t%s\n", RepQuotesAndFreq[i].Val2.Val, QuoteStr.CStr());
   }
   //Save(QuotesFile);
   fclose(F);
@@ -42,7 +44,7 @@ int main(int argc, char *argv[]) {
   TIntSet RootNodes;
   TVec<TIntV> Clusters;
   ClusterJob.BuildClusters(RootNodes, Clusters, QB);
-  TVec<TPair<TStr, TInt> > RepQuotesAndFreq;
+  TVec<TPair<TQuote, TInt> > RepQuotesAndFreq;
   ClusterJob.SortClustersByFreq(RepQuotesAndFreq, Clusters, QB);
   OutputClusterInformation(QB, RepQuotesAndFreq, OutputString);
   delete QB;
