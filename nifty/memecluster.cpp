@@ -5,14 +5,25 @@
 #include "doc.h"
 #include <stdio.h>
 
-void OutputClusterInformation(TQuoteBase* QuoteBase, TVec<TPair<TQuote, TInt> >& RepQuotesAndFreq, TStr FileName) {
+void OutputClusterInformation(TQuoteBase* QB, TVec<TPair<TPair<TInt, TInt>, TIntV> >& RepQuotesAndFreq, TStr FileName) {
   FILE *F = fopen(FileName.CStr(), "wt");
   TFOut ClusterFile(FileName);
 
   for (int i = 0; i < RepQuotesAndFreq.Len(); i++) {
-    TStr QuoteStr;
-    RepQuotesAndFreq[i].Val1.GetContentString(QuoteStr);
-    fprintf(F, "%d\t%s\n", RepQuotesAndFreq[i].Val2.Val, QuoteStr.CStr());
+    TQuote RepQuote;
+    QB->GetQuote(RepQuotesAndFreq[i].Val1.Val1, RepQuote);
+    TStr RepQuoteStr;
+    RepQuote.GetContentString(RepQuoteStr);
+    TInt FreqOfAllClusterQuotes = RepQuotesAndFreq[i].Val1.Val2;
+    TIntV QuotesInCluster = RepQuotesAndFreq[i].Val2;
+    fprintf(F, "%d\t%d\t%s\n", FreqOfAllClusterQuotes.Val, QuotesInCluster.Len(), RepQuoteStr.CStr());
+    for (int j = 0; j < QuotesInCluster.Len(); j++) {
+      TQuote Quote;
+      QB->GetQuote(QuotesInCluster[j], Quote);
+      TStr QuoteStr;
+      Quote.GetContentString(QuoteStr);
+      fprintf(F, "\t%d\t%s\n", Quote.GetNumSources().Val, QuoteStr.CStr());
+    }
   }
   //Save(QuotesFile);
   fclose(F);
@@ -44,7 +55,7 @@ int main(int argc, char *argv[]) {
   TIntSet RootNodes;
   TVec<TIntV> Clusters;
   ClusterJob.BuildClusters(RootNodes, Clusters, QB);
-  TVec<TPair<TQuote, TInt> > RepQuotesAndFreq;
+  TVec<TPair<TPair<TInt, TInt>, TIntV> > RepQuotesAndFreq;
   ClusterJob.SortClustersByFreq(RepQuotesAndFreq, Clusters, QB);
   OutputClusterInformation(QB, RepQuotesAndFreq, OutputString);
   delete QB;
