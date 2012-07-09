@@ -3,6 +3,7 @@
 #include "quotegraph.h"
 #include "quote.h"
 #include "doc.h"
+#include "clusterplot.h"
 #include <stdio.h>
 
 void OutputClusterInformation(TQuoteBase* QB, TVec<TPair<TPair<TInt, TInt>, TIntV> >& RepQuotesAndFreq, TStr FileName) {
@@ -58,6 +59,12 @@ int main(int argc, char *argv[]) {
   TVec<TPair<TPair<TInt, TInt>, TIntV> > RepQuotesAndFreq;
   ClusterJob.SortClustersByFreq(RepQuotesAndFreq, Clusters, QB);
   OutputClusterInformation(QB, RepQuotesAndFreq, OutputString);
+
+  // plot output
+  ClusterPlot Plotter(TStr("/lfs/1/tmp/curis/"));
+  Plotter.PlotClusterSizeUnique(Clusters);
+  Plotter.PlotClusterSize(RepQuotesAndFreq);
+  Plotter.PlotQuoteFrequencies(QB);
   delete QB;
   delete DB;
   printf("Done!\n");
