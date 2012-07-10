@@ -35,6 +35,7 @@ int main(int argc, char *argv[]) {
   for (int i = 1; i < argc; i++) {
     if (strlen(argv[i]) >= 2 && argv[i][0] == '-' && i + 1 < argc) {
       Arguments.AddDat(TStr(argv[i] + 1), TStr(argv[i + 1]));
+      i++;
     } else {
       printf("Error: incorrect format. Usage: ./memetracker [-paramName parameter]");
       exit(1);
