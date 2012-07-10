@@ -33,7 +33,7 @@ void OutputClusterInformation(TQuoteBase* QB, TVec<TTriple<TInt, TInt, TIntV> >&
 int main(int argc, char *argv[]) {
   THash<TStr, TStr> Arguments;
   for (int i = 1; i < argc; i++) {
-    if (strlen(argv[i]) >= 2 && strlen[i][0] == '-' && i + 1 < argc) {
+    if (strlen(argv[i]) >= 2 && argv[i][0] == '-' && i + 1 < argc) {
       Arguments.AddDat(TStr(argv[i] + 1), TStr(argv[i + 1]));
     } else {
       printf("Error: incorrect format. Usage: ./memetracker [-paramName parameter]");
