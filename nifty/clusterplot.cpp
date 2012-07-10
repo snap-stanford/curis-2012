@@ -44,7 +44,7 @@ void ClusterPlot::PlotClusterSizeUnique(TVec<TIntV> Clusters) {
     i = j - 1;
   }
 
-  Plot.AddPlot(Coordinates, gpwLinesPoints);
+  Plot.AddPlot(Coordinates, gpwPoints);
   Plot.SavePng();
 }
 
@@ -69,7 +69,7 @@ void ClusterPlot::PlotClusterSize(TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAn
     i = j - 1;
   }
 
-  Plot.AddPlot(Coordinates, gpwLinesPoints);
+  Plot.AddPlot(Coordinates, gpwPoints);
   Plot.SavePng();
 }
 
@@ -96,6 +96,6 @@ void ClusterPlot::PlotQuoteFrequencies(TQuoteBase* QB) {
 
   TVec<TPair<TInt, TInt> > Coordinates;
   QuoteFrequencies.GetKeyDatPrV (Coordinates);
-  Plot.AddPlot(Coordinates, gpwLinesPoints);
+  Plot.AddPlot(Coordinates, gpwPoints);
   Plot.SavePng();
 }
