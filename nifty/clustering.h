@@ -14,22 +14,22 @@ public:
   void SetGraph(PNGraph QGraph);
   void GetRootNodes(TIntSet& RootNodes);
   void BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase *QB);
-  void SortClustersByFreq(TVec<TPair<TPair<TInt, TInt>, TIntV> >& RepQuotesAndFreq, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase);
+  void SortClustersByFreq(TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase);
 };
 
 // Pair comparator
 template <class TVal1, class TVal2, class TVal3>
-class TCmpPairByVal2OfVal1 {
+class TCmpTripleByVal2 {
 private:
   bool IsAsc;
 public:
-  TCmpPairByVal2OfVal1(const bool& AscSort=true) : IsAsc(AscSort) { }
-  bool operator () (const TPair<TPair<TVal1, TVal2>, TVal3>& P1,
-                    const TPair<TPair<TVal1, TVal2>, TVal3>& P2) const {
+  TCmpTripleByVal2(const bool& AscSort=true) : IsAsc(AscSort) { }
+  bool operator () (const TTriple<TVal1, TVal2, TVal3>& P1,
+                    const TTriple<TVal1, TVal2, TVal3>& P2) const {
     if (IsAsc) {
-      return P1.Val1.Val2 < P2.Val1.Val2;
+      return P1.Val2 < P2.Val2;
     } else {
-      return P2.Val1.Val2 < P1.Val1.Val2;
+      return P2.Val2 < P1.Val2;
     }
   }
 };

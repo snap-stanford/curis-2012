@@ -82,14 +82,14 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
 }
 
 /// Sorts clusters in decreasing order, and finds representative quote for each cluster
-//  RepQuotesAndFreq is a vector of cluster results, where each TPair<TPair<TInt, TInt>, TIntV>
-//  is a pair of the reference quote id and its frequency, and a vector of ids of the quotes in
-//  the cluster
-void Clustering::SortClustersByFreq(TVec<TPair<TPair<TInt, TInt>, TIntV> >& RepQuotesAndFreq, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase) {
+//  RepQuotesAndFreq is a vector of cluster results, where each TTriple<TInt, TInt, TIntV>
+//  contains the reference quote id, the total frequency of quotes in the cluster, and a
+//  vector of ids of the quotes in the cluster, in that order
+void Clustering::SortClustersByFreq(TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase) {
   printf("Sorting clusters by frequency\n");
   for (int i = 0; i < Clusters.Len(); i++) {
     TIntV Cluster = Clusters[i];
-    TPair<TInt, TInt> ClusterRepQuoteAndFreq;
+    TTriple<TInt, TInt, TIntV> ClusterRepQuoteAndFreq;
     for (int j = 0; j < Cluster.Len(); j++) {
       TInt QId = Cluster[j];
       TQuote Q;
@@ -101,12 +101,10 @@ void Clustering::SortClustersByFreq(TVec<TPair<TPair<TInt, TInt>, TIntV> >& RepQ
         ClusterRepQuoteAndFreq.Val1 = QId;
       }
     }
-    TPair<TPair<TInt, TInt>, TIntV> ClusterSummary;
-    ClusterSummary.Val1 = ClusterRepQuoteAndFreq;
-    ClusterSummary.Val2 = Cluster;
-    RepQuotesAndFreq.Add(ClusterSummary);
+    ClusterRepQuoteAndFreq.Val3 = Cluster;
+    RepQuotesAndFreq.Add(ClusterRepQuoteAndFreq);
   }
 
-  RepQuotesAndFreq.SortCmp(TCmpPairByVal2OfVal1<TInt, TInt, TIntV>(false));
+  RepQuotesAndFreq.SortCmp(TCmpTripleByVal2<TInt, TInt, TIntV>(false));
   printf("Sorted: %d\n", RepQuotesAndFreq.Len());
 }

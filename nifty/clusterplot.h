@@ -10,7 +10,7 @@ private:
 public:
   ClusterPlot(TStr RootDirectory);
   void PlotClusterSizeUnique(TVec<TIntV> Clusters);
-  void PlotClusterSize(TVec<TPair<TPair<TInt, TInt>, TIntV> >& RepQuotesAndFreq);
+  void PlotClusterSize(TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq);
   void PlotQuoteFrequencies(TQuoteBase* QB);
 
   class TCmpIntV {

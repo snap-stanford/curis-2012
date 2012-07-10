@@ -6,17 +6,17 @@
 #include "clusterplot.h"
 #include <stdio.h>
 
-void OutputClusterInformation(TQuoteBase* QB, TVec<TPair<TPair<TInt, TInt>, TIntV> >& RepQuotesAndFreq, TStr FileName) {
+void OutputClusterInformation(TQuoteBase* QB, TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq, TStr FileName) {
   FILE *F = fopen(FileName.CStr(), "wt");
   TFOut ClusterFile(FileName);
 
   for (int i = 0; i < RepQuotesAndFreq.Len(); i++) {
     TQuote RepQuote;
-    QB->GetQuote(RepQuotesAndFreq[i].Val1.Val1, RepQuote);
+    QB->GetQuote(RepQuotesAndFreq[i].Val1, RepQuote);
     TStr RepQuoteStr;
     RepQuote.GetContentString(RepQuoteStr);
-    TInt FreqOfAllClusterQuotes = RepQuotesAndFreq[i].Val1.Val2;
-    TIntV QuotesInCluster = RepQuotesAndFreq[i].Val2;
+    TInt FreqOfAllClusterQuotes = RepQuotesAndFreq[i].Val2;
+    TIntV QuotesInCluster = RepQuotesAndFreq[i].Val3;
     fprintf(F, "%d\t%d\t%s\n", FreqOfAllClusterQuotes.Val, QuotesInCluster.Len(), RepQuoteStr.CStr());
     for (int j = 0; j < QuotesInCluster.Len(); j++) {
       TQuote Quote;
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
   TIntSet RootNodes;
   TVec<TIntV> Clusters;
   ClusterJob.BuildClusters(RootNodes, Clusters, QB);
-  TVec<TPair<TPair<TInt, TInt>, TIntV> > RepQuotesAndFreq;
+  TVec<TTriple<TInt, TInt, TIntV> > RepQuotesAndFreq;
   ClusterJob.SortClustersByFreq(RepQuotesAndFreq, Clusters, QB);
   OutputClusterInformation(QB, RepQuotesAndFreq, OutputString);
 
