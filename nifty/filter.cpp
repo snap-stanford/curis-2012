@@ -97,6 +97,10 @@ bool IsDuplicateUrl(const TChA &Url) {
   return false;
 }
 
+bool IsPostTimeCorrupt(TSecTm PostTm, TSecTm FileTm) {
+  return (PostTm <= FileTm + 12 * 3600) && (PostTm >= FileTm - 12 * 3600);
+}
+
 void OutputQuoteInformation(TQuoteBase* QuoteBase, TStr FileName) {
   FILE *F = fopen(FileName.CStr(), "wt");
   TFOut QuotesFile(FileName);
@@ -117,6 +121,7 @@ void OutputQuoteInformation(TQuoteBase* QuoteBase, TStr FileName) {
 
 // usage filelist directory
 int main(int argc, char *argv[]) {
+  printf("File name must be in the form: web-{year}-{month}-{day}T{hour}-{minute}-{second}Z.rar\n");
   TStr InFileName = "Spinn3rFileList.txt";
   TStr OutFileName = "QuoteFrequencies.txt";
   if (argc >= 2) {
@@ -140,6 +145,7 @@ int main(int argc, char *argv[]) {
     while (Memes.LoadNextEntry()) {
       if (IsUrlInBlackList(Memes.PostUrlStr)) { NSkip++;continue; }
       if (IsDuplicateUrl(Memes.PostUrlStr)) { NSkip++;continue; }
+      if (IsPostTimeCorrupt(Memes.PubTm, Memes.GetCurrentFileTime())) { NSkip++;continue; }
       bool ContainValidQuote = false;
       for (int m = 0; m < Memes.MemeV.Len(); m++) {
         if (IsEnglish(Memes.MemeV[m]) &&

@@ -89,10 +89,10 @@ void QuoteGraph::AddEdgeIfSimilar(TInt Id1, TInt Id2) {
       }
 
       if (EdgeFromTwoToOne) {
-        printf("%d --> %d\n", Id2.Val, Id1.Val);
+        // printf("%d --> %d\n", Id2.Val, Id1.Val);
         QGraph->AddEdge(Id2, Id1); // EDGE ADDED!
       } else if (EdgeFromOneToTwo) {
-        printf("%d --> %d\n", Id1.Val, Id2.Val);
+        // printf("%d --> %d\n", Id1.Val, Id2.Val);
         QGraph->AddEdge(Id1, Id2);
       }
       EdgeCount++;

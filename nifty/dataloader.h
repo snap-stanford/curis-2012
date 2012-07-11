@@ -23,7 +23,7 @@ public:
   TDataLoader();
   void Clr();
   void LoadFileList(const TStr&, const TStr&);
-  void LoadFile(const TStr&);
+  TSecTm GetCurrentFileTime();
   bool LoadNextFile();
   bool LoadNextEntry();
   int GetNumFiles() { return FileList.Len(); }

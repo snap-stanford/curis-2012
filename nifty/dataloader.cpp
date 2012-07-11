@@ -10,17 +10,11 @@ bool TDataLoader::LoadNextFile() {
 	if (CurrentFileId == FileList.Len() || CurrentFileId == -1) {
 		return false;
 	} else {
-	  printf("%s\n", FileList[CurrentFileId].CStr());
-		SInPt = TZipIn::New(Prefix + FileList[CurrentFileId]);
+	  SInPt = TZipIn::New(Prefix + FileList[CurrentFileId]);
 	  //SInPt = TFIn::New(Prefix + FileList[CurrentFileId]);
 	  CurrentFileId++;
 		return true;
 	}
-}
-
-void TDataLoader::LoadFile(const TStr& InFileName) {
-  SInPt = TZipIn::New(InFileName);
-  CurrentFileId = -1;
 }
 
 void TDataLoader::LoadFileList(const TStr& InFileName, const TStr& Directory) {
@@ -48,6 +42,29 @@ void TDataLoader::LoadFileList(const TStr& InFileName, const TStr& Directory) {
 		FileList.DelIfIn(DeleteList[i]);
 	CurrentFileId = 0;
 }
+
+TSecTm TDataLoader::GetCurrentFileTime() {
+  int i;
+  for (i = 0; i < FileList[CurrentFileId].Len(); i++) {
+    if (FileList[CurrentFileId][i] == '-') { i++; break; }
+  }
+
+  TChA tmp_date;
+  for (; i < FileList[CurrentFileId].Len(); i++) {
+    if (FileList[CurrentFileId][i] == 'T') { i++; break; }
+    tmp_date += FileList[CurrentFileId][i];
+  }
+
+  tmp_date += ' ';
+
+  for (; i < FileList[CurrentFileId].Len(); i++) {
+    if (FileList[CurrentFileId][i] == 'Z') { break; }
+    tmp_date += FileList[CurrentFileId][i];
+  }
+
+  return TSecTm::GetDtTmFromYmdHmsStr(TStr(tmp_date), '-', '-');
+}
+
 
 void TDataLoader::Clr() {
 	PostUrlStr.Clr();

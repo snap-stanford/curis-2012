@@ -46,12 +46,26 @@ void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB) {
 }
 
 int main(int argc, char *argv[]) {
-  // load QB and DB
+  THash<TStr, TStr> Arguments;
+  for (int i = 1; i < argc; i++) {
+    if (strlen(argv[i]) >= 2 && argv[i][0] == '-' && i + 1 < argc) {
+      Arguments.AddDat(TStr(argv[i] + 1), TStr(argv[i + 1]));
+      i++;
+    } else {
+      printf("Error: incorrect format. Usage: ./memetracker [-paramName parameter]");
+      exit(1);
+    }
+  }
+  // load QB and DB. Custom variables can be added later.
   TStr BaseString = "/lfs/1/tmp/curis/QBDB.bin";
   TStr OutputString = "TopClusters.txt";
-  if (argc >= 2) {
-    BaseString = TStr(argv[1]); // format: ./memecluster basename
+  if (Arguments.IsKey("qbdb")) {
+    BaseString = Arguments.GetDat("qbdb");
   }
+  if (Arguments.IsKey("output")) {
+    OutputString = Arguments.GetDat("output");
+  }
+
   TFIn BaseFile(BaseString);
 
   if (argc >= 3) {
