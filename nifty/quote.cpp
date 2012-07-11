@@ -3,6 +3,7 @@
 #include "doc.h"
 
 const uint TQuote::NumSecondsInHour = 3600;
+const uint TQuote::NumSecondsInWeek = 604800;
 
 PSwSet TQuote::StopWordSet = new TSwSet(swstEnMsdn);
 
@@ -115,7 +116,7 @@ void TQuote::StemAndStopWordsContentString(const TStrV &ContentV, TStrV &NewCont
   }
 }
 
-bool TQuote::GraphFreqOverTime(TDocBase *DocBase) {
+bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename) {
   printf("Graphing frequency over time\n");
   if (Sources.Len() == 0) {
     return false;
@@ -124,14 +125,29 @@ bool TQuote::GraphFreqOverTime(TDocBase *DocBase) {
   TIntV SourcesSorted(Sources);
   SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
 
+  // Only consider documents up to a week before the date of the last document
+  // Calculate frequency per hour of the quote, and plot it
+  TDoc LastDoc;
+  DocBase->GetDoc(SourcesSorted[SourcesSorted.Len()-1], LastDoc);
+  TUInt EndTime = TUInt(LastDoc.GetDate().GetAbsSecs());
+  TUInt FirstTimeToConsider = EndTime - NumSecondsInWeek;
+
   TIntPrV FreqV;
-  TDoc PrevDoc;
-  DocBase->GetDoc(SourcesSorted[0], PrevDoc);
-  TUInt StartTime = TUInt(PrevDoc.GetDate().GetAbsSecs());
+  TDoc StartDoc;
+  int StartDocIndex = 0;
+  DocBase->GetDoc(SourcesSorted[StartDocIndex], StartDoc);
+  TUInt StartTime = TUInt(StartDoc.GetDate().GetAbsSecs());
+
+  while (StartTime < FirstTimeToConsider) {
+    ++StartDocIndex;
+    DocBase->GetDoc(SourcesSorted[StartDocIndex], StartDoc);
+    StartTime = TUInt(StartDoc.GetDate().GetAbsSecs());
+  }
+
   TInt Freq = TInt(1);
   TInt HourNum = 0;
 
-  for (int i = 1; i < SourcesSorted.Len(); ++i) {
+  for (int i = StartDocIndex+1; i < SourcesSorted.Len(); ++i) {
     TDoc CurrDoc;
     DocBase->GetDoc(SourcesSorted[i], CurrDoc);
     TUInt CurrTime = TUInt(CurrDoc.GetDate().GetAbsSecs());
@@ -154,11 +170,35 @@ bool TQuote::GraphFreqOverTime(TDocBase *DocBase) {
   }
   FreqV.Add(TIntPr(HourNum, Freq));
 
+  // Find peaks and add them to the plot
+  // Define a peak as anything that is more than one standard deviation above the mean
+  TIntPrV PeakV;
+  TFltV FreqFltV;
+  for (int i = 0; i < FreqV.Len(); ++i) {
+    FreqFltV.Add(TFlt(FreqV[i].Val2));
+  }
+
+  TMom M(FreqFltV);
+  TFlt FreqMean = TFlt(M.GetMean());
+  TFlt FreqStdDev = TFlt(M.GetSDev());
+
+  for (int i = 0; i < FreqV.Len(); ++i) {
+    TFlt Freq = TFlt(FreqV[i].Val2);
+    if (Freq > FreqMean + FreqStdDev) {
+      PeakV.Add(FreqV[i]);
+    }
+  }
+
   printf("Creating the plot...\n");
   TStr ContentStr;
   GetContentString(ContentStr);
-  TGnuPlot GP("Quote" + Id.GetStr() + "-FreqOverTime", "Frequency of Quote " + Id.GetStr() + " Over Time: " + ContentStr);
+  TGnuPlot GP(Filename, "Frequency of Quote " + Id.GetStr() + " Over Time: " + ContentStr);
+  GP.SetXLabel(TStr("Hour Offset"));
+  GP.SetYLabel(TStr("Frequency of Quote"));
   GP.AddPlot(FreqV, gpwLinesPoints, "Frequency");
+  if (PeakV.Len() > 0) {
+    GP.AddPlot(PeakV, gpwPoints, "Peaks");
+  }
   GP.SavePng();
   return true;
 }

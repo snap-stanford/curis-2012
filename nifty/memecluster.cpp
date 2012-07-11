@@ -30,6 +30,21 @@ void OutputClusterInformation(TQuoteBase* QB, TVec<TTriple<TInt, TInt, TIntV> >&
   fclose(F);
 }
 
+void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB) {
+  printf("Testing graph quote\n");
+  TIntV AllQuotes;
+  QB->GetAllQuoteIds(AllQuotes);
+  // Sort by descending frequency of quote
+  AllQuotes.SortCmp(TCmpQuoteByFreq(false, QB)); 
+
+  for (int i = 0; i < 100; i++) {
+    TQuote Q;
+    QB->GetQuote(AllQuotes[i], Q);
+    TStr Filename = TStr("./plots/Freq" + Q.GetNumSources().GetStr() + "Quote" + Q.GetId().GetStr());
+    Q.GraphFreqOverTime(DB, Filename);
+  }
+}
+
 int main(int argc, char *argv[]) {
   // load QB and DB
   TStr BaseString = "/lfs/1/tmp/curis/QBDB.bin";
@@ -46,6 +61,8 @@ int main(int argc, char *argv[]) {
   TDocBase *DB = new TDocBase;
   QB->Load(BaseFile);
   DB->Load(BaseFile);
+
+  //PlotQuoteFreq(QB, DB);
 
   // create clusters and save!
   QuoteGraph GraphCreator(QB);

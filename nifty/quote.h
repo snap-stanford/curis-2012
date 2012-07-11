@@ -16,6 +16,7 @@ private:
 
 public:
   static const uint NumSecondsInHour;
+  static const uint NumSecondsInWeek;
 
   TQuote();
   TQuote(TInt Id, const TStrV& Content);
@@ -34,7 +35,7 @@ public:
   TInt GetId();
   TInt GetNumDomains(TDocBase *DocBase);
   TInt GetNumSources();
-  bool GraphFreqOverTime(TDocBase *DocBase);
+  bool GraphFreqOverTime(TDocBase *DocBase, TStr Filename);
 
   static PSwSet StopWordSet;
   static void ParseContentString(const TStr &ContentString, TStrV &ParsedString);
@@ -61,27 +62,26 @@ public:
   int Len();
 };
 
-// Date comparator
-class TCmpDocByDate {
+// Compares two quotes by their frequency
+class TCmpQuoteByFreq {
 private:
   bool IsAsc;
-  TDocBase *DocBase;
+  TQuoteBase *QuoteBase;
 public:
-  TCmpDocByDate(const bool& AscSort=true, TDocBase *DB=NULL) : IsAsc(AscSort) {
-    DocBase = DB;
+  TCmpQuoteByFreq(const bool& AscSort=true, TQuoteBase *QB=NULL) : IsAsc(AscSort) {
+    QuoteBase = QB;
   }
   bool operator () (const TInt& P1, const TInt& P2) const {
-    TDoc Doc1;
-    DocBase->GetDoc(P1, Doc1);
-    TDoc Doc2;
-    DocBase->GetDoc(P2, Doc2);
+    TQuote Quote1;
+    QuoteBase->GetQuote(P1, Quote1);
+    TQuote Quote2;
+    QuoteBase->GetQuote(P2, Quote2);
     if (IsAsc) {
-      return Doc1.GetDate().GetAbsSecs() < Doc2.GetDate().GetAbsSecs();
+      return Quote1.GetNumSources() < Quote2.GetNumSources();
     } else {
-      return Doc2.GetDate().GetAbsSecs() < Doc1.GetDate().GetAbsSecs();
+      return Quote2.GetNumSources() < Quote1.GetNumSources();
     }
   }
 };
-
 
 #endif
