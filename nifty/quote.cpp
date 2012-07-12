@@ -116,59 +116,43 @@ void TQuote::StemAndStopWordsContentString(const TStrV &ContentV, TStrV &NewCont
   }
 }
 
+bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV) {
+  if (Sources.Len() == 0) {
+    return false;
+  }
+
+  TIntPrV FreqV;
+  TVec<TSecTm> HourOffsets;
+  GetFreqVector(DocBase, FreqV, HourOffsets);
+
+  TFltV FreqFltV;
+  for (int i = 0; i < FreqV.Len(); ++i) {
+    FreqFltV.Add(TFlt(FreqV[i].Val2));
+  }
+
+  TMom M(FreqFltV);
+  TFlt FreqMean = TFlt(M.GetMean());
+  TFlt FreqStdDev = TFlt(M.GetSDev());
+
+  for (int i = 0; i < FreqV.Len(); ++i) {
+    TFlt Freq = TFlt(FreqV[i].Val2);
+    if (Freq > FreqMean + FreqStdDev) {
+      PeakTimesV.Add(HourOffsets[i]);
+    }
+  }
+  return true;
+}
+
+
 bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename) {
   printf("Graphing frequency over time\n");
   if (Sources.Len() == 0) {
     return false;
   }
 
-  TIntV SourcesSorted(Sources);
-  SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
-
-  // Only consider documents up to a week before the date of the last document
-  // Calculate frequency per hour of the quote, and plot it
-  TDoc LastDoc;
-  DocBase->GetDoc(SourcesSorted[SourcesSorted.Len()-1], LastDoc);
-  TUInt EndTime = TUInt(LastDoc.GetDate().GetAbsSecs());
-  TUInt FirstTimeToConsider = EndTime - NumSecondsInWeek;
-
   TIntPrV FreqV;
-  TDoc StartDoc;
-  int StartDocIndex = 0;
-  DocBase->GetDoc(SourcesSorted[StartDocIndex], StartDoc);
-  TUInt StartTime = TUInt(StartDoc.GetDate().GetAbsSecs());
-
-  while (StartTime < FirstTimeToConsider) {
-    ++StartDocIndex;
-    DocBase->GetDoc(SourcesSorted[StartDocIndex], StartDoc);
-    StartTime = TUInt(StartDoc.GetDate().GetAbsSecs());
-  }
-
-  TInt Freq = TInt(1);
-  TInt HourNum = 0;
-
-  for (int i = StartDocIndex+1; i < SourcesSorted.Len(); ++i) {
-    TDoc CurrDoc;
-    DocBase->GetDoc(SourcesSorted[i], CurrDoc);
-    TUInt CurrTime = TUInt(CurrDoc.GetDate().GetAbsSecs());
-    if (CurrTime - StartTime < NumSecondsInHour) {
-      // Increment the number of quotes seen in this hour-long period by one
-      Freq += 1;
-    } else {
-      FreqV.Add(TIntPr(HourNum, Freq));
-      TInt NumHoursAhead = (CurrTime - StartTime) / NumSecondsInHour;
-      //printf("PrevDoc Date: %s, CurrDoc Date: %s, NumHoursAhead: %d\n", PrevDoc.GetDate().GetYmdTmStr().GetCStr(), CurrDoc.GetDate().GetYmdTmStr().GetCStr(), NumHoursAhead.Val);
-      // Add frequencies of 0 if there are hours in between the two occurrences
-      for (int j = 1; j < NumHoursAhead; ++j) {
-        FreqV.Add(TIntPr(HourNum + j, 0));
-      }
-      HourNum += NumHoursAhead;
-      //printf("HourNum: %d\n", HourNum.Val);
-      Freq.Val = 1;
-      StartTime = StartTime + ((CurrTime - StartTime) / NumSecondsInHour) * NumSecondsInHour;
-    }
-  }
-  FreqV.Add(TIntPr(HourNum, Freq));
+  TVec<TSecTm> HourOffsets;
+  GetFreqVector(DocBase, FreqV, HourOffsets);
 
   // Find peaks and add them to the plot
   // Define a peak as anything that is more than one standard deviation above the mean
@@ -201,6 +185,58 @@ bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename) {
   }
   GP.SavePng();
   return true;
+}
+
+void TQuote::GetFreqVector(TDocBase *DocBase, TIntPrV& FreqV, TVec<TSecTm> HourOffsets) {
+  TIntV SourcesSorted(Sources);
+  SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
+
+  // Only consider documents up to a week before the date of the last document
+  // Calculate frequency per hour of the quote, and plot it
+  TDoc LastDoc;
+  DocBase->GetDoc(SourcesSorted[SourcesSorted.Len()-1], LastDoc);
+  TUInt EndTime = TUInt(LastDoc.GetDate().GetAbsSecs());
+  TUInt FirstTimeToConsider = EndTime - NumSecondsInWeek;
+
+  TDoc StartDoc;
+  int StartDocIndex = 0;
+  DocBase->GetDoc(SourcesSorted[StartDocIndex], StartDoc);
+  TUInt StartTime = TUInt(StartDoc.GetDate().GetAbsSecs());
+
+  while (StartTime < FirstTimeToConsider) {
+    ++StartDocIndex;
+    DocBase->GetDoc(SourcesSorted[StartDocIndex], StartDoc);
+    StartTime = TUInt(StartDoc.GetDate().GetAbsSecs());
+  }
+
+  TInt Freq = TInt(1);
+  TInt HourNum = 0;
+
+  for (int i = StartDocIndex+1; i < SourcesSorted.Len(); ++i) {
+    TDoc CurrDoc;
+    DocBase->GetDoc(SourcesSorted[i], CurrDoc);
+    TUInt CurrTime = TUInt(CurrDoc.GetDate().GetAbsSecs());
+    if (CurrTime - StartTime < NumSecondsInHour) {
+      // Increment the number of quotes seen in this hour-long period by one
+      Freq += 1;
+    } else {
+      HourOffsets.Add(TSecTm(StartTime));
+      FreqV.Add(TIntPr(HourNum, Freq));
+      TInt NumHoursAhead = (CurrTime - StartTime) / NumSecondsInHour;
+      //printf("PrevDoc Date: %s, CurrDoc Date: %s, NumHoursAhead: %d\n", PrevDoc.GetDate().GetYmdTmStr().GetCStr(), CurrDoc.GetDate().GetYmdTmStr().GetCStr(), NumHoursAhead.Val);
+      // Add frequencies of 0 if there are hours in between the two occurrences
+      for (int j = 1; j < NumHoursAhead; ++j) {
+        FreqV.Add(TIntPr(HourNum + j, 0));
+      }
+      HourNum += NumHoursAhead;
+      //printf("HourNum: %d\n", HourNum.Val);
+      Freq.Val = 1;
+      StartTime = StartTime + ((CurrTime - StartTime) / NumSecondsInHour) * NumSecondsInHour;
+    }
+  }
+  HourOffsets.Add(TSecTm(StartTime));
+  FreqV.Add(TIntPr(HourNum, Freq));
+  
 }
 
 TQuoteBase::TQuoteBase() {
