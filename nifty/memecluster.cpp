@@ -4,6 +4,7 @@
 #include "quote.h"
 #include "doc.h"
 #include "clusterplot.h"
+#include "logoutput.h"
 #include <stdio.h>
 
 void OutputClusterInformation(TQuoteBase* QB, TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq, TStr FileName) {
@@ -65,6 +66,7 @@ int main(int argc, char *argv[]) {
   if (Arguments.IsKey("output")) {
     OutputString = Arguments.GetDat("output");
   }
+  LogOutput log;
 
   TFIn BaseFile(BaseString);
 
@@ -82,11 +84,11 @@ int main(int argc, char *argv[]) {
   QuoteGraph GraphCreator(QB);
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
-  Clustering ClusterJob;
+  Clustering ClusterJob(log);
   ClusterJob.SetGraph(QGraph);
   TIntSet RootNodes;
   TVec<TIntV> Clusters;
-  ClusterJob.BuildClusters(RootNodes, Clusters, QB);
+  ClusterJob.BuildClusters(RootNodes, Clusters, QB, DB);
   TVec<TTriple<TInt, TInt, TIntV> > RepQuotesAndFreq;
   ClusterJob.SortClustersByFreq(RepQuotesAndFreq, Clusters, QB);
   OutputClusterInformation(QB, RepQuotesAndFreq, OutputString);

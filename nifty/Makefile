@@ -41,6 +41,9 @@ clustering.o:
 	
 clusterplot.o:
 	g++ -c $(CXXFLAGS) clusterplot.cpp -I$(GLIB) -I$(SNAP)
+	
+logoutput.o:
+	g++ -c $(CXXFLAGS) logoutput.cpp -I$(GLIB) -I$(SNAP)
 
 clean:	
 	rm -f *.o *.png *.plt *.tab $(NAME) $(NAME).exe
