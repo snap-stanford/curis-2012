@@ -7,6 +7,7 @@
 class Clustering {
 private:
   PNGraph QGraph;
+  TFlt ComputeEdgeScore(TQuote& Source, TQuote& Dest);
 
 public:
   void Save(TSOut& SOut) const;

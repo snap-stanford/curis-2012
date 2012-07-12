@@ -41,7 +41,7 @@ void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB) {
     TQuote Q;
     QB->GetQuote(AllQuotes[i], Q);
     TStr Filename = TStr("./plots/Freq" + Q.GetNumSources().GetStr() + "Quote" + Q.GetId().GetStr());
-    Q.GraphFreqOverTime(DB, Filename);
+    //Q.GraphFreqOverTime(DB, Filename);
   }
 }
 

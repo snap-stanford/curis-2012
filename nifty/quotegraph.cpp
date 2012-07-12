@@ -110,7 +110,7 @@ bool QuoteGraph::EdgeShouldBeCreated(TQuote& Quote1, TQuote& Quote2) {
   TStrV Content2V;
   Content1.SplitOnWs(Content1V);
   Content2.SplitOnWs(Content2V);
-  TInt LDistance = WordLevenshteinDistance(Content1V, Content2V);
+  TInt LDistance = QuoteGraph::WordLevenshteinDistance(Content1V, Content2V);
 
   // Decision tree from clustering methods paper
   int MinStopLen = min(Content1V.Len(), Content2V.Len());

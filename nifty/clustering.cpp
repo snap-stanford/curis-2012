@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "clustering.h"
+#include "quotegraph.h"
 
 void Clustering::Save(TSOut &SOut) const {
   //QuoteIdCounter.Save(SOut);
@@ -33,33 +34,39 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
   TNGraph::TNodeI EndNode = QGraph->EndNI();
   int count = 0;
   for (TNGraph::TNodeI Node = QGraph->BegNI(); Node < EndNode; Node++) {
-    TInt NodeDegree = Node.GetOutDeg();
-    if (NodeDegree == 0) {
-      RootNodes.AddKey(Node.GetId());
-      //printf("ROOT NODE\n");
-    } else if (NodeDegree > 1) {
-      TInt MaxCites = 0;
-      TInt MaxNodeId = 0;
-      TIntV NodeV;
-      // find the node that has the largest number of sources
-      for (int i = 0; i < NodeDegree; ++i) {
-        TInt CurNode = Node.GetOutNId(i);
-        NodeV.Add(CurNode);
-        TQuote CurQuote;
-        if (QB->GetQuote(CurNode, CurQuote) && CurQuote.GetNumSources() > MaxCites) {
-          MaxCites = CurQuote.GetNumSources();
-          MaxNodeId = CurNode;
+    TQuote SourceQuote;
+    if (QB->GetQuote(Node.GetId(), SourceQuote)) {
+      TInt NodeDegree = Node.GetOutDeg();
+      if (NodeDegree == 0) {
+        RootNodes.AddKey(Node.GetId());
+        //printf("ROOT NODE\n");
+      } else if (NodeDegree > 1) {
+        TFlt MaxScore = 0;
+        TInt MaxNodeId = 0;
+        TIntV NodeV;
+        // find the node that has the largest number of sources
+        for (int i = 0; i < NodeDegree; ++i) {
+          TInt CurNode = Node.GetOutNId(i);
+          NodeV.Add(CurNode);
+          TQuote DestQuote;
+          if (QB->GetQuote(CurNode, DestQuote)) {
+            TFlt EdgeScore = ComputeEdgeScore(SourceQuote, DestQuote);
+            if (EdgeScore > MaxScore) {
+              MaxScore = EdgeScore;
+              MaxNodeId = CurNode;
+            }
+          }
         }
-      }
-      // remove all other edges, backwards to prevent indexing fail
-      for (int i = 0; i < NodeV.Len(); i++) {
-        if (NodeV[i] != MaxNodeId) {
-          QGraph->DelEdge(Node.GetId(), NodeV[i]);
+        // remove all other edges, backwards to prevent indexing fail
+        for (int i = 0; i < NodeV.Len(); i++) {
+          if (NodeV[i] != MaxNodeId) {
+            QGraph->DelEdge(Node.GetId(), NodeV[i]);
+          }
         }
+        printf("Out degree: %d out of %d\n", Node.GetOutDeg(), NodeDegree.Val);
+      } else {
+        count++;
       }
-      printf("Out degree: %d out of %d\n", Node.GetOutDeg(), NodeDegree.Val);
-    } else {
-      count++;
     }
   }
   printf("%d nodes with out degree 1 found.\n", count);
@@ -79,6 +86,15 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
     }
     Clusters.Add(Components[i].NIdV);
   }
+}
+
+TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest) {
+  TInt NumSources = Dest.GetNumSources();
+  TStrV Content1, Content2;
+  Source.GetParsedContent(Content1);
+  Dest.GetParsedContent(Content2);
+  TInt EditDistance = QuoteGraph::WordLevenshteinDistance(Content1, Content2);
+  return NumSources/(EditDistance + 1.0); // adhoc function between frequency and edit distance
 }
 
 /// Sorts clusters in decreasing order, and finds representative quote for each cluster
