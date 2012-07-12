@@ -13,6 +13,7 @@ private:
   TIntV Sources;
 
   void Init();
+  void GetFreqVector(TDocBase *DocBase, TIntPrV& FreqV, TVec<TSecTm> HourOffsets);
 
 public:
   static const uint NumSecondsInHour;
@@ -35,6 +36,7 @@ public:
   TInt GetId();
   TInt GetNumDomains(TDocBase *DocBase);
   TInt GetNumSources();
+  bool GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV);
   bool GraphFreqOverTime(TDocBase *DocBase, TStr Filename);
 
   static PSwSet StopWordSet;
