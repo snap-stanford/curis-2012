@@ -38,7 +38,7 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
       RootNodes.AddKey(Node.GetId());
       //printf("ROOT NODE\n");
     } else if (NodeDegree > 1) {
-      TInt MaxCites = 0;
+      TInt MaxScore = 0;
       TInt MaxNodeId = 0;
       TIntV NodeV;
       // find the node that has the largest number of sources
@@ -46,7 +46,10 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
         TInt CurNode = Node.GetOutNId(i);
         NodeV.Add(CurNode);
         TQuote CurQuote;
-        if (QB->GetQuote(CurNode, CurQuote) && CurQuote.GetNumSources() > MaxCites) {
+        if (QB->GetQuote(CurNode, CurQuote)) {
+          TInt EdgeScore = ComputeEdgeScore(Node, CurQuote);
+          if (EdgeScore > MaxScore)
+        	 && CurQuote.GetNumSources() > MaxCites
           MaxCites = CurQuote.GetNumSources();
           MaxNodeId = CurNode;
         }
@@ -79,6 +82,10 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
     }
     Clusters.Add(Components[i].NIdV);
   }
+}
+
+TInt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest) {
+
 }
 
 /// Sorts clusters in decreasing order, and finds representative quote for each cluster

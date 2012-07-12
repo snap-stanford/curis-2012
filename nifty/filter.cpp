@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
     while (Memes.LoadNextEntry()) {
       if (IsUrlInBlackList(Memes.PostUrlStr)) { NSkip++;continue; }
       if (IsDuplicateUrl(Memes.PostUrlStr)) { NSkip++;continue; }
-      if (IsPostTimeCorrupt(Memes.PubTm, Memes.GetCurrentFileTime())) { NSkip++;continue; }
+      //if (IsPostTimeCorrupt(Memes.PubTm, Memes.GetCurrentFileTime())) { NSkip++;continue; }
       bool ContainValidQuote = false;
       for (int m = 0; m < Memes.MemeV.Len(); m++) {
         if (IsEnglish(Memes.MemeV[m]) &&
