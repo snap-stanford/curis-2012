@@ -3,18 +3,22 @@
 
 #include "stdafx.h"
 #include "quote.h"
+#include "doc.h"
+#include "logoutput.h"
 
 class Clustering {
 private:
   PNGraph QGraph;
-  TFlt ComputeEdgeScore(TQuote& Source, TQuote& Dest);
+  LogOutput log;
+  TFlt ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB);
 
 public:
+  Clustering(LogOutput& log);
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   void SetGraph(PNGraph QGraph);
   void GetRootNodes(TIntSet& RootNodes);
-  void BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase *QB);
+  void BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase *QB, TDocBase *DB);
   void SortClustersByFreq(TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase);
 };
 

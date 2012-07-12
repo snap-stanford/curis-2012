@@ -1,6 +1,11 @@
 #include "stdafx.h"
 #include "clustering.h"
 #include "quotegraph.h"
+#include "logoutput.h"
+
+Clustering::Clustering(LogOutput& log) {
+  this->log = log;
+}
 
 void Clustering::Save(TSOut &SOut) const {
   //QuoteIdCounter.Save(SOut);
@@ -27,12 +32,14 @@ void Clustering::GetRootNodes(TIntSet& RootNodes) {
   }
 }
 
-void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase *QB) {
+void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase *QB, TDocBase *DB) {
   // currently deletes all edges but the one leading to phrase that is most frequently cited.
   // TODO: Make more efficient? At 10k nodes this is ok
 
   int NumEdgesOriginal = QGraph->GetEdges();
+  log.LogValue(LogOutput::NumOriginalEdges, TStr(NumEdgesOriginal));
   int NumNodes = QGraph->GetNodes();
+  log.LogValue(LogOutput::NumQuotes, TStr(NumNodes));
 
   printf("Deleting extra graph edges...\n");
   TNGraph::TNodeI EndNode = QGraph->EndNI();
@@ -54,7 +61,7 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
           NodeV.Add(CurNode);
           TQuote DestQuote;
           if (QB->GetQuote(CurNode, DestQuote)) {
-            TFlt EdgeScore = ComputeEdgeScore(SourceQuote, DestQuote);
+            TFlt EdgeScore = ComputeEdgeScore(SourceQuote, DestQuote, DB);
             if (EdgeScore > MaxScore) {
               MaxScore = EdgeScore;
               MaxNodeId = CurNode;
@@ -92,13 +99,22 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
   }
 }
 
-TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest) {
+TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB) {
   TInt NumSources = Dest.GetNumSources();
   TStrV Content1, Content2;
   Source.GetParsedContent(Content1);
   Dest.GetParsedContent(Content2);
   TInt EditDistance = QuoteGraph::WordLevenshteinDistance(Content1, Content2);
-  return NumSources/(EditDistance + 1.0); // adhoc function between frequency and edit distance
+
+  TVec<TSecTm> SourcePeakVectors, DestPeakVectors;
+  Source.GetPeaks(DB, SourcePeakVectors);
+  Dest.GetPeaks(DB, DestPeakVectors);
+  // looks at first peak for now - this should also hopefully be the biggest peak
+  TInt PeakDistanceInSecs = TInt::Abs(SourcePeakVectors[0].GetAbsSecs() - DestPeakVectors[0].GetAbsSecs());
+
+  // adhoc function between frequency and edit distance and peak diff.
+  // TODO: learn this! haha :)
+  return NumSources * 2 * 3600.0 /(EditDistance + 1.0)/(PeakDistanceInSecs);
 }
 
 /// Sorts clusters in decreasing order, and finds representative quote for each cluster
