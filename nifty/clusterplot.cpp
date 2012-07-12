@@ -26,14 +26,13 @@ TIntPrV& ret) {
 /* x-axis: number of different quotes in the cluster, y-axis: number
  * of clusters with x quotes */
 void ClusterPlot::PlotClusterSizeUnique(TVec<TIntV> Clusters) {
-  TGnuPlot Plot = TGnuPlot(RootDirectory + "plot_unique_clusters", "Cluster Size Frequency - Unique Quotes", false);
+  TGnuPlot Plot = TGnuPlot(RootDirectory + "plot_unique_clusters.png", "Cluster Size Frequency - Unique Quotes", false);
   Plot.SetXYLabel("number of unique quotes", "number of clusters");
   Plot.SetScale(gpsLog2XY);
 
   Clusters.SortCmp(TCmpIntV(false));
   TInt ClusterLen = Clusters.Len();
   TIntPrV Coordinates;
-  int count = 0;
   TInt LastFrequency = -1;
   for (int i = 0; i < ClusterLen; ++i) {
     int j = i;
@@ -52,13 +51,12 @@ void ClusterPlot::PlotClusterSizeUnique(TVec<TIntV> Clusters) {
 clusters of frequency x
 3) x-axis: frequency of a quote, y-axis: number of quotes with freq. x. */
 void ClusterPlot::PlotClusterSize(TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq) {
-  TGnuPlot Plot = TGnuPlot(RootDirectory + "plot_cluster_size", "Cluster Size Frequency - Total Quotes", false);
-  Plot.SetXYLabel("number of unique quotes", "number of clusters");
+  TGnuPlot Plot = TGnuPlot(RootDirectory + "plot_cluster_size.png", "Cluster Size Frequency - Total Quotes", false);
+  Plot.SetXYLabel("number of quotes", "number of clusters");
   Plot.SetScale(gpsLog2XY);
 
   TInt ClusterLen = RepQuotesAndFreq.Len();
   TIntPrV Coordinates;
-  int count = 0;
   TInt LastFrequency = -1;
   for (int i = 0; i < ClusterLen; ++i) {
     int j = i;
@@ -74,7 +72,7 @@ void ClusterPlot::PlotClusterSize(TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAn
 }
 
 void ClusterPlot::PlotQuoteFrequencies(TQuoteBase* QB) {
-  TGnuPlot Plot = TGnuPlot(RootDirectory + "plot_quote_frequencies", "Quote Frequency", false);
+  TGnuPlot Plot = TGnuPlot(RootDirectory + "plot_quote_frequencies.png", "Quote Frequency", false);
   Plot.SetXYLabel("number of sources", "number of quotes");
   Plot.SetScale(gpsLog2XY);
 
