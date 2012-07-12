@@ -30,6 +30,10 @@ void Clustering::GetRootNodes(TIntSet& RootNodes) {
 void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase *QB) {
   // currently deletes all edges but the one leading to phrase that is most frequently cited.
   // TODO: Make more efficient? At 10k nodes this is ok
+
+  int NumEdgesOriginal = QGraph->GetEdges();
+  int NumNodes = QGraph->GetNodes();
+
   printf("Deleting extra graph edges...\n");
   TNGraph::TNodeI EndNode = QGraph->EndNI();
   int count = 0;
