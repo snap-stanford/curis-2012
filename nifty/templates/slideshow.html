@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+<head>
+  <title>Plots</title>
+  <script type="text/javascript">
+    <!--
+    var images = new Array();
+    var freqs = new Array();
+    {% for loc in image_locs %}
+      images[{{ loop.index }}] = "{{ loc }}";
+    {% endfor %}
+    {% for freq in image_freqs %}
+      freqs[{{ loop.index }}] = "{{ freq }}";
+    {% endfor %}
+    //-->
+  </script>
+</head>
+<body>
+
+  <button onclick = "slideitforward()"> Next </button>
+  <button onclick = "slideitback()"> Prev </button>
+  <p id="freq"> Frequency of Quote: {{ image_freqs[0] }} </p>
+  <img name="slide" src="{{ image_locs[0] }}"  width = 1000 />
+
+</body>
+<script>
+  <!--
+  //variable that will increment through the images
+  var step=0;
+  function slideitforward(){
+    //if browser does not support the image object, exit.
+    if (!document.images)
+      return;
+    if (step< {{ image_locs|length}}) {
+      step++;
+      document.images.slide.src=images[step];
+      document.getElementById('freq').innerHTML = "Frequency of Quote: " + freqs[step];
+    }
+  }
+
+  function slideitback(){
+    //if browser does not support the image object, exit.
+    if (!document.images)
+      return;
+    if (step > 1) {
+      step--;
+      document.images.slide.src=images[step];
+      document.getElementById('freq').innerHTML = "Frequency of Quote: " + freqs[step];
+    }
+  }
+
+  //-->
+</script>
+</html>

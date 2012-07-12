@@ -4,6 +4,7 @@
 #include "quote.h"
 #include "doc.h"
 #include "clusterplot.h"
+#include "logoutput.h"
 #include <stdio.h>
 
 void OutputClusterInformation(TQuoteBase* QB, TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq, TStr FileName) {
@@ -30,6 +31,21 @@ void OutputClusterInformation(TQuoteBase* QB, TVec<TTriple<TInt, TInt, TIntV> >&
   fclose(F);
 }
 
+void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB) {
+  printf("Testing graph quote\n");
+  TIntV AllQuotes;
+  QB->GetAllQuoteIds(AllQuotes);
+  // Sort by descending frequency of quote
+  AllQuotes.SortCmp(TCmpQuoteByFreq(false, QB)); 
+
+  for (int i = 0; i < 100; i++) {
+    TQuote Q;
+    QB->GetQuote(AllQuotes[i], Q);
+    TStr Filename = TStr("./plots/Freq" + Q.GetNumSources().GetStr() + "Quote" + Q.GetId().GetStr());
+    //Q.GraphFreqOverTime(DB, Filename);
+  }
+}
+
 int main(int argc, char *argv[]) {
   THash<TStr, TStr> Arguments;
   for (int i = 1; i < argc; i++) {
@@ -50,6 +66,7 @@ int main(int argc, char *argv[]) {
   if (Arguments.IsKey("output")) {
     OutputString = Arguments.GetDat("output");
   }
+  LogOutput log;
 
   TFIn BaseFile(BaseString);
 
@@ -61,15 +78,17 @@ int main(int argc, char *argv[]) {
   QB->Load(BaseFile);
   DB->Load(BaseFile);
 
+  //PlotQuoteFreq(QB, DB);
+
   // create clusters and save!
   QuoteGraph GraphCreator(QB);
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
-  Clustering ClusterJob;
+  Clustering ClusterJob(log);
   ClusterJob.SetGraph(QGraph);
   TIntSet RootNodes;
   TVec<TIntV> Clusters;
-  ClusterJob.BuildClusters(RootNodes, Clusters, QB);
+  ClusterJob.BuildClusters(RootNodes, Clusters, QB, DB);
   TVec<TTriple<TInt, TInt, TIntV> > RepQuotesAndFreq;
   ClusterJob.SortClustersByFreq(RepQuotesAndFreq, Clusters, QB);
   OutputClusterInformation(QB, RepQuotesAndFreq, OutputString);

@@ -1,5 +1,11 @@
 #include "stdafx.h"
 #include "clustering.h"
+#include "quotegraph.h"
+#include "logoutput.h"
+
+Clustering::Clustering(LogOutput& log) {
+  this->log = log;
+}
 
 void Clustering::Save(TSOut &SOut) const {
   //QuoteIdCounter.Save(SOut);
@@ -26,40 +32,52 @@ void Clustering::GetRootNodes(TIntSet& RootNodes) {
   }
 }
 
-void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase *QB) {
+void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase *QB, TDocBase *DB) {
   // currently deletes all edges but the one leading to phrase that is most frequently cited.
   // TODO: Make more efficient? At 10k nodes this is ok
+
+  int NumEdgesOriginal = QGraph->GetEdges();
+  log.LogValue(LogOutput::NumOriginalEdges, TStr(NumEdgesOriginal));
+  int NumNodes = QGraph->GetNodes();
+  log.LogValue(LogOutput::NumQuotes, TStr(NumNodes));
+
   printf("Deleting extra graph edges...\n");
   TNGraph::TNodeI EndNode = QGraph->EndNI();
   int count = 0;
   for (TNGraph::TNodeI Node = QGraph->BegNI(); Node < EndNode; Node++) {
-    TInt NodeDegree = Node.GetOutDeg();
-    if (NodeDegree == 0) {
-      RootNodes.AddKey(Node.GetId());
-      //printf("ROOT NODE\n");
-    } else if (NodeDegree > 1) {
-      TInt MaxCites = 0;
-      TInt MaxNodeId = 0;
-      TIntV NodeV;
-      // find the node that has the largest number of sources
-      for (int i = 0; i < NodeDegree; ++i) {
-        TInt CurNode = Node.GetOutNId(i);
-        NodeV.Add(CurNode);
-        TQuote CurQuote;
-        if (QB->GetQuote(CurNode, CurQuote) && CurQuote.GetNumSources() > MaxCites) {
-          MaxCites = CurQuote.GetNumSources();
-          MaxNodeId = CurNode;
+    TQuote SourceQuote;
+    if (QB->GetQuote(Node.GetId(), SourceQuote)) {
+      TInt NodeDegree = Node.GetOutDeg();
+      if (NodeDegree == 0) {
+        RootNodes.AddKey(Node.GetId());
+        //printf("ROOT NODE\n");
+      } else if (NodeDegree > 1) {
+        TFlt MaxScore = 0;
+        TInt MaxNodeId = 0;
+        TIntV NodeV;
+        // find the node that has the largest number of sources
+        for (int i = 0; i < NodeDegree; ++i) {
+          TInt CurNode = Node.GetOutNId(i);
+          NodeV.Add(CurNode);
+          TQuote DestQuote;
+          if (QB->GetQuote(CurNode, DestQuote)) {
+            TFlt EdgeScore = ComputeEdgeScore(SourceQuote, DestQuote, DB);
+            if (EdgeScore > MaxScore) {
+              MaxScore = EdgeScore;
+              MaxNodeId = CurNode;
+            }
+          }
         }
-      }
-      // remove all other edges, backwards to prevent indexing fail
-      for (int i = 0; i < NodeV.Len(); i++) {
-        if (NodeV[i] != MaxNodeId) {
-          QGraph->DelEdge(Node.GetId(), NodeV[i]);
+        // remove all other edges, backwards to prevent indexing fail
+        for (int i = 0; i < NodeV.Len(); i++) {
+          if (NodeV[i] != MaxNodeId) {
+            QGraph->DelEdge(Node.GetId(), NodeV[i]);
+          }
         }
+        printf("Out degree: %d out of %d\n", Node.GetOutDeg(), NodeDegree.Val);
+      } else {
+        count++;
       }
-      printf("Out degree: %d out of %d\n", Node.GetOutDeg(), NodeDegree.Val);
-    } else {
-      count++;
     }
   }
   printf("%d nodes with out degree 1 found.\n", count);
@@ -79,6 +97,24 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
     }
     Clusters.Add(Components[i].NIdV);
   }
+}
+
+TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB) {
+  TInt NumSources = Dest.GetNumSources();
+  TStrV Content1, Content2;
+  Source.GetParsedContent(Content1);
+  Dest.GetParsedContent(Content2);
+  TInt EditDistance = QuoteGraph::WordLevenshteinDistance(Content1, Content2);
+
+  TVec<TSecTm> SourcePeakVectors, DestPeakVectors;
+  Source.GetPeaks(DB, SourcePeakVectors);
+  Dest.GetPeaks(DB, DestPeakVectors);
+  // looks at first peak for now - this should also hopefully be the biggest peak
+  TInt PeakDistanceInSecs = TInt::Abs(SourcePeakVectors[0].GetAbsSecs() - DestPeakVectors[0].GetAbsSecs());
+
+  // adhoc function between frequency and edit distance and peak diff.
+  // TODO: learn this! haha :)
+  return NumSources * 2 * 3600.0 /(EditDistance + 1.0)/(PeakDistanceInSecs);
 }
 
 /// Sorts clusters in decreasing order, and finds representative quote for each cluster
