@@ -140,6 +140,20 @@ bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV) {
       PeakTimesV.Add(HourOffsets[i]);
     }
   }
+
+  // If no peak satisfies the definition, then the "peak" time is
+  // the hour with the highest quote frequency
+  if (PeakTimesV.Len() == 0) {
+    TFlt FreqMax = FreqFltV[0];
+    TInt FreqMaxIndex = 0;
+    for (int i = 0; i < FreqFltV.Len(); ++i) {
+      if (FreqFltV[i] >= FreqMax) {
+        FreqMax = FreqFltV[i];
+        FreqMaxIndex = i;
+      }
+    }
+    PeakTimesV.Add(HourOffsets[FreqMaxIndex]);
+  }
   return true;
 }
 
