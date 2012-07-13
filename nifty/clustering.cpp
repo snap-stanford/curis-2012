@@ -3,10 +3,6 @@
 #include "quotegraph.h"
 #include "logoutput.h"
 
-Clustering::Clustering(LogOutput& log) {
-  this->log = log;
-}
-
 void Clustering::Save(TSOut &SOut) const {
   //QuoteIdCounter.Save(SOut);
   //IdToTQuotes.Save(SOut);
@@ -32,7 +28,7 @@ void Clustering::GetRootNodes(TIntSet& RootNodes) {
   }
 }
 
-void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase *QB, TDocBase *DB) {
+void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase *QB, TDocBase *DB, LogOutput& log) {
   // currently deletes all edges but the one leading to phrase that is most frequently cited.
   // TODO: Make more efficient? At 10k nodes this is ok
 
@@ -74,13 +70,14 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
             QGraph->DelEdge(Node.GetId(), NodeV[i]);
           }
         }
-        printf("Out degree: %d out of %d\n", Node.GetOutDeg(), NodeDegree.Val);
+        //printf("Out degree: %d out of %d\n", Node.GetOutDeg(), NodeDegree.Val);
       } else {
         count++;
       }
     }
   }
   printf("%d nodes with out degree 1 found.\n", count);
+  log.LogValue(LogOutput::NumRemainingEdges, TStr(QGraph->GetEdges()));
 
   // find weakly connected components. these are our clusters. largely taken from memes.h
   printf("Finding weakly connected components\n");
@@ -90,6 +87,7 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
   Clusters.Clr(false);
   TIntSet SeenSet;
   printf("%d weakly connected components discovered.", Components.Len());
+  log.LogValue(LogOutput::NumClusters, TStr(Components.Len()));
   for (int i = 0; i < Components.Len(); i++) {
     for (int n = 0; n < Components[i].NIdV.Len(); n++) {
       IAssert(! SeenSet.IsKey(Components[i].NIdV[n]));
@@ -106,15 +104,20 @@ TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB) {
   Dest.GetParsedContent(Content2);
   TInt EditDistance = QuoteGraph::WordLevenshteinDistance(Content1, Content2);
 
-  TVec<TSecTm> SourcePeakVectors, DestPeakVectors;
-  Source.GetPeaks(DB, SourcePeakVectors);
-  Dest.GetPeaks(DB, DestPeakVectors);
+  //TVec<TSecTm> SourcePeakVectors, DestPeakVectors;
+  //Source.GetPeaks(DB, SourcePeakVectors);
+  //Dest.GetPeaks(DB, DestPeakVectors);
   // looks at first peak for now - this should also hopefully be the biggest peak
-  TInt PeakDistanceInSecs = TInt::Abs(SourcePeakVectors[0].GetAbsSecs() - DestPeakVectors[0].GetAbsSecs());
+  TInt PeakDistanceInSecs = 2 * 3600;
+  //printf("getting peak..\n");
+  //if (SourcePeakVectors.Len() > 0 && DestPeakVectors.Len() > 0)
+  //  PeakDistanceInSecs = TInt::Abs(SourcePeakVectors[0].GetAbsSecs() - DestPeakVectors[0].GetAbsSecs());
+  //else
+  //  printf("GAH!");
 
   // adhoc function between frequency and edit distance and peak diff.
   // TODO: learn this! haha :)
-  return NumSources * 2 * 3600.0 /(EditDistance + 1.0)/(PeakDistanceInSecs);
+  return NumSources * 2 * 3600.0 /(EditDistance + 1.0)/(PeakDistanceInSecs + 1);
 }
 
 /// Sorts clusters in decreasing order, and finds representative quote for each cluster
