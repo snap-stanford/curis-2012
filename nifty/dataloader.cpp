@@ -45,21 +45,21 @@ void TDataLoader::LoadFileList(const TStr& InFileName, const TStr& Directory) {
 
 TSecTm TDataLoader::GetCurrentFileTime() {
   int i;
-  for (i = 0; i < FileList[CurrentFileId].Len(); i++) {
-    if (FileList[CurrentFileId][i] == '-') { i++; break; }
+  for (i = 0; i < FileList[CurrentFileId - 1].Len(); i++) {
+    if (FileList[CurrentFileId - 1][i] == '-') { i++; break; }
   }
 
   TChA tmp_date;
-  for (; i < FileList[CurrentFileId].Len(); i++) {
-    if (FileList[CurrentFileId][i] == 'T') { i++; break; }
-    tmp_date += FileList[CurrentFileId][i];
+  for (; i < FileList[CurrentFileId - 1].Len(); i++) {
+    if (FileList[CurrentFileId - 1][i] == 'T') { i++; break; }
+    tmp_date += FileList[CurrentFileId - 1][i];
   }
 
   tmp_date += ' ';
 
-  for (; i < FileList[CurrentFileId].Len(); i++) {
-    if (FileList[CurrentFileId][i] == 'Z') { break; }
-    tmp_date += FileList[CurrentFileId][i];
+  for (; i < FileList[CurrentFileId - 1].Len(); i++) {
+    if (FileList[CurrentFileId - 1][i] == 'Z') { break; }
+    tmp_date += FileList[CurrentFileId - 1][i];
   }
 
   return TSecTm::GetDtTmFromYmdHmsStr(TStr(tmp_date), '-', '-');
