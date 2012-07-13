@@ -117,13 +117,17 @@ void TQuote::StemAndStopWordsContentString(const TStrV &ContentV, TStrV &NewCont
 }
 
 bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV) {
+  return GetPeaks(DocBase, PeakTimesV, TInt(1));
+}
+
+bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize) {
   if (Sources.Len() == 0) {
     return false;
   }
 
   TIntPrV FreqV;
   TVec<TSecTm> HourOffsets;
-  GetFreqVector(DocBase, FreqV, HourOffsets);
+  GetFreqVector(DocBase, FreqV, HourOffsets, BucketSize);
 
   TFltV FreqFltV;
   for (int i = 0; i < FreqV.Len(); ++i) {
@@ -133,9 +137,6 @@ bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV) {
   TMom M(FreqFltV);
   TFlt FreqMean = TFlt(M.GetMean());
   TFlt FreqStdDev = TFlt(M.GetSDev());
-
-  printf("%d\n", FreqV.Len());
-  printf("%d\n\n", HourOffsets.Len());
 
   for (int i = 0; i < FreqV.Len(); ++i) {
     TFlt Freq = TFlt(FreqV[i].Val2);
@@ -160,8 +161,11 @@ bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV) {
   return true;
 }
 
-
 bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename) {
+  return GraphFreqOverTime(DocBase, Filename, TInt(1));
+}
+
+bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize) {
   printf("Graphing frequency over time\n");
   if (Sources.Len() == 0) {
     return false;
@@ -169,7 +173,7 @@ bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename) {
 
   TIntPrV FreqV;
   TVec<TSecTm> HourOffsets;
-  GetFreqVector(DocBase, FreqV, HourOffsets);
+  GetFreqVector(DocBase, FreqV, HourOffsets, BucketSize);
 
   // Find peaks and add them to the plot
   // Define a peak as anything that is more than one standard deviation above the mean
@@ -204,7 +208,7 @@ bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename) {
   return true;
 }
 
-void TQuote::GetFreqVector(TDocBase *DocBase, TIntPrV& FreqV, TVec<TSecTm>& HourOffsets) {
+void TQuote::GetFreqVector(TDocBase *DocBase, TIntPrV& FreqV, TVec<TSecTm>& HourOffsets, TInt BucketSize) {
   TIntV SourcesSorted(Sources);
   SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
 
@@ -228,29 +232,30 @@ void TQuote::GetFreqVector(TDocBase *DocBase, TIntPrV& FreqV, TVec<TSecTm>& Hour
 
   TInt Freq = TInt(1);
   TInt HourNum = 0;
+  uint BucketSizeSecs = NumSecondsInHour * BucketSize;
 
   for (int i = StartDocIndex+1; i < SourcesSorted.Len(); ++i) {
     TDoc CurrDoc;
     DocBase->GetDoc(SourcesSorted[i], CurrDoc);
     TUInt CurrTime = TUInt(CurrDoc.GetDate().GetAbsSecs());
-    if (CurrTime - StartTime < NumSecondsInHour) {
+    if (CurrTime - StartTime < BucketSizeSecs) {
       // Increment the number of quotes seen in this hour-long period by one
       Freq += 1;
     } else {
       HourOffsets.Add(TSecTm(StartTime));
       FreqV.Add(TIntPr(HourNum, Freq));
-      TInt NumHoursAhead = (CurrTime - StartTime) / NumSecondsInHour;
+      TInt NumHoursAhead = (CurrTime - StartTime) / BucketSizeSecs;
       //printf("PrevDoc Date: %s, CurrDoc Date: %s, NumHoursAhead: %d\n", PrevDoc.GetDate().GetYmdTmStr().GetCStr(), CurrDoc.GetDate().GetYmdTmStr().GetCStr(), NumHoursAhead.Val);
       // Add frequencies of 0 if there are hours in between the two occurrences
       for (int j = 1; j < NumHoursAhead; ++j) {
-        TUInt NewStartTime = StartTime + j * NumSecondsInHour;
+        TUInt NewStartTime = StartTime + j * BucketSizeSecs;
         HourOffsets.Add(TSecTm(NewStartTime));
         FreqV.Add(TIntPr(HourNum + j, 0));
       }
       HourNum += NumHoursAhead;
       //printf("HourNum: %d\n", HourNum.Val);
       Freq.Val = 1;
-      StartTime = StartTime + ((CurrTime - StartTime) / NumSecondsInHour) * NumSecondsInHour;
+      StartTime = StartTime + ((CurrTime - StartTime) / BucketSizeSecs) * BucketSizeSecs;
     }
   }
   HourOffsets.Add(TSecTm(StartTime));
