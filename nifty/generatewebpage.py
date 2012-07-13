@@ -3,7 +3,7 @@ import sys
 from jinja2 import Environment, FileSystemLoader
 
 def pass_to_template(paths_to_images, freq_of_images, output_file):
-  env = Environment(loader=FileSystemLoader('templates'))
+  env = Environment(loader=FileSystemLoader('/u/shhuang/src/curis-2012/nifty/templates'))
   template = env.get_template('slideshow.html')
   #print paths_to_images
 
