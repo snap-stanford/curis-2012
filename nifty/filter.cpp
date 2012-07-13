@@ -97,7 +97,7 @@ bool IsDuplicateUrl(const TChA &Url) {
   return false;
 }
 
-bool IsPostTimeCorrupt(TSecTm PostTm, TSecTm FileTm) {
+bool IsPostTimeValid(TSecTm PostTm, TSecTm FileTm) {
   return (PostTm <= FileTm + 12 * 3600) && (PostTm >= FileTm - 12 * 3600);
 }
 
@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
     while (Memes.LoadNextEntry()) {
       if (IsUrlInBlackList(Memes.PostUrlStr)) { NSkip++;continue; }
       if (IsDuplicateUrl(Memes.PostUrlStr)) { NSkip++;continue; }
-      //if (IsPostTimeCorrupt(Memes.PubTm, Memes.GetCurrentFileTime())) { NSkip++;continue; }
+      if (!IsPostTimeValid(Memes.PubTm, Memes.GetCurrentFileTime())) { NSkip++;continue; }
       bool ContainValidQuote = false;
       for (int m = 0; m < Memes.MemeV.Len(); m++) {
         if (IsEnglish(Memes.MemeV[m]) &&
@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
     TStr QContentString;
     Q.GetContentString(QContentString);
     if (Q.GetNumSources() >= MinMemeFreq &&
-        Q.GetNumSources() >= 4 * Q.GetNumDomains(TmpDB) &&
+        (Q.GetNumSources() <= 50 || Q.GetNumSources() >= 4 * Q.GetNumDomains(TmpDB)) &&
         IsRobustlyEnglish(QContentString)) {
       TIntV Sources;
       Q.GetSources(Sources);
@@ -196,7 +196,7 @@ int main(int argc, char *argv[]) {
         QB->AddQuote(QContentString, NewSourceId);
       }
     }
-    if (i % 5000 == 4999) {
+    if (i % 50000 == 49999) {
       printf("%d out of %d quotes processed\n", i + 1, TmpQB->Len());
     }
   }
@@ -208,7 +208,7 @@ int main(int argc, char *argv[]) {
   OutputQuoteInformation(QB, OutFileName);
   printf("Done!\n");
   printf("Writing QuoteBase and DocBase\n");
-  TFOut FOut("/lfs/1/tmp/curis/QBDB.bin");
+  TFOut FOut("QBDB.bin");
   QB->Save(FOut);
   DB->Save(FOut);
   printf("Done!\n");

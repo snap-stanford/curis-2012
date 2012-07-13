@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 void OutputClusterInformation(TQuoteBase* QB, TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq, TStr FileName) {
-  FILE *F = fopen(FileName.CStr(), "wt");
+  FILE *F = fopen(FileName.CStr(), "w");
   TFOut ClusterFile(FileName);
 
   for (int i = 0; i < RepQuotesAndFreq.Len(); i++) {
