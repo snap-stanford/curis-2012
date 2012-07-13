@@ -3,8 +3,8 @@
 #include "doc.h"
 #include "stdafx.h"
 
-const TStr LogOutput::OutputDirectory = "/lfs/1/tmp/curis/output/";
-const TStr LogOutput::WebDirectory = "/u/cysuen/public_html/curis/output/";
+const TStr LogOutput::OutputDirectory = "/lfs/1/tmp/curis/output/clustering/";
+const TStr LogOutput::WebDirectory = "/u/cysuen/public_html/curis/output/clustering/";
 const TStr LogOutput::PercentEdgesDeleted = "PercentEdgesDeleted";
 const TStr LogOutput::NumOriginalEdges = "NumOriginalEdges";
 const TStr LogOutput::NumRemainingEdges = "NumRemainingEdges";
@@ -17,9 +17,9 @@ void LogOutput::SetupFiles() {
   TimeStamp += "_" + Tm.GetTmStr();
   //TimeStamp = Tm.GetYmdTmStr() + "_" + Tm.GetTmStr();
   printf("%s %s\n", TimeStamp.CStr(), Tm.GetTmStr().CStr());
-  //TStr Command = "mkdir " + OutputDirectory + TimeStamp;
+  TStr Command = "mkdir " + OutputDirectory + TimeStamp;
   //system(Command.CStr());
-  TStr Command = "mkdir " + WebDirectory + TimeStamp;
+  //TStr Command = "mkdir " + WebDirectory + TimeStamp;
   system(Command.CStr());
 }
 
