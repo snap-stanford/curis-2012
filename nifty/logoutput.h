@@ -10,7 +10,6 @@ private:
   TStr TimeStamp;
   bool ShouldLog;
 public:
-  LogOutput();
   static const TStr OutputDirectory;
   static const TStr PercentEdgesDeleted;
   static const TStr NumOriginalEdges;
@@ -18,6 +17,8 @@ public:
   static const TStr NumQuotes;
   static const TStr WebDirectory;
   static const TStr NumClusters;
+  LogOutput();
+  void DisableLogging();
   void SetupFiles();
   void LogValue(const TStr Key, TStr Value);
   void LogValue(const TStr Key, TInt Value);

@@ -15,7 +15,7 @@ LogOutput::LogOutput() {
   ShouldLog = true;
 }
 
-void DisableLogging() {
+void LogOutput::DisableLogging() {
   ShouldLog = false;
 }
 
