@@ -33,9 +33,9 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
   // TODO: Make more efficient? At 10k nodes this is ok
 
   int NumEdgesOriginal = QGraph->GetEdges();
-  log.LogValue(LogOutput::NumOriginalEdges, TStr(NumEdgesOriginal));
+  log.LogValue(LogOutput::NumOriginalEdges, TInt(NumEdgesOriginal));
   int NumNodes = QGraph->GetNodes();
-  log.LogValue(LogOutput::NumQuotes, TStr(NumNodes));
+  log.LogValue(LogOutput::NumQuotes, TInt(NumNodes));
 
   printf("Deleting extra graph edges...\n");
   TNGraph::TNodeI EndNode = QGraph->EndNI();
@@ -77,7 +77,8 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
     }
   }
   printf("%d nodes with out degree 1 found.\n", count);
-  log.LogValue(LogOutput::NumRemainingEdges, TStr(QGraph->GetEdges()));
+  log.LogValue(LogOutput::NumRemainingEdges, TInt(QGraph->GetEdges()));
+  log.LogValue(LogOutput::PercentEdgesDeleted, TFlt(100 - QGraph->GetEdges() * 100.0 / NumEdgesOriginal));
 
   // find weakly connected components. these are our clusters. largely taken from memes.h
   printf("Finding weakly connected components\n");
@@ -87,7 +88,7 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
   Clusters.Clr(false);
   TIntSet SeenSet;
   printf("%d weakly connected components discovered.", Components.Len());
-  log.LogValue(LogOutput::NumClusters, TStr(Components.Len()));
+  log.LogValue(LogOutput::NumClusters, TInt(Components.Len()));
   for (int i = 0; i < Components.Len(); i++) {
     for (int n = 0; n < Components[i].NIdV.Len(); n++) {
       IAssert(! SeenSet.IsKey(Components[i].NIdV[n]));
@@ -104,16 +105,16 @@ TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB) {
   Dest.GetParsedContent(Content2);
   TInt EditDistance = QuoteGraph::WordLevenshteinDistance(Content1, Content2);
 
-  //TVec<TSecTm> SourcePeakVectors, DestPeakVectors;
-  //Source.GetPeaks(DB, SourcePeakVectors);
-  //Dest.GetPeaks(DB, DestPeakVectors);
+  TVec<TSecTm> SourcePeakVectors, DestPeakVectors;
+  Source.GetPeaks(DB, SourcePeakVectors);
+  Dest.GetPeaks(DB, DestPeakVectors);
   // looks at first peak for now - this should also hopefully be the biggest peak
   TInt PeakDistanceInSecs = 2 * 3600;
   //printf("getting peak..\n");
-  //if (SourcePeakVectors.Len() > 0 && DestPeakVectors.Len() > 0)
-  //  PeakDistanceInSecs = TInt::Abs(SourcePeakVectors[0].GetAbsSecs() - DestPeakVectors[0].GetAbsSecs());
-  //else
-  //  printf("GAH!");
+  if (SourcePeakVectors.Len() > 0 && DestPeakVectors.Len() > 0)
+    PeakDistanceInSecs = TInt::Abs(SourcePeakVectors[0].GetAbsSecs() - DestPeakVectors[0].GetAbsSecs());
+  else
+    printf("GAH!");
 
   // adhoc function between frequency and edit distance and peak diff.
   // TODO: learn this! haha :)

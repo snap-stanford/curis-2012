@@ -134,8 +134,8 @@ bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV) {
   TFlt FreqMean = TFlt(M.GetMean());
   TFlt FreqStdDev = TFlt(M.GetSDev());
 
-  printf("%d\n", FreqV.Len());
-  printf("%d\n\n", HourOffsets.Len());
+  //printf("%d\n", FreqV.Len());
+  //printf("%d\n\n", HourOffsets.Len());
 
   for (int i = 0; i < FreqV.Len(); ++i) {
     TFlt Freq = TFlt(FreqV[i].Val2);
