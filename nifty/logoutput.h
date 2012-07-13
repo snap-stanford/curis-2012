@@ -8,7 +8,9 @@ class LogOutput {
 private:
   THash<TStr, TStr> OutputValues;
   TStr TimeStamp;
+  bool ShouldLog;
 public:
+  LogOutput();
   static const TStr OutputDirectory;
   static const TStr PercentEdgesDeleted;
   static const TStr NumOriginalEdges;

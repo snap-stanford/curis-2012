@@ -11,6 +11,14 @@ const TStr LogOutput::NumRemainingEdges = "NumRemainingEdges";
 const TStr LogOutput::NumQuotes = "NumQuotes";
 const TStr LogOutput::NumClusters = "NumClusters";
 
+LogOutput::LogOutput() {
+  ShouldLog = true;
+}
+
+void DisableLogging() {
+  ShouldLog = false;
+}
+
 void LogOutput::SetupFiles() {
   TSecTm Tm = TSecTm::GetCurTm();
   TimeStamp= TStr::Fmt("%04d-%02d-%02d",  Tm.GetYearN(), Tm.GetMonthN(), Tm.GetDayN());
@@ -36,6 +44,7 @@ void LogOutput::LogValue(const TStr Key, TFlt Value) {
 }
 
 void LogOutput::WriteClusteringOutputToFile() {
+  if (!ShouldLog) return;
   TStr FileName = WebDirectory + TimeStamp + "/clustering_info.txt";
   FILE *F = fopen(FileName.CStr(), "w");
 
@@ -51,6 +60,7 @@ void LogOutput::WriteClusteringOutputToFile() {
 }
 
 void LogOutput::OutputClusterInformation(TQuoteBase* QB, TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq) {
+  if (!ShouldLog) return;
   TStr FileName = WebDirectory + TimeStamp + "/top_clusters.txt";
   FILE *F = fopen(FileName.CStr(), "w");
 
