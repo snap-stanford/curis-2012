@@ -162,9 +162,9 @@ int main(int argc, char *argv[]) {
       if (IsDuplicateUrl(Memes.PostUrlStr)) {
         TInt counter;
         if (DuplicateUrl.IsKeyGetDat(Memes.PostUrlStr, counter)) {
-          counter = 1;
-        } else {
           counter++;
+        } else {
+          counter = 1;
         }
         DuplicateUrl.AddDat(Memes.PostUrlStr, counter);
         NSkipDuplicate++;
@@ -275,7 +275,7 @@ int main(int argc, char *argv[]) {
   OutputQuoteInformation(QB, OutFileName);
   printf("Done!\n");
   printf("Writing QuoteBase and DocBase\n");
-  TFOut FOut("QBDB.bin");
+  TFOut FOut("/lfs/1/tmp/curis/QBDB.bin");
   QB->Save(FOut);
   DB->Save(FOut);
   printf("Done!\n");
