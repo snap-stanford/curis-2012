@@ -117,17 +117,17 @@ void TQuote::StemAndStopWordsContentString(const TStrV &ContentV, TStrV &NewCont
 }
 
 bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV) {
-  return GetPeaks(DocBase, PeakTimesV, TInt(1));
+  return GetPeaks(DocBase, PeakTimesV, TInt(1), TInt(1));
 }
 
-bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize) {
+bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize) {
   if (Sources.Len() == 0) {
     return false;
   }
 
-  TIntPrV FreqV;
+  TIntFltPrV FreqV;
   TVec<TSecTm> HourOffsets;
-  GetFreqVector(DocBase, FreqV, HourOffsets, BucketSize);
+  GetFreqVector(DocBase, FreqV, HourOffsets, BucketSize, SlidingWindowSize);
 
   TFltV FreqFltV;
   for (int i = 0; i < FreqV.Len(); ++i) {
@@ -162,21 +162,23 @@ bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSi
 }
 
 bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename) {
-  return GraphFreqOverTime(DocBase, Filename, TInt(1));
+  return GraphFreqOverTime(DocBase, Filename, TInt(1), TInt(1));
 }
 
-bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize) {
+/// If BucketSize is > 1, a sliding window average will not be calculated
+//  Otherwise, if BucketSize = 1, a sliding window average of size SlidingWindowSize will be calculated
+bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize) {
   if (Sources.Len() == 0) {
     return false;
   }
 
-  TIntPrV FreqV;
+  TIntFltPrV FreqV;
   TVec<TSecTm> HourOffsets;
-  GetFreqVector(DocBase, FreqV, HourOffsets, BucketSize);
+  GetFreqVector(DocBase, FreqV, HourOffsets, BucketSize, SlidingWindowSize);
 
   // Find peaks and add them to the plot
   // Define a peak as anything that is more than one standard deviation above the mean
-  TIntPrV PeakV;
+  TIntFltPrV PeakV;
   TFltV FreqFltV;
   for (int i = 0; i < FreqV.Len(); ++i) {
     FreqFltV.Add(TFlt(FreqV[i].Val2));
@@ -207,13 +209,12 @@ bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize
   return true;
 }
 
-void TQuote::GetFreqVector(TDocBase *DocBase, TIntPrV& FreqV, TVec<TSecTm>& HourOffsets, TInt BucketSize) {
+void TQuote::GetFreqVector(TDocBase *DocBase, TIntFltPrV& FreqV, TVec<TSecTm>& HourOffsets, TInt BucketSize, TInt SlidingWindowSize) {
   printf("%s\n", "Getting frequency vector");
   TIntV SourcesSorted(Sources);
   SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
 
   // Only consider documents up to a week before the date of the last document
-  // Calculate frequency per hour of the quote, and plot it
   TDoc LastDoc;
   DocBase->GetDoc(SourcesSorted[SourcesSorted.Len()-1], LastDoc);
   TUInt EndTime = TUInt(LastDoc.GetDate().GetAbsSecs());
@@ -233,6 +234,7 @@ void TQuote::GetFreqVector(TDocBase *DocBase, TIntPrV& FreqV, TVec<TSecTm>& Hour
   TInt Freq = TInt(1);
   TInt HourNum = 0;
   uint BucketSizeSecs = NumSecondsInHour * BucketSize.Val;
+  TIntV FreqAbs;
 
   for (int i = StartDocIndex+1; i < SourcesSorted.Len(); ++i) {
     TDoc CurrDoc;
@@ -243,14 +245,16 @@ void TQuote::GetFreqVector(TDocBase *DocBase, TIntPrV& FreqV, TVec<TSecTm>& Hour
       Freq += 1;
     } else {
       HourOffsets.Add(TSecTm(StartTime));
-      FreqV.Add(TIntPr(HourNum, Freq));
+      FreqAbs.Add(Freq);
+      FreqV.Add(TIntFltPr(HourNum, CalcWindowAvg(FreqAbs, SlidingWindowSize)));
       TInt NumHoursAhead = (CurrTime - StartTime) / BucketSizeSecs;
       //printf("PrevDoc Date: %s, CurrDoc Date: %s, NumHoursAhead: %d\n", PrevDoc.GetDate().GetYmdTmStr().GetCStr(), CurrDoc.GetDate().GetYmdTmStr().GetCStr(), NumHoursAhead.Val);
       // Add frequencies of 0 if there are hours in between the two occurrences
       for (int j = 1; j < NumHoursAhead; ++j) {
         TUInt NewStartTime = StartTime + j * BucketSizeSecs;
         HourOffsets.Add(TSecTm(NewStartTime));
-        FreqV.Add(TIntPr(HourNum + j, 0));
+        FreqAbs.Add(TInt(0));
+        FreqV.Add(TIntFltPr(HourNum + j, CalcWindowAvg(FreqAbs, SlidingWindowSize)));
       }
       HourNum += NumHoursAhead;
       //printf("HourNum: %d\n", HourNum.Val);
@@ -259,8 +263,21 @@ void TQuote::GetFreqVector(TDocBase *DocBase, TIntPrV& FreqV, TVec<TSecTm>& Hour
     }
   }
   HourOffsets.Add(TSecTm(StartTime));
-  FreqV.Add(TIntPr(HourNum, Freq));
-  
+  FreqAbs.Add(TInt(0));
+  FreqV.Add(TIntFltPr(HourNum, CalcWindowAvg(FreqAbs, SlidingWindowSize)));
+}
+
+TFlt TQuote::CalcWindowAvg(TIntV& FreqV, TInt SlidingWindowSize) {
+  TInt StartIndex = FreqV.Len() - SlidingWindowSize;
+  if (StartIndex < 0) {
+    StartIndex = 0;
+  }
+  TFlt Avg = 0;
+  for (int i = StartIndex; i < FreqV.Len(); i++) {
+    Avg += FreqV[i];
+  }
+  Avg /= (FreqV.Len() - StartIndex);
+  return Avg;
 }
 
 TQuoteBase::TQuoteBase() {

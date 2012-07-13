@@ -7,7 +7,7 @@
 #include "logoutput.h"
 #include <stdio.h>
 
-void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB) {
+void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB, TInt BucketSize, TInt SlidingWindowSize) {
   printf("Testing graph quote\n");
   TIntV AllQuotes;
   QB->GetAllQuoteIds(AllQuotes);
@@ -18,7 +18,7 @@ void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB) {
     TQuote Q;
     QB->GetQuote(AllQuotes[i], Q);
     TStr Filename = TStr("./plots/" + Q.GetNumSources().GetStr() + "Quote" + Q.GetId().GetStr());
-    Q.GraphFreqOverTime(DB, Filename, 4);
+    Q.GraphFreqOverTime(DB, Filename, BucketSize, SlidingWindowSize);
   }
 }
 
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
   QB->Load(BaseFile);
   DB->Load(BaseFile);
 
-  //PlotQuoteFreq(QB, DB);
+  //PlotQuoteFreq(QB, DB, 1, 6);
   //PrintQuoteURLs(QB, DB);
 
   // create clusters and save!
