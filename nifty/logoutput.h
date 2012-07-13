@@ -18,6 +18,8 @@ public:
   static const TStr NumClusters;
   void SetupFiles();
   void LogValue(const TStr Key, TStr Value);
+  void LogValue(const TStr Key, TInt Value);
+  void LogValue(const TStr Key, TFlt Value);
   void WriteClusteringOutputToFile();
   void OutputClusterInformation(TQuoteBase* QB, TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq);
 };

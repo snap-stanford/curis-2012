@@ -15,4 +15,5 @@
 #include "lsh.cpp"
 #include "quotegraph.cpp"
 #include "clustering.cpp"
+#include "logoutput.cpp"
 

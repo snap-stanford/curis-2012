@@ -24,8 +24,15 @@ void LogOutput::SetupFiles() {
 }
 
 void LogOutput::LogValue(const TStr Key, TStr Value) {
-  printf("value added!\n");
   OutputValues.AddDat(Key, Value);
+}
+
+void LogOutput::LogValue(const TStr Key, TInt Value) {
+  OutputValues.AddDat(Key, Value.GetStr());
+}
+
+void LogOutput::LogValue(const TStr Key, TFlt Value) {
+  OutputValues.AddDat(Key, Value.GetStr());
 }
 
 void LogOutput::WriteClusteringOutputToFile() {
