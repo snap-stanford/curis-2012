@@ -13,7 +13,7 @@ private:
   TIntV Sources;
 
   void Init();
-  void GetFreqVector(TDocBase *DocBase, TIntPrV& FreqV, TVec<TSecTm> HourOffsets);
+  void GetFreqVector(TDocBase *DocBase, TIntPrV& FreqV, TVec<TSecTm>& HourOffsets);
 
 public:
   static const uint NumSecondsInHour;
