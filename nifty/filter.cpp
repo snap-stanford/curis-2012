@@ -102,7 +102,7 @@ bool IsPostTimeValid(TSecTm PostTm, TSecTm FileTm) {
 }
 
 void OutputQuoteInformation(TQuoteBase* QuoteBase, TStr FileName) {
-  FILE *F = fopen(FileName.CStr(), "wt");
+  FILE *F = fopen(FileName.CStr(), "w");
   TFOut QuotesFile(FileName);
   TIntV QuoteIds;
   QuoteBase->GetAllQuoteIds(QuoteIds);
@@ -122,6 +122,7 @@ void OutputQuoteInformation(TQuoteBase* QuoteBase, TStr FileName) {
 // usage filelist directory
 int main(int argc, char *argv[]) {
   printf("File name must be in the form: web-{year}-{month}-{day}T{hour}-{minute}-{second}Z.rar\n");
+  FILE *FLog = fopen("filter.log", "w");
   TStr InFileName = "Spinn3rFileList.txt";
   TStr OutFileName = "QuoteFrequencies.txt";
   if (argc >= 2) {
@@ -133,19 +134,43 @@ int main(int argc, char *argv[]) {
   LoadURLBlackList();
   LoadCommonEnglishWords();
 
+  /*
+   * THashSet<TMd5Sig> SeenUrlSet(Mega(100), true);
+   *
+  bool IsDuplicateUrl(const TChA &Url) {
+    TMd5Sig UrlSig = TMd5Sig(Url);
+    if (SeenUrlSet.IsKey(UrlSig)) { return true; }
+      SeenUrlSet.AddKey(UrlSig);
+    return false;
+  }
+  */
+
   printf("Loading data from Spinn3r dataset to QuoteBase...\n");
-  printf("1: Initial Filtering:\n");
+  fprintf(FLog, "1: Initial Filtering:\n");
   TQuoteBase *TmpQB = new TQuoteBase;
   TDocBase *TmpDB = new TDocBase;
-  int NSkip = 0;
+  FILE *FTime = fopen("/lfs/1/tmp/curis/InvalidTimeUrl", "w");
+  int NSkipBlackList = 0, NSkipDuplicate = 0, NSkipInvalidTime = 0, NSkipNoValidQuote = 0;
+  int NSkipNonEnglish = 0, NSkipTooShort = 0, NSkipTooLong = 0;
+  THash<TStr, TInt> DuplicateUrl(Mega(100), true);
   // Read files and count the quotes
   TDataLoader Memes;
   Memes.LoadFileList(InFileName, "/lfs/1/tmp/curis/spinn3r/2012-01/");
   while (Memes.LoadNextFile()) {
     while (Memes.LoadNextEntry()) {
-      if (IsUrlInBlackList(Memes.PostUrlStr)) { NSkip++;continue; }
-      if (IsDuplicateUrl(Memes.PostUrlStr)) { NSkip++;continue; }
-      if (!IsPostTimeValid(Memes.PubTm, Memes.GetCurrentFileTime())) { NSkip++;continue; }
+      if (IsUrlInBlackList(Memes.PostUrlStr)) { NSkipBlackList++;continue; }
+      if (IsDuplicateUrl(Memes.PostUrlStr)) {
+        TInt counter;
+        if (DuplicateUrl.IsKeyGetDat(Memes.PostUrlStr, counter)) {
+          counter = 1;
+        } else {
+          counter++;
+        }
+        DuplicateUrl.AddDat(Memes.PostUrlStr, counter);
+        NSkipDuplicate++;
+        continue;
+      }
+      if (!IsPostTimeValid(Memes.PubTm, Memes.GetCurrentFileTime())) { fprintf(FTime, "%s\n", Memes.PostUrlStr.CStr());NSkipInvalidTime++;continue; }
       bool ContainValidQuote = false;
       for (int m = 0; m < Memes.MemeV.Len(); m++) {
         if (IsEnglish(Memes.MemeV[m]) &&
@@ -155,6 +180,13 @@ int main(int argc, char *argv[]) {
           FilterSpacesAndSetLowercase(QtStr);
           ContainValidQuote = true;
         } else {
+          if (!IsEnglish(Memes.MemeV[m])) {
+            NSkipNonEnglish++;
+          } else if (TStrUtil::CountWords(Memes.MemeV[m]) < MinQtWrdLen) {
+            NSkipTooShort++;
+          } else if (TStrUtil::CountWords(Memes.MemeV[m]) > MaxQtWrdLen) {
+            NSkipTooLong++;
+          }
           Memes.MemeV[m].Clr();
         }
       }
@@ -166,17 +198,37 @@ int main(int argc, char *argv[]) {
           }
         }
       } else {
-        NSkip++;
+        NSkipNoValidQuote++;
       }
     }
   }
-  printf("Number of quotes: %d\n", TmpQB->Len());
-  printf("Number of docs: %d\n", TmpDB->Len());
-  printf("Skipped %d entries\n", NSkip);
+  fclose(FTime);
+  FILE *FDup = fopen("/lfs/1/tmp/curis/DupUrl", "w");
+  TVec<TPair<TStr, TInt> > DuplicateUrlV;
+  DuplicateUrl.GetKeyDatPrV(DuplicateUrlV);
+  fprintf(FDup, "%d\n", DuplicateUrlV.Len());
+  for (int i = 0; i < DuplicateUrlV.Len(); i++) {
+    fprintf(FDup, "%d\t%s\n", DuplicateUrlV[i].Val2.Val, DuplicateUrlV[i].Val1.CStr());
+  }
+  fclose(FDup);
+  fprintf(FLog, "Number of quotes inserted into QuoteBase: %d\n", TmpQB->Len());
+  fprintf(FLog, "Skipped %d quotes\n", NSkipNonEnglish + NSkipTooShort + NSkipTooLong);
+  fprintf(FLog, "\tbecause quote is in not English:\t%d\n", NSkipNonEnglish);
+  fprintf(FLog, "\tbecause quote is too short:\t\t%d\n", NSkipTooShort);
+  fprintf(FLog, "\tbecause quote is too long:\t\t%d\n", NSkipTooLong);
 
-  printf("\n2: Second Filtering:\n");
+  fprintf(FLog, "Number of documents inserted into DocBase: %d\n", TmpDB->Len());
+  fprintf(FLog, "Skipped %d documents\n", NSkipBlackList + NSkipDuplicate + NSkipInvalidTime + NSkipNoValidQuote);
+  fprintf(FLog, "\tbecause URL is in blacklist:\t\t%d\n", NSkipBlackList);
+  fprintf(FLog, "\tbecause URL is duplicated:\t\t%d\n", NSkipDuplicate);
+  fprintf(FLog, "\tbecause URL has invalid time:\t\t%d\n", NSkipInvalidTime);
+  fprintf(FLog, "\tbecause URL has no valid quotes:\t%d\n", NSkipNoValidQuote);
+
+
+  fprintf(FLog, "\n2: Second Filtering:\n");
   TQuoteBase *QB = new TQuoteBase;
   TDocBase *DB = new TDocBase;
+  int NSkipRobustEnglish = 0, NSkipInfrequent = 0, NSkipBadDomainRatio = 0;
   TIntV QuoteIds;
   TmpQB->GetAllQuoteIds(QuoteIds);
   for (int i = 0; i < QuoteIds.Len(); i++) {
@@ -185,8 +237,9 @@ int main(int argc, char *argv[]) {
     TStr QContentString;
     Q.GetContentString(QContentString);
     if (Q.GetNumSources() >= MinMemeFreq &&
-        (Q.GetNumSources() <= 50 || Q.GetNumSources() >= 4 * Q.GetNumDomains(TmpDB)) &&
-        IsRobustlyEnglish(QContentString)) {
+       (Q.GetNumSources() <= 20 || Q.GetNumSources() <= 4 * Q.GetNumDomains(TmpDB)) &&
+       Q.GetNumDomains(TmpDB) >= 2 &&
+       IsRobustlyEnglish(QContentString)) {
       TIntV Sources;
       Q.GetSources(Sources);
       for (int j = 0; j < Sources.Len(); j++) {
@@ -195,14 +248,28 @@ int main(int argc, char *argv[]) {
         TInt NewSourceId = DB->AddDoc(D);
         QB->AddQuote(QContentString, NewSourceId);
       }
+    } else {
+      if (Q.GetNumSources() < MinMemeFreq) {
+        NSkipInfrequent++;
+      } else if (Q.GetNumSources() > 20 && Q.GetNumSources() > 4 * Q.GetNumDomains(TmpDB)) {
+        NSkipBadDomainRatio++;
+      } else if (Q.GetNumDomains(TmpDB) < 2) {
+        NSkipBadDomainRatio++;
+      } else {
+        NSkipRobustEnglish++;
+      }
     }
     if (i % 50000 == 49999) {
       printf("%d out of %d quotes processed\n", i + 1, TmpQB->Len());
     }
   }
 
-  printf("Number of quotes: %d\n", QB->Len());
-  printf("Number of documents: %d\n", DB->Len());
+  fprintf(FLog, "Number of quotes: %d\n", QB->Len());
+  fprintf(FLog, "Skipped %d quotes\n", NSkipInfrequent, NSkipBadDomainRatio, NSkipRobustEnglish);
+  fprintf(FLog, "\tbecause quote is infrequent:\t\t\t%d\n", NSkipInfrequent);
+  fprintf(FLog, "\tbecause quote is mainly from the same domains:\t%d\n", NSkipBadDomainRatio);
+  fprintf(FLog, "\tbecause quote is not English:\t\t\t%d\n", NSkipRobustEnglish);
+  fprintf(FLog, "Number of documents: %d\n", DB->Len());
   printf("\nLOADING DATA TO QUOTE BASE DONE!\n");
   printf("Writing quote frequencies...\n");
   OutputQuoteInformation(QB, OutFileName);
@@ -216,5 +283,6 @@ int main(int argc, char *argv[]) {
   delete DB;
   delete TmpQB;
   delete TmpDB;
+  fclose(FLog);
   return 0;
 }
