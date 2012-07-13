@@ -3,13 +3,21 @@
 #include "doc.h"
 #include "stdafx.h"
 
-const TStr LogOutput::OutputDirectory = "/lfs/1/tmp/curis/output/";
-const TStr LogOutput::WebDirectory = "/u/cysuen/public_html/curis/output/";
+const TStr LogOutput::OutputDirectory = "/lfs/1/tmp/curis/output/clustering/";
+const TStr LogOutput::WebDirectory = "/u/cysuen/public_html/curis/output/clustering/";
 const TStr LogOutput::PercentEdgesDeleted = "PercentEdgesDeleted";
 const TStr LogOutput::NumOriginalEdges = "NumOriginalEdges";
 const TStr LogOutput::NumRemainingEdges = "NumRemainingEdges";
 const TStr LogOutput::NumQuotes = "NumQuotes";
 const TStr LogOutput::NumClusters = "NumClusters";
+
+LogOutput::LogOutput() {
+  ShouldLog = true;
+}
+
+void DisableLogging() {
+  ShouldLog = false;
+}
 
 void LogOutput::SetupFiles() {
   TSecTm Tm = TSecTm::GetCurTm();
@@ -17,18 +25,26 @@ void LogOutput::SetupFiles() {
   TimeStamp += "_" + Tm.GetTmStr();
   //TimeStamp = Tm.GetYmdTmStr() + "_" + Tm.GetTmStr();
   printf("%s %s\n", TimeStamp.CStr(), Tm.GetTmStr().CStr());
-  //TStr Command = "mkdir " + OutputDirectory + TimeStamp;
+  TStr Command = "mkdir " + OutputDirectory + TimeStamp;
   //system(Command.CStr());
-  TStr Command = "mkdir " + WebDirectory + TimeStamp;
+  //TStr Command = "mkdir " + WebDirectory + TimeStamp;
   system(Command.CStr());
 }
 
 void LogOutput::LogValue(const TStr Key, TStr Value) {
-  printf("value added!\n");
   OutputValues.AddDat(Key, Value);
 }
 
+void LogOutput::LogValue(const TStr Key, TInt Value) {
+  OutputValues.AddDat(Key, Value.GetStr());
+}
+
+void LogOutput::LogValue(const TStr Key, TFlt Value) {
+  OutputValues.AddDat(Key, Value.GetStr());
+}
+
 void LogOutput::WriteClusteringOutputToFile() {
+  if (!ShouldLog) return;
   TStr FileName = WebDirectory + TimeStamp + "/clustering_info.txt";
   FILE *F = fopen(FileName.CStr(), "w");
 
@@ -44,6 +60,7 @@ void LogOutput::WriteClusteringOutputToFile() {
 }
 
 void LogOutput::OutputClusterInformation(TQuoteBase* QB, TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq) {
+  if (!ShouldLog) return;
   TStr FileName = WebDirectory + TimeStamp + "/top_clusters.txt";
   FILE *F = fopen(FileName.CStr(), "w");
 

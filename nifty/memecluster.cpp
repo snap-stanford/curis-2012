@@ -83,6 +83,9 @@ int main(int argc, char *argv[]) {
   if (Arguments.IsKey("output")) {
     OutputString = Arguments.GetDat("output");
   }
+  if (Arguments.IsKey("nolog")) {
+    log.DisableLogging();
+  }
 
   TFIn BaseFile(BaseString);
 
