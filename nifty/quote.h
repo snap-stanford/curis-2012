@@ -13,7 +13,7 @@ private:
   TIntV Sources;
 
   void Init();
-  void GetFreqVector(TDocBase *DocBase, TIntPrV& FreqV, TVec<TSecTm>& HourOffsets);
+  void GetFreqVector(TDocBase *DocBase, TIntPrV& FreqV, TVec<TSecTm>& HourOffsets, TInt BucketSize);
 
 public:
   static const uint NumSecondsInHour;
@@ -37,7 +37,9 @@ public:
   TInt GetNumDomains(TDocBase *DocBase);
   TInt GetNumSources();
   bool GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV);
+  bool GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize);
   bool GraphFreqOverTime(TDocBase *DocBase, TStr Filename);
+  bool GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize);
 
   static PSwSet StopWordSet;
   static void ParseContentString(const TStr &ContentString, TStrV &ParsedString);
@@ -82,6 +84,28 @@ public:
       return Quote1.GetNumSources() < Quote2.GetNumSources();
     } else {
       return Quote2.GetNumSources() < Quote1.GetNumSources();
+    }
+  }
+};
+
+// Compares two quotes by their id
+class TCmpQuoteById {
+private:
+  bool IsAsc;
+  TQuoteBase *QuoteBase;
+public:
+  TCmpQuoteById(const bool& AscSort=true, TQuoteBase *QB=NULL) : IsAsc(AscSort) {
+    QuoteBase = QB;
+  }
+  bool operator () (const TInt& P1, const TInt& P2) const {
+    TQuote Quote1;
+    QuoteBase->GetQuote(P1, Quote1);
+    TQuote Quote2;
+    QuoteBase->GetQuote(P2, Quote2);
+    if (IsAsc) {
+      return Quote1.GetId() < Quote2.GetId();
+    } else {
+      return Quote2.GetId() < Quote1.GetId();
     }
   }
 };
