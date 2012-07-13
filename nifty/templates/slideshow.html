@@ -16,11 +16,14 @@
   </script>
 </head>
 <body>
-
-  <button onclick = "slideitforward()"> Next </button>
-  <button onclick = "slideitback()"> Prev </button>
-  <p id="freq"> Frequency of Quote: {{ image_freqs[0] }} </p>
-  <img name="slide" src="{{ image_locs[0] }}"  width = 1000 />
+  <p align="center">
+    <button onclick = "slideitback()"> Prev </button>
+    <button onclick = "slideitforward()"> Next </button>
+  </p>
+  <p align="center" id="freq"> Frequency of Quote: {{ image_freqs[0] }} </p>
+  <p align="center">
+    <img name="slide" src="{{ image_locs[0] }}"  width = 1000 />
+  </p>
 
 </body>
 <script>

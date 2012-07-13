@@ -166,7 +166,6 @@ bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename) {
 }
 
 bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize) {
-  printf("Graphing frequency over time\n");
   if (Sources.Len() == 0) {
     return false;
   }
@@ -209,6 +208,7 @@ bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize
 }
 
 void TQuote::GetFreqVector(TDocBase *DocBase, TIntPrV& FreqV, TVec<TSecTm>& HourOffsets, TInt BucketSize) {
+  printf("%s\n", "Getting frequency vector");
   TIntV SourcesSorted(Sources);
   SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
 
@@ -232,7 +232,7 @@ void TQuote::GetFreqVector(TDocBase *DocBase, TIntPrV& FreqV, TVec<TSecTm>& Hour
 
   TInt Freq = TInt(1);
   TInt HourNum = 0;
-  uint BucketSizeSecs = NumSecondsInHour * BucketSize;
+  uint BucketSizeSecs = NumSecondsInHour * BucketSize.Val;
 
   for (int i = StartDocIndex+1; i < SourcesSorted.Len(); ++i) {
     TDoc CurrDoc;
