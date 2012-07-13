@@ -3,6 +3,7 @@
 
 ClusterPlot::ClusterPlot(TStr RootDirectory) {
   this->RootDirectory = RootDirectory;
+  this->RootDirectory = ""; // TODO: fix this temporary fix
 }
 
 void calculate_distribution(const TVec<THash<TInt, TInt> >& list,
