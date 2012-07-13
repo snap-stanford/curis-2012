@@ -7,30 +7,6 @@
 #include "logoutput.h"
 #include <stdio.h>
 
-void OutputClusterInformation(TQuoteBase* QB, TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq, TStr FileName) {
-  FILE *F = fopen(FileName.CStr(), "wt");
-  TFOut ClusterFile(FileName);
-
-  for (int i = 0; i < RepQuotesAndFreq.Len(); i++) {
-    TQuote RepQuote;
-    QB->GetQuote(RepQuotesAndFreq[i].Val1, RepQuote);
-    TStr RepQuoteStr;
-    RepQuote.GetContentString(RepQuoteStr);
-    TInt FreqOfAllClusterQuotes = RepQuotesAndFreq[i].Val2;
-    TIntV QuotesInCluster = RepQuotesAndFreq[i].Val3;
-    fprintf(F, "%d\t%d\t%s\n", FreqOfAllClusterQuotes.Val, QuotesInCluster.Len(), RepQuoteStr.CStr());
-    for (int j = 0; j < QuotesInCluster.Len(); j++) {
-      TQuote Quote;
-      QB->GetQuote(QuotesInCluster[j], Quote);
-      TStr QuoteStr;
-      Quote.GetContentString(QuoteStr);
-      fprintf(F, "\t%d\t%s\n", Quote.GetNumSources().Val, QuoteStr.CStr());
-    }
-  }
-  //Save(QuotesFile);
-  fclose(F);
-}
-
 void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB) {
   printf("Testing graph quote\n");
   TIntV AllQuotes;
@@ -47,10 +23,12 @@ void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB) {
 }
 
 int main(int argc, char *argv[]) {
+  LogOutput log;
   THash<TStr, TStr> Arguments;
   for (int i = 1; i < argc; i++) {
     if (strlen(argv[i]) >= 2 && argv[i][0] == '-' && i + 1 < argc) {
       Arguments.AddDat(TStr(argv[i] + 1), TStr(argv[i + 1]));
+      log.LogValue(TStr(argv[i] + 1), TStr(argv[i + 1]));
       i++;
     } else {
       printf("Error: incorrect format. Usage: ./memetracker [-paramName parameter]");
@@ -66,7 +44,6 @@ int main(int argc, char *argv[]) {
   if (Arguments.IsKey("output")) {
     OutputString = Arguments.GetDat("output");
   }
-  LogOutput log;
 
   TFIn BaseFile(BaseString);
 
@@ -84,14 +61,18 @@ int main(int argc, char *argv[]) {
   QuoteGraph GraphCreator(QB);
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
-  Clustering ClusterJob(log);
+  Clustering ClusterJob;
   ClusterJob.SetGraph(QGraph);
   TIntSet RootNodes;
   TVec<TIntV> Clusters;
-  ClusterJob.BuildClusters(RootNodes, Clusters, QB, DB);
+  ClusterJob.BuildClusters(RootNodes, Clusters, QB, DB, log);
   TVec<TTriple<TInt, TInt, TIntV> > RepQuotesAndFreq;
   ClusterJob.SortClustersByFreq(RepQuotesAndFreq, Clusters, QB);
-  OutputClusterInformation(QB, RepQuotesAndFreq, OutputString);
+
+  // OUTPUT
+  log.SetupFiles(); // safe to make files now.
+  log.OutputClusterInformation(QB, RepQuotesAndFreq);
+  log.WriteClusteringOutputToFile();
 
   // plot output
   ClusterPlot Plotter(TStr("/lfs/1/tmp/curis/"));

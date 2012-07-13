@@ -13,12 +13,11 @@ private:
   TFlt ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB);
 
 public:
-  Clustering(LogOutput& log);
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   void SetGraph(PNGraph QGraph);
   void GetRootNodes(TIntSet& RootNodes);
-  void BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase *QB, TDocBase *DB);
+  void BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase *QB, TDocBase *DB, LogOutput& log);
   void SortClustersByFreq(TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase);
 };
 
