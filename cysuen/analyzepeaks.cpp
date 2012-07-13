@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
   TIntV PeakCountKeys;
   PeakCounts.GetKeyV(PeakCountKeys);
   PeakCountKeys.Sort(true);
-  for (int i = 0; i < NumQuotes; i++) {
+  for (int i = 0; i < PeakCountKeys.Len(); i++) {
     TStrSet CurSet = PeakCounts.GetDat(PeakCountKeys[i]);
     if (CurSet.Len() > 0) {
       printf("QUOTES WITH %d PEAKS\n", PeakCountKeys[i].Val);
