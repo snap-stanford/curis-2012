@@ -25,9 +25,9 @@ void LogOutput::SetupFiles() {
   TimeStamp += "_" + Tm.GetTmStr();
   //TimeStamp = Tm.GetYmdTmStr() + "_" + Tm.GetTmStr();
   printf("%s %s\n", TimeStamp.CStr(), Tm.GetTmStr().CStr());
-  TStr Command = "mkdir " + OutputDirectory + TimeStamp;
+  //TStr Command = "mkdir -p " + OutputDirectory + TimeStamp;
   //system(Command.CStr());
-  //TStr Command = "mkdir " + WebDirectory + TimeStamp;
+  TStr Command = "mkdir -p " + WebDirectory + TimeStamp;
   system(Command.CStr());
 }
 
@@ -62,22 +62,33 @@ void LogOutput::WriteClusteringOutputToFile() {
 void LogOutput::OutputClusterInformation(TQuoteBase* QB, TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq) {
   if (!ShouldLog) return;
   TStr FileName = WebDirectory + TimeStamp + "/top_clusters.txt";
+  fprintf(stderr, "Filename: %s", FileName.CStr());
   FILE *F = fopen(FileName.CStr(), "w");
+  fprintf(stderr, "F: %p", F);
 
+  fprintf(stderr, "File created\n");
   for (int i = 0; i < RepQuotesAndFreq.Len(); i++) {
+    //fprintf(stderr, "Representative quote: %d\n", RepQuotesAndFreq[i].Val1.Val);
     TQuote RepQuote;
-    QB->GetQuote(RepQuotesAndFreq[i].Val1, RepQuote);
-    TStr RepQuoteStr;
-    RepQuote.GetContentString(RepQuoteStr);
-    TInt FreqOfAllClusterQuotes = RepQuotesAndFreq[i].Val2;
-    TIntV QuotesInCluster = RepQuotesAndFreq[i].Val3;
-    fprintf(F, "%d\t%d\t%s\n", FreqOfAllClusterQuotes.Val, QuotesInCluster.Len(), RepQuoteStr.CStr());
-    for (int j = 0; j < QuotesInCluster.Len(); j++) {
-      TQuote Quote;
-      QB->GetQuote(QuotesInCluster[j], Quote);
-      TStr QuoteStr;
-      Quote.GetContentString(QuoteStr);
-      fprintf(F, "\t%d\t%s\n", Quote.GetNumSources().Val, QuoteStr.CStr());
+    if (QB->GetQuote(RepQuotesAndFreq[i].Val1, RepQuote)) {
+      //fprintf(stderr, "Quote obtained!\n");
+      TStr RepQuoteStr;
+      RepQuote.GetContentString(RepQuoteStr);
+      //fprintf(stderr, "Content string obtained!\n");
+      TInt FreqOfAllClusterQuotes = RepQuotesAndFreq[i].Val2;
+      //fprintf(stderr, "Frequency obtained: %d!\n", FreqOfAllClusterQuotes.Val);
+      TIntV QuotesInCluster = RepQuotesAndFreq[i].Val3;
+      //fprintf(stderr, "Number of quotes in cluster: %d\n", QuotesInCluster.Len());
+      fprintf(F, "%d\t%d\t%s\n", FreqOfAllClusterQuotes.Val, QuotesInCluster.Len(), RepQuoteStr.CStr());
+      for (int j = 0; j < QuotesInCluster.Len(); j++) {
+        //fprintf(stderr, "Actual quote: %d\n", QuotesInCluster[j].Val);
+        TQuote Quote;
+        if (QB->GetQuote(QuotesInCluster[j], Quote)) {
+          TStr QuoteStr;
+          Quote.GetContentString(QuoteStr);
+          fprintf(F, "\t%d\t%s\n", Quote.GetNumSources().Val, QuoteStr.CStr());
+        }
+      }
     }
   }
   //Save(QuotesFile);

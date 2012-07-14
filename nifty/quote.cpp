@@ -210,7 +210,7 @@ bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize
 }
 
 void TQuote::GetFreqVector(TDocBase *DocBase, TIntFltPrV& FreqV, TVec<TSecTm>& HourOffsets, TInt BucketSize, TInt SlidingWindowSize) {
-  printf("%s\n", "Getting frequency vector");
+  //printf("%s\n", "Getting frequency vector");
   TIntV SourcesSorted(Sources);
   SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
 
