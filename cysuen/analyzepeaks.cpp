@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 int main(int argc, char *argv[]) {
-  TStr BaseString = "/lfs/1/tmp/curis/QBDB.bin";
+  TStr BaseString = "/lfs/1/tmp/curis/week/QBDB.bin";
   TFIn BaseFile(BaseString);
   TQuoteBase *QB = new TQuoteBase;
   TDocBase *DB = new TDocBase;
@@ -44,5 +44,7 @@ int main(int argc, char *argv[]) {
       printf("\n");
     }
   }
+  delete QB;
+  delete DB;
   return 0;
 }

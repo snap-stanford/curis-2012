@@ -114,7 +114,9 @@ int main(int argc, char *argv[]) {
 
   // OUTPUT
   log.SetupFiles(); // safe to make files now.
+  printf("Writing cluster information to file\n");
   log.OutputClusterInformation(QB, RepQuotesAndFreq);
+  printf("Writing top clusters to file\n");
   log.WriteClusteringOutputToFile();
 
   // plot output

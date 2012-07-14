@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "lsh.h"
 
-const int LSH::BandSize = 1;
+const int LSH::BandSize = 3;
 const int LSH::NumBands = 20;
 const int LSH::ShingleLen = 4;
 
