@@ -13,7 +13,8 @@ private:
   TIntV Sources;
 
   void Init();
-  void GetFreqVector(TDocBase *DocBase, TIntPrV& FreqV, TVec<TSecTm>& HourOffsets, TInt BucketSize);
+  void GetFreqVector(TDocBase *DocBase, TIntFltPrV& FreqV, TVec<TSecTm>& HourOffsets, TInt BucketSize, TInt SlidingWindowSize);
+  TFlt CalcWindowAvg(TIntV& FreqV, TInt SlidingWindowSize);
 
 public:
   static const uint NumSecondsInHour;
@@ -37,9 +38,9 @@ public:
   TInt GetNumDomains(TDocBase *DocBase);
   TInt GetNumSources();
   bool GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV);
-  bool GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize);
+  bool GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize);
   bool GraphFreqOverTime(TDocBase *DocBase, TStr Filename);
-  bool GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize);
+  bool GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize);
 
   static PSwSet StopWordSet;
   static void ParseContentString(const TStr &ContentString, TStrV &ParsedString);

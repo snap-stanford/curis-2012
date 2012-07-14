@@ -7,7 +7,7 @@
 #include "logoutput.h"
 #include <stdio.h>
 
-void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB) {
+void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB, TInt BucketSize, TInt SlidingWindowSize) {
   printf("Testing graph quote\n");
   TIntV AllQuotes;
   QB->GetAllQuoteIds(AllQuotes);
@@ -17,8 +17,8 @@ void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB) {
   for (int i = 0; i < 100; i++) {
     TQuote Q;
     QB->GetQuote(AllQuotes[i], Q);
-    TStr Filename = TStr("./plots/Freq" + Q.GetNumSources().GetStr() + "Quote" + Q.GetId().GetStr());
-    //Q.GraphFreqOverTime(DB, Filename);
+    TStr Filename = TStr("./plots/" + Q.GetNumSources().GetStr() + "Quote" + Q.GetId().GetStr());
+    Q.GraphFreqOverTime(DB, Filename, BucketSize, SlidingWindowSize);
   }
 }
 
@@ -50,11 +50,6 @@ void PrintQuoteURLs(TQuoteBase *QB, TDocBase *DB) {
     QSourcesUrl.Sort();
     for (int j = 0; j < QSourcesUrl.Len(); j++) {
       fprintf(F, "%s\n", QSourcesUrl[j].CStr());
-    }
-    if (QSourcesUrl.IsSorted()) {
-      printf("%s\n", "Successfully sorted!");
-    } else {
-      printf("%s\n", "Failed to sort :(");
     }
   }
 
@@ -97,8 +92,8 @@ int main(int argc, char *argv[]) {
   QB->Load(BaseFile);
   DB->Load(BaseFile);
 
-  //PlotQuoteFreq(QB, DB);
-  PrintQuoteURLs(QB, DB);
+  //PlotQuoteFreq(QB, DB, 1, 6);
+  //PrintQuoteURLs(QB, DB);
 
   // create clusters and save!
   QuoteGraph GraphCreator(QB);
