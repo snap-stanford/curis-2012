@@ -94,11 +94,11 @@ int main(int argc, char *argv[]) {
   QB->Load(BaseFile);
   DB->Load(BaseFile);
 
-  PlotQuoteFreq(QB, DB, 1, 6);
+  //PlotQuoteFreq(QB, DB, 1, 6);
   //PrintQuoteURLs(QB, DB);
 
   // create clusters and save!
-  /*QuoteGraph GraphCreator(QB);
+  QuoteGraph GraphCreator(QB);
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
   Clustering ClusterJob;
@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
   ClusterPlot Plotter(TStr("/lfs/1/tmp/curis/"));
   Plotter.PlotClusterSizeUnique(Clusters);
   Plotter.PlotClusterSize(RepQuotesAndFreq);
-  Plotter.PlotQuoteFrequencies(QB);*/
+  Plotter.PlotQuoteFrequencies(QB);
   delete QB;
   delete DB;
   printf("Done!\n");
