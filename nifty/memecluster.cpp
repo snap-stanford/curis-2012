@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
   QB->Load(BaseFile);
   DB->Load(BaseFile);
 
-  PlotQuoteFreq(QB, DB, 1, 6);
+  PlotQuoteFreq(QB, DB, 4, 1);
   //PrintQuoteURLs(QB, DB);
 
   // create clusters and save!
