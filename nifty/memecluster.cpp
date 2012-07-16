@@ -8,11 +8,13 @@
 #include <stdio.h>
 
 void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB, TInt BucketSize, TInt SlidingWindowSize) {
-  printf("Testing graph quote\n");
+  fprintf(stderr, "Testing graph quote\n");
   TIntV AllQuotes;
   QB->GetAllQuoteIds(AllQuotes);
   // Sort by descending frequency of quote
-  AllQuotes.SortCmp(TCmpQuoteByFreq(false, QB)); 
+  AllQuotes.SortCmp(TCmpQuoteByFreq(false, QB));
+
+  fprintf(stderr, "Sorting complete.\n");
 
   for (int i = 0; i < 100; i++) {
     TQuote Q;
@@ -46,7 +48,7 @@ void PrintQuoteURLs(TQuoteBase *QB, TDocBase *DB) {
       D.GetUrl(DUrl);
       QSourcesUrl.Add(DUrl);
     }
- 
+
     QSourcesUrl.Sort();
     for (int j = 0; j < QSourcesUrl.Len(); j++) {
       fprintf(F, "%s\n", QSourcesUrl[j].CStr());
@@ -70,7 +72,7 @@ int main(int argc, char *argv[]) {
     }
   }
   // load QB and DB. Custom variables can be added later.
-  TStr BaseString = "/lfs/1/tmp/curis/QBDB.bin";
+  TStr BaseString = "/lfs/1/tmp/curis/week/QBDB.bin";
   TStr OutputString = "TopClusters.txt";
   if (Arguments.IsKey("qbdb")) {
     BaseString = Arguments.GetDat("qbdb");
@@ -92,11 +94,11 @@ int main(int argc, char *argv[]) {
   QB->Load(BaseFile);
   DB->Load(BaseFile);
 
-  //PlotQuoteFreq(QB, DB, 1, 6);
+  PlotQuoteFreq(QB, DB, 1, 6);
   //PrintQuoteURLs(QB, DB);
 
   // create clusters and save!
-  QuoteGraph GraphCreator(QB);
+  /*QuoteGraph GraphCreator(QB);
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
   Clustering ClusterJob;
@@ -118,7 +120,7 @@ int main(int argc, char *argv[]) {
   ClusterPlot Plotter(TStr("/lfs/1/tmp/curis/"));
   Plotter.PlotClusterSizeUnique(Clusters);
   Plotter.PlotClusterSize(RepQuotesAndFreq);
-  Plotter.PlotQuoteFrequencies(QB);
+  Plotter.PlotQuoteFrequencies(QB);*/
   delete QB;
   delete DB;
   printf("Done!\n");

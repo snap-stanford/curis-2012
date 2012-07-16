@@ -4,6 +4,7 @@
 
 const uint TQuote::NumSecondsInHour = 3600;
 const uint TQuote::NumSecondsInWeek = 604800;
+const int TQuote::K = 4;
 
 PSwSet TQuote::StopWordSet = new TSwSet(swstEnMsdn);
 
@@ -131,28 +132,56 @@ bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSi
 
   TFltV FreqFltV;
   for (int i = 0; i < FreqV.Len(); ++i) {
-    FreqFltV.Add(TFlt(FreqV[i].Val2));
+    // rewriting this
+    // FreqFltV.Add(TFlt(FreqV[i].Val2));
+    TFlt AvgDist = 0;
+    TInt Count = 0;
+    for (int j = i - K; j < i + K && j < FreqV.Len(); j++) {
+      if (j >= 0 && j != i) {
+        AvgDist += TFlt(FreqV[i].Val2) - TFlt(FreqV[j].Val2);
+        Count++;
+      }
+    }
+
+    FreqFltV.Add(AvgDist/Count);
   }
 
   TMom M(FreqFltV);
   TFlt FreqMean = TFlt(M.GetMean());
   TFlt FreqStdDev = TFlt(M.GetSDev());
 
-  for (int i = 0; i < FreqV.Len(); ++i) {
-    TFlt Freq = TFlt(FreqV[i].Val2);
+  // finds peak where if there is sequence with all > stdev, we assume all is one peak
+  bool IsPeaking;
+  int CurMax;
+  for (int i = 0; i < FreqFltV.Len(); ++i) {
+    TFlt Freq = FreqFltV[i];
     if (Freq > FreqMean + FreqStdDev) {
-      PeakTimesV.Add(HourOffsets[i]);
+      if (IsPeaking) {
+        if (Freq > FreqFltV[CurMax]) {
+          CurMax = i;
+        }
+      } else {
+        IsPeaking = true;
+        CurMax = i;
+      }
+    } else if (IsPeaking) {
+      IsPeaking = false;
+      PeakTimesV.Add(HourOffsets[CurMax]);
     }
+  }
+  // final check so we don't miss the last peak
+  if (IsPeaking) {
+    PeakTimesV.Add(HourOffsets[CurMax]);
   }
 
   // If no peak satisfies the definition, then the "peak" time is
   // the hour with the highest quote frequency
   if (PeakTimesV.Len() == 0) {
-    TFlt FreqMax = FreqFltV[0];
+    TFlt FreqMax = TFlt(FreqV[0].Val2);
     TInt FreqMaxIndex = 0;
-    for (int i = 0; i < FreqFltV.Len(); ++i) {
-      if (FreqFltV[i] >= FreqMax) {
-        FreqMax = FreqFltV[i];
+    for (int i = 0; i < FreqV.Len(); ++i) {
+      if (TFlt(FreqV[i].Val2) >= FreqMax) {
+        FreqMax = TFlt(FreqV[i].Val2);;
         FreqMaxIndex = i;
       }
     }
@@ -181,27 +210,63 @@ bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize
   TIntFltPrV PeakV;
   TFltV FreqFltV;
   for (int i = 0; i < FreqV.Len(); ++i) {
-    FreqFltV.Add(TFlt(FreqV[i].Val2));
+    //FreqFltV.Add(TFlt(FreqV[i].Val2));
+    TFlt AvgDist = 0;
+    TInt Count = 0;
+    for (int j = i - K; j < i + K && j < FreqV.Len(); j++) {
+      if (j >= 0 && j != i) {
+        AvgDist += TFlt(FreqV[i].Val2) - TFlt(FreqV[j].Val2);
+        Count++;
+      }
+    }
+
+    FreqFltV.Add(AvgDist/Count);
   }
 
   TMom M(FreqFltV);
   TFlt FreqMean = TFlt(M.GetMean());
   TFlt FreqStdDev = TFlt(M.GetSDev());
 
-  for (int i = 0; i < FreqV.Len(); ++i) {
+  /*for (int i = 0; i < FreqV.Len(); ++i) {
     TFlt Freq = TFlt(FreqV[i].Val2);
     if (Freq > FreqMean + FreqStdDev) {
       PeakV.Add(FreqV[i]);
     }
+  }*/
+
+  bool IsPeaking;
+  int CurMax;
+  for (int i = 0; i < FreqFltV.Len(); ++i) {
+    TFlt Freq = TFlt(FreqV[i].Val2);
+    if (FreqFltV[i] > FreqMean + FreqStdDev) {
+      if (IsPeaking) {
+        if (Freq > TFlt(FreqV[CurMax].Val2)) {
+          CurMax = i;
+        }
+      } else {
+        IsPeaking = true;
+        CurMax = i;
+      }
+    } else if (IsPeaking) {
+      IsPeaking = false;
+      PeakV.Add(FreqV[CurMax]);
+      fprintf(stderr, "Added %d\n", CurMax);
+    }
+  }
+  // final check so we don't miss the last peak
+  if (IsPeaking) {
+    PeakV.Add(FreqV[CurMax]);
+    fprintf(stderr, "Added final %d\n", CurMax);
   }
 
-  printf("Creating the plot...\n");
+  fprintf(stderr, "Creating the plot...\n");
   TStr ContentStr;
   GetContentString(ContentStr);
   TGnuPlot GP(Filename, "Frequency of Quote " + Id.GetStr() + " Over Time: " + ContentStr);
   GP.SetXLabel(TStr("Hour Offset"));
   GP.SetYLabel(TStr("Frequency of Quote"));
   GP.AddPlot(FreqV, gpwLinesPoints, "Frequency");
+  fprintf(stderr, "plotting peaks\n");
   if (PeakV.Len() > 0) {
     GP.AddPlot(PeakV, gpwPoints, "Peaks");
   }

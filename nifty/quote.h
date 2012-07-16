@@ -6,6 +6,7 @@
 
 class TQuote {
 private:
+  static const int K;
   TInt Id;
   TStrV Content;
   TStrV ParsedContent;
