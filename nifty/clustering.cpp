@@ -32,6 +32,13 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
   // currently deletes all edges but the one leading to phrase that is most frequently cited.
   // TODO: Make more efficient? At 10k nodes this is ok
 
+  TIntV OrigQGraphNIdV;
+  for (TNGraph::TNodeI Node = QGraph->BegNI(); Node < QGraph->EndNI(); Node++) {
+    OrigQGraphNIdV.Add(Node.GetId());
+  }
+  PNGraph OrigQGraphP;
+  OrigQGraphP = TSnap::GetSubGraph(QGraph, OrigQGraphNIdV);
+  
   int NumEdgesOriginal = QGraph->GetEdges();
   log.LogValue(LogOutput::NumOriginalEdges, TInt(NumEdgesOriginal));
   int NumNodes = QGraph->GetNodes();
@@ -96,6 +103,17 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
     }
     Clusters.Add(Components[i].NIdV);
   }
+
+  // calculate percent edges deleted from induced subgraphs of these WCC's
+  TInt NumEdgesInducedSubgraphs = 0;
+  for (int i = 0; i < Clusters.Len(); i++) {
+    PNGraph SubgraphP;
+    SubgraphP = TSnap::GetSubGraph(OrigQGraphP, Clusters[i]);
+    NumEdgesInducedSubgraphs += SubgraphP->GetEdges();
+  }
+
+  //fprintf(stderr, "percent edges deleted, not from subgraphs: %f\n", TFlt(100 - NumEdgesInducedSubgraphs * 100.0 / NumEdgesOriginal).Val);
+  log.LogValue(LogOutput::PercentEdgesDeletedNotFromSubgraphs, TFlt(100 - NumEdgesInducedSubgraphs * 100.0 / NumEdgesOriginal));
 }
 
 TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB) {
