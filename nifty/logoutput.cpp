@@ -4,7 +4,7 @@
 #include "stdafx.h"
 
 const TStr LogOutput::OutputDirectory = "/lfs/1/tmp/curis/output/clustering/";
-const TStr LogOutput::WebDirectory = "/u/cysuen/public_html/curis/output/clustering/";
+const TStr LogOutput::WebDirectory = "../../public_html/curis/output/clustering/";
 const TStr LogOutput::PercentEdgesDeleted = "PercentEdgesDeleted";
 const TStr LogOutput::NumOriginalEdges = "NumOriginalEdges";
 const TStr LogOutput::NumRemainingEdges = "NumRemainingEdges";
