@@ -134,17 +134,6 @@ int main(int argc, char *argv[]) {
   LoadURLBlackList();
   LoadCommonEnglishWords();
 
-  /*
-   * THashSet<TMd5Sig> SeenUrlSet(Mega(100), true);
-   *
-  bool IsDuplicateUrl(const TChA &Url) {
-    TMd5Sig UrlSig = TMd5Sig(Url);
-    if (SeenUrlSet.IsKey(UrlSig)) { return true; }
-      SeenUrlSet.AddKey(UrlSig);
-    return false;
-  }
-  */
-
   printf("Loading data from Spinn3r dataset to QuoteBase...\n");
   fprintf(FLog, "1: Initial Filtering:\n");
   TQuoteBase *TmpQB = new TQuoteBase;
