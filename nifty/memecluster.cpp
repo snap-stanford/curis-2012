@@ -1,10 +1,4 @@
 #include "stdafx.h"
-#include "clustering.h"
-#include "quotegraph.h"
-#include "quote.h"
-#include "doc.h"
-#include "clusterplot.h"
-#include "logoutput.h"
 #include <stdio.h>
 
 void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB, TInt BucketSize, TInt SlidingWindowSize) {

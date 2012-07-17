@@ -1,7 +1,4 @@
 #include "stdafx.h"
-#include "dataloader.h"
-#include "quote.h"
-#include "doc.h"
 #include <stdio.h>
 
 const int MinMemeFreq = 5;
