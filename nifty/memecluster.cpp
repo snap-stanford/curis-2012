@@ -18,6 +18,7 @@ void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB, TInt BucketSize, TInt SlidingWi
   }
 }
 
+/// Prints URLs of each quote to "QuoteURLs.output"
 void PrintQuoteURLs(TQuoteBase *QB, TDocBase *DB) {
   printf("Printing Quote URLs to file\n");
   TIntV AllQuotes;
@@ -82,6 +83,8 @@ int main(int argc, char *argv[]) {
 
   //PlotQuoteFreq(QB, DB, 1, 6);
   //PrintQuoteURLs(QB, DB);
+
+  fprintf(stderr, "Creating clusters\n");
  
   // create clusters and save!
   QuoteGraph GraphCreator(QB);
