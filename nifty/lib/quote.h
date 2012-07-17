@@ -45,6 +45,7 @@ public:
 
   static PSwSet StopWordSet;
   static void ParseContentString(const TStr &ContentString, TStrV &ParsedString);
+  static void FilterSpacesAndSetLowercase(TStr &QtStr);
   static void StemAndStopWordsContentString(const TStrV &ContentV, TStrV &NewContent);
 };
 

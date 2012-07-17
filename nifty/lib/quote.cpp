@@ -24,7 +24,12 @@ TQuote::TQuote(TInt Id, const TStr &ContentString) {
 }
 
 void TQuote::Init() {
-  StemAndStopWordsContentString(Content, ParsedContent);
+  TStr FilteredContentString;
+  GetContentString(FilteredContentString);
+  FilterSpacesAndSetLowercase(FilteredContentString);
+  TStrV FilteredContent;
+  ParseContentString(FilteredContentString, FilteredContent);
+  StemAndStopWordsContentString(FilteredContent, ParsedContent);
   for (int i = 0; i < ParsedContent.Len(); ++i) {
     if (i > 0) this->ParsedContentString.InsStr(ParsedContentString.Len()," ");
     this->ParsedContentString.InsStr(ParsedContentString.Len(), ParsedContent[i]);
@@ -107,6 +112,26 @@ void TQuote::GetSources(TIntV &RefS) {
 
 void TQuote::ParseContentString(const TStr &ContentString, TStrV &ParsedString) {
   ContentString.SplitOnAllAnyCh(" ", ParsedString);
+}
+
+void TQuote::FilterSpacesAndSetLowercase(TStr &QtStr) {
+  // Three passes...hopefully this isn't too slow.
+  TChA QtChA = TChA(QtStr);
+  for (int i = 0; i < QtChA.Len(); i++) {
+    if (!(isalpha(QtChA[i]) || QtChA[i] == '\'')) {
+      QtChA[i] = ' ';
+    } else {
+      QtChA[i] = tolower(QtChA[i]);
+    }
+  }
+  QtStr = TStr(QtChA);
+  TStrV WordV;
+  QtStr.SplitOnAllAnyCh(" ", WordV);
+  QtStr.Clr();
+  for (int i = 0; i < WordV.Len(); ++i) {
+    if (i > 0)  QtStr.InsStr(QtStr.Len()," ");
+    QtStr.InsStr(QtStr.Len(), WordV[i]);
+  }
 }
 
 void TQuote::StemAndStopWordsContentString(const TStrV &ContentV, TStrV &NewContent) {

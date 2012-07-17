@@ -63,30 +63,6 @@ bool IsUrlInBlackList(const TChA &Url) {
   return false;
 }
 
-
-// Removes all punctuation in the quotes and replace with spaces.
-// Also converts upper case to lower case.
-// Adapted (but modified) from memes.h because I want a white list, not a blacklist.
-void FilterSpacesAndSetLowercase(TChA &QtChA) {
-  // Three passes...hopefully this isn't too slow.
-  for (int i = 0; i < QtChA.Len(); i++) {
-    if (!(isalpha(QtChA[i]) || QtChA[i] == '\'')) {
-      QtChA[i] = ' ';
-    } else {
-      QtChA[i] = tolower(QtChA[i]);
-    }
-  }
-  QtStr = TStr(QtChA);
-  TStrV WordV;
-  QtStr.SplitOnAllAnyCh(" ", WordV);
-  QtStr.Clr();
-  for (int i = 0; i < WordV.Len(); ++i) {
-    if (i > 0)  QtStr.InsStr(QtStr.Len()," ");
-    QtStr.InsStr(QtStr.Len(), WordV[i]);
-  }
-  QtChA = TChA(QtStr);
-}
-
 bool IsDuplicateUrl(const TChA &Url) {
   TMd5Sig UrlSig = TMd5Sig(Url);
   if (SeenUrlSet.IsKey(UrlSig)) { return true; }
@@ -150,7 +126,7 @@ int main(int argc, char *argv[]) {
   THash<TStr, TInt> DuplicateUrl(Mega(100), true);
   // Read files and count the quotes
   TDataLoader Memes;
-  Memes.LoadFileList(InFileName, "/lfs/1/tmp/curis/spinn3r/2012-01/");
+  Memes.LoadFileList(InFileName, "/lfs/1/tmp/curis/spinn3r/new/");
   while (Memes.LoadNextFile()) {
     while (Memes.LoadNextEntry()) {
       if (IsUrlInBlackList(Memes.PostUrlStr)) { NSkipBlackList++;continue; }
@@ -173,7 +149,6 @@ int main(int argc, char *argv[]) {
         if (IsEnglish(Memes.MemeV[m]) &&
             TStrUtil::CountWords(Memes.MemeV[m]) >= MinQtWrdLen &&
             TStrUtil::CountWords(Memes.MemeV[m]) <= MaxQtWrdLen) {
-          FilterSpacesAndSetLowercase(Memes.MemeV[m]);
           ContainValidQuote = true;
         } else {
           if (!IsEnglish(Memes.MemeV[m])) {
