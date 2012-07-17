@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "quote.h"
 #include "doc.h"
+#include "peaks.h"
 
 const uint TQuote::NumSecondsInHour = 3600;
 const uint TQuote::NumSecondsInWeek = 604800;
@@ -122,72 +123,12 @@ bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV) {
 }
 
 bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize) {
-  if (Sources.Len() == 0) {
-    return false;
+  TVec<TTriple<TInt, TFlt, TSecTm> >& PeakTimesV;
+  Peaks::GetPeaks(DocBase, Sources, PeakTimesV, BucketSize, SlidingWindowSize);
+
+  for (int i = 0; i < PeakTimesV.Len(); ++i) {
+    PeakTimesV.Add(PeakTimesV[i].Val3);
   }
-
-  TIntFltPrV FreqV;
-  TVec<TSecTm> HourOffsets;
-  GetFreqVector(DocBase, FreqV, HourOffsets, BucketSize, SlidingWindowSize);
-
-  TFltV FreqFltV;
-  for (int i = 0; i < FreqV.Len(); ++i) {
-    // rewriting this
-    // FreqFltV.Add(TFlt(FreqV[i].Val2));
-    TFlt AvgDist = 0;
-    TInt Count = 0;
-    for (int j = i - K; j < i + K && j < FreqV.Len(); j++) {
-      if (j >= 0 && j != i) {
-        AvgDist += TFlt(FreqV[i].Val2) - TFlt(FreqV[j].Val2);
-        Count++;
-      }
-    }
-
-    FreqFltV.Add(AvgDist/Count);
-  }
-
-  TMom M(FreqFltV);
-  TFlt FreqMean = TFlt(M.GetMean());
-  TFlt FreqStdDev = TFlt(M.GetSDev());
-
-  // finds peak where if there is sequence with all > stdev, we assume all is one peak
-  bool IsPeaking = false;
-  int CurMax;
-  for (int i = 0; i < FreqFltV.Len(); ++i) {
-    TFlt Freq = TFlt(FreqV[i].Val2);
-    if (FreqFltV[i] > FreqMean + FreqStdDev) {
-      if (IsPeaking) {
-        if (Freq > TFlt(FreqV[CurMax].Val2)) {
-          CurMax = i;
-        }
-      } else {
-        IsPeaking = true;
-        CurMax = i;
-      }
-    } else if (IsPeaking) {
-      IsPeaking = false;
-      PeakTimesV.Add(HourOffsets[CurMax]);
-    }
-  }
-  // final check so we don't miss the last peak
-  if (IsPeaking) {
-    PeakTimesV.Add(HourOffsets[CurMax]);
-  }
-
-  // If no peak satisfies the definition, then the "peak" time is
-  // the hour with the highest quote frequency
-  if (PeakTimesV.Len() == 0) {
-    TFlt FreqMax = TFlt(FreqV[0].Val2);
-    TInt FreqMaxIndex = 0;
-    for (int i = 0; i < FreqV.Len(); ++i) {
-      if (TFlt(FreqV[i].Val2) >= FreqMax) {
-        FreqMax = TFlt(FreqV[i].Val2);;
-        FreqMaxIndex = i;
-      }
-    }
-    PeakTimesV.Add(HourOffsets[FreqMaxIndex]);
-  }
-  return true;
 }
 
 bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename) {
@@ -197,64 +138,12 @@ bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename) {
 /// If BucketSize is > 1, a sliding window average will not be calculated
 //  Otherwise, if BucketSize = 1, a sliding window average of size SlidingWindowSize will be calculated
 bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize) {
-  if (Sources.Len() == 0) {
-    return false;
-  }
+  TVec<TTriple<TInt, TFlt, TSecTm> >& PeakTimesV;
+  Peaks::GetPeaks(DocBase, Sources, PeakTimesV, BucketSize, SlidingWindowSize);
 
-  TIntFltPrV FreqV;
-  TVec<TSecTm> HourOffsets;
-  GetFreqVector(DocBase, FreqV, HourOffsets, BucketSize, SlidingWindowSize);
-
-  // Find peaks and add them to the plot
-  // Define a peak as anything that is more than one standard deviation above the mean
-  TIntFltPrV PeakV;
-  TFltV FreqFltV;
-  for (int i = 0; i < FreqV.Len(); ++i) {
-    //FreqFltV.Add(TFlt(FreqV[i].Val2));
-    TFlt AvgDist = 0;
-    TInt Count = 0;
-    for (int j = i - K; j < i + K && j < FreqV.Len(); j++) {
-      if (j >= 0 && j != i) {
-        AvgDist += TFlt(FreqV[i].Val2) - TFlt(FreqV[j].Val2);
-        Count++;
-      }
-    }
-
-    FreqFltV.Add(AvgDist/Count);
-  }
-
-  TMom M(FreqFltV);
-  TFlt FreqMean = TFlt(M.GetMean());
-  TFlt FreqStdDev = TFlt(M.GetSDev());
-
-  /*for (int i = 0; i < FreqV.Len(); ++i) {
-    TFlt Freq = TFlt(FreqV[i].Val2);
-    if (Freq > FreqMean + FreqStdDev) {
-      PeakV.Add(FreqV[i]);
-    }
-  }*/
-
-  bool IsPeaking;
-  int CurMax;
-  for (int i = 0; i < FreqFltV.Len(); ++i) {
-    TFlt Freq = TFlt(FreqV[i].Val2);
-    if (FreqFltV[i] > FreqMean + FreqStdDev) {
-      if (IsPeaking) {
-        if (Freq > TFlt(FreqV[CurMax].Val2)) {
-          CurMax = i;
-        }
-      } else {
-        IsPeaking = true;
-        CurMax = i;
-      }
-    } else if (IsPeaking) {
-      IsPeaking = false;
-      PeakV.Add(FreqV[CurMax]);
-    }
-  }
-  // final check so we don't miss the last peak
-  if (IsPeaking) {
-    PeakV.Add(FreqV[CurMax]);
+  TIntFltPr PeakV;
+  for (int i = 0; i < PeakTimesV.Len(); ++i) {
+    PeakV.Add(PeakTimesV[i].Val1, PeakTimesV[i].Val2);
   }
 
   TStr ContentStr;
@@ -268,77 +157,6 @@ bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize
   }
   GP.SavePng();
   return true;
-}
-
-void TQuote::GetFreqVector(TDocBase *DocBase, TIntFltPrV& FreqV, TVec<TSecTm>& HourOffsets, TInt BucketSize, TInt SlidingWindowSize) {
-  //printf("%s\n", "Getting frequency vector");
-  TIntV SourcesSorted(Sources);
-  SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
-
-  // Only consider documents up to a week before the date of the last document
-  TDoc LastDoc;
-  DocBase->GetDoc(SourcesSorted[SourcesSorted.Len()-1], LastDoc);
-  TUInt EndTime = TUInt(LastDoc.GetDate().GetAbsSecs());
-  TUInt FirstTimeToConsider = EndTime - NumSecondsInWeek;
-
-  TDoc StartDoc;
-  int StartDocIndex = 0;
-  DocBase->GetDoc(SourcesSorted[StartDocIndex], StartDoc);
-  TUInt StartTime = TUInt(StartDoc.GetDate().GetAbsSecs());
-
-  while (StartTime < FirstTimeToConsider) {
-    ++StartDocIndex;
-    DocBase->GetDoc(SourcesSorted[StartDocIndex], StartDoc);
-    StartTime = TUInt(StartDoc.GetDate().GetAbsSecs());
-  }
-
-  TInt Freq = TInt(1);
-  TInt HourNum = 0;
-  uint BucketSizeSecs = NumSecondsInHour * BucketSize.Val;
-  TIntV FreqAbs;
-
-  for (int i = StartDocIndex+1; i < SourcesSorted.Len(); ++i) {
-    TDoc CurrDoc;
-    DocBase->GetDoc(SourcesSorted[i], CurrDoc);
-    TUInt CurrTime = TUInt(CurrDoc.GetDate().GetAbsSecs());
-    if (CurrTime - StartTime < BucketSizeSecs) {
-      // Increment the number of quotes seen in this hour-long period by one
-      Freq += 1;
-    } else {
-      HourOffsets.Add(TSecTm(StartTime));
-      FreqAbs.Add(Freq);
-      FreqV.Add(TIntFltPr(HourNum, CalcWindowAvg(FreqAbs, SlidingWindowSize)));
-      TInt NumHoursAhead = (CurrTime - StartTime) / BucketSizeSecs;
-      //printf("PrevDoc Date: %s, CurrDoc Date: %s, NumHoursAhead: %d\n", PrevDoc.GetDate().GetYmdTmStr().GetCStr(), CurrDoc.GetDate().GetYmdTmStr().GetCStr(), NumHoursAhead.Val);
-      // Add frequencies of 0 if there are hours in between the two occurrences
-      for (int j = 1; j < NumHoursAhead; ++j) {
-        TUInt NewStartTime = StartTime + j * BucketSizeSecs;
-        HourOffsets.Add(TSecTm(NewStartTime));
-        FreqAbs.Add(TInt(0));
-        FreqV.Add(TIntFltPr(HourNum + j, CalcWindowAvg(FreqAbs, SlidingWindowSize)));
-      }
-      HourNum += NumHoursAhead;
-      //printf("HourNum: %d\n", HourNum.Val);
-      Freq.Val = 1;
-      StartTime = StartTime + ((CurrTime - StartTime) / BucketSizeSecs) * BucketSizeSecs;
-    }
-  }
-  HourOffsets.Add(TSecTm(StartTime));
-  FreqAbs.Add(TInt(0));
-  FreqV.Add(TIntFltPr(HourNum, CalcWindowAvg(FreqAbs, SlidingWindowSize)));
-}
-
-TFlt TQuote::CalcWindowAvg(TIntV& FreqV, TInt SlidingWindowSize) {
-  TInt StartIndex = FreqV.Len() - SlidingWindowSize;
-  if (StartIndex < 0) {
-    StartIndex = 0;
-  }
-  TFlt Avg = 0;
-  for (int i = StartIndex; i < FreqV.Len(); i++) {
-    Avg += FreqV[i];
-  }
-  Avg /= (FreqV.Len() - StartIndex);
-  return Avg;
 }
 
 TQuoteBase::TQuoteBase() {
