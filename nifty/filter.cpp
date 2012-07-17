@@ -11,7 +11,7 @@ THashSet<TStr> URLBlackList;
 THashSet<TStr> CommonEnglishWordsList;
 
 void LoadCommonEnglishWords() {
-  PSIn EnglishWords = TFIn::New("common_english_words.txt");
+  PSIn EnglishWords = TFIn::New("resources/common_english_words.txt");
   TStr Word;
   while (!EnglishWords->Eof() && EnglishWords->GetNextLn(Word)) {
     CommonEnglishWordsList.AddKey(Word);
@@ -37,7 +37,7 @@ bool IsRobustlyEnglish(TStr Quote) {
 }
 
 void LoadURLBlackList() {
-  PSIn BlackListFile = TFIn::New("URLBlacklist");
+  PSIn BlackListFile = TFIn::New("resources/URLBlacklist");
   TStr BadURL;
   while (!BlackListFile->Eof() && BlackListFile->GetNextLn(BadURL)) {
     URLBlackList.AddKey(BadURL);
@@ -120,7 +120,7 @@ void OutputQuoteInformation(TQuoteBase* QuoteBase, TStr FileName) {
 int main(int argc, char *argv[]) {
   printf("File name must be in the form: web-{year}-{month}-{day}T{hour}-{minute}-{second}Z.rar\n");
   FILE *FLog = fopen("filter.log", "w");
-  TStr InFileName = "Spinn3rFileList.txt";
+  TStr InFileName = "resources/Spinn3rFileList.txt";
   TStr OutFileName = "QuoteFrequencies.txt";
   if (argc >= 2) {
     InFileName = TStr(argv[1]);
@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
   THash<TStr, TInt> DuplicateUrl(Mega(100), true);
   // Read files and count the quotes
   TDataLoader Memes;
-  Memes.LoadFileList(InFileName, "/lfs/1/tmp/curis/spinn3r/new/");
+  Memes.LoadFileList(InFileName, "/lfs/1/tmp/curis/spinn3r/2012-01/");
   while (Memes.LoadNextFile()) {
     while (Memes.LoadNextEntry()) {
       if (IsUrlInBlackList(Memes.PostUrlStr)) { NSkipBlackList++;continue; }
