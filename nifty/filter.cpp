@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
   THash<TStr, TInt> DuplicateUrl(Mega(100), true);
   // Read files and count the quotes
   TDataLoader Memes;
-  Memes.LoadFileList(InFileName, "/lfs/1/tmp/curis/spinn3r/2012-01/");
+  Memes.LoadFileList(InFileName, "/lfs/1/tmp/curis/spinn3r/new/");
   while (Memes.LoadNextFile()) {
     while (Memes.LoadNextEntry()) {
       if (IsUrlInBlackList(Memes.PostUrlStr)) { NSkipBlackList++;continue; }
