@@ -67,9 +67,8 @@ bool IsUrlInBlackList(const TChA &Url) {
 // Removes all punctuation in the quotes and replace with spaces.
 // Also converts upper case to lower case.
 // Adapted (but modified) from memes.h because I want a white list, not a blacklist.
-void FilterSpacesAndSetLowercase(TStr &QtStr) {
+void FilterSpacesAndSetLowercase(TChA &QtChA) {
   // Three passes...hopefully this isn't too slow.
-  TChA QtChA(QtStr);
   for (int i = 0; i < QtChA.Len(); i++) {
     if (!(isalpha(QtChA[i]) || QtChA[i] == '\'')) {
       QtChA[i] = ' ';
@@ -85,6 +84,7 @@ void FilterSpacesAndSetLowercase(TStr &QtStr) {
     if (i > 0)  QtStr.InsStr(QtStr.Len()," ");
     QtStr.InsStr(QtStr.Len(), WordV[i]);
   }
+  QtChA = TChA(QtStr);
 }
 
 bool IsDuplicateUrl(const TChA &Url) {
