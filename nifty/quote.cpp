@@ -4,7 +4,7 @@
 
 const uint TQuote::NumSecondsInHour = 3600;
 const uint TQuote::NumSecondsInWeek = 604800;
-const int TQuote::K = 4;
+const int TQuote::K = 5;
 
 PSwSet TQuote::StopWordSet = new TSwSet(swstEnMsdn);
 
@@ -151,13 +151,13 @@ bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSi
   TFlt FreqStdDev = TFlt(M.GetSDev());
 
   // finds peak where if there is sequence with all > stdev, we assume all is one peak
-  bool IsPeaking;
+  bool IsPeaking = false;
   int CurMax;
   for (int i = 0; i < FreqFltV.Len(); ++i) {
-    TFlt Freq = FreqFltV[i];
-    if (Freq > FreqMean + FreqStdDev) {
+    TFlt Freq = TFlt(FreqV[i].Val2);
+    if (FreqFltV[i] > FreqMean + FreqStdDev) {
       if (IsPeaking) {
-        if (Freq > FreqFltV[CurMax]) {
+        if (Freq > TFlt(FreqV[CurMax].Val2)) {
           CurMax = i;
         }
       } else {
@@ -250,23 +250,19 @@ bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize
     } else if (IsPeaking) {
       IsPeaking = false;
       PeakV.Add(FreqV[CurMax]);
-      fprintf(stderr, "Added %d\n", CurMax);
     }
   }
   // final check so we don't miss the last peak
   if (IsPeaking) {
     PeakV.Add(FreqV[CurMax]);
-    fprintf(stderr, "Added final %d\n", CurMax);
   }
 
-  fprintf(stderr, "Creating the plot...\n");
   TStr ContentStr;
   GetContentString(ContentStr);
   TGnuPlot GP(Filename, "Frequency of Quote " + Id.GetStr() + " Over Time: " + ContentStr);
   GP.SetXLabel(TStr("Hour Offset"));
   GP.SetYLabel(TStr("Frequency of Quote"));
   GP.AddPlot(FreqV, gpwLinesPoints, "Frequency");
-  fprintf(stderr, "plotting peaks\n");
   if (PeakV.Len() > 0) {
     GP.AddPlot(PeakV, gpwPoints, "Peaks");
   }
