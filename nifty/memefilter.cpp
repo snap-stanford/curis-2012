@@ -70,11 +70,11 @@ bool IsUrlInBlackList(const TChA &Url) {
 void FilterSpacesAndSetLowercase(TStr &QtStr) {
   // Three passes...hopefully this isn't too slow.
   TChA QtChA(QtStr);
-  for (int i = 0; i < QtChA.Len(); ++i) {
+  for (int i = 0; i < QtChA.Len(); i++) {
     if (!(isalpha(QtChA[i]) || QtChA[i] == '\'')) {
       QtChA[i] = ' ';
     } else {
-      QtChA[i] = tolower(QtStr[i]);
+      QtChA[i] = tolower(QtChA[i]);
     }
   }
   QtStr = TStr(QtChA);
@@ -171,8 +171,7 @@ int main(int argc, char *argv[]) {
         if (IsEnglish(Memes.MemeV[m]) &&
             TStrUtil::CountWords(Memes.MemeV[m]) >= MinQtWrdLen &&
             TStrUtil::CountWords(Memes.MemeV[m]) <= MaxQtWrdLen) {
-          TStr QtStr = Memes.MemeV[m];
-          FilterSpacesAndSetLowercase(QtStr);
+          FilterSpacesAndSetLowercase(Memes.MemeV[m]);
           ContainValidQuote = true;
         } else {
           if (!IsEnglish(Memes.MemeV[m])) {
