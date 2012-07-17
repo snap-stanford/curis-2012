@@ -12,6 +12,7 @@ public:
   void PlotClusterSizeUnique(TVec<TIntV> Clusters);
   void PlotClusterSize(TVec<TCluster>& ClusterSummaries);
   void PlotQuoteFrequencies(TQuoteBase* QB);
+  //void PlotClusterPeaks(TTriple<TInt, TInt, TIntV>& Cluster);
 
   class TCmpIntV {
   private:

@@ -62,7 +62,7 @@ void LogOutput::WriteClusteringOutputToFile() {
   fclose(F);
 }
 
-void LogOutput::OutputClusterInformation(TQuoteBase* QB, TVec<TCluster>& ClusterSummaries) {
+void LogOutput::OutputClusterInformation(TDocBase *DocBase, TQuoteBase* QB, TVec<TCluster>& ClusterSummaries) {
   if (!ShouldLog) return;
   TStr FileName = WebDirectory + TimeStamp + "/top_clusters.txt";
   TStr HTMLFileName = WebDirectory + TimeStamp + "/clusters.html";
@@ -100,6 +100,8 @@ void LogOutput::OutputClusterInformation(TQuoteBase* QB, TVec<TCluster>& Cluster
         TStr URLLink = "<a href=\"cluster/" + TInt(i).GetStr() + ".html\">" + RepQuoteStr + "</a>";
         fprintf(H, "<tr><td>%d</td><td>N/A</td><td>%s</td></tr>", i, URLLink.CStr());
         TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(i).GetStr() + ".html";
+        TStr ImageFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(i).GetStr();
+        ClusterSummaries[i].GraphFreqOverTime(DocBase, QuoteBase, ImageFileName, 2, 1);
         FILE *C = fopen(ClusterFileName.CStr(), "w");
         fprintf(C, "<html>");
         fprintf(C, "<head>");
@@ -108,6 +110,7 @@ void LogOutput::OutputClusterInformation(TQuoteBase* QB, TVec<TCluster>& Cluster
         fprintf(C, "<body>");
         fprintf(C, "<h2>%s</h2><br />", RepQuoteStr.CStr());
         fprintf(C, "<h2>%d</h2><br /><br />", FreqOfAllClusterQuotes.Val);
+        fprintf(C, "<img src=\"" + TInt(i).GetStr() + ".png\" />");
         for (int j = 0; j < QuotesInCluster.Len(); j++) {
           TQuote Quote;
           if (QB->GetQuote(QuotesInCluster[j], Quote)) {

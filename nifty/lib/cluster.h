@@ -3,12 +3,14 @@
 
 #include "stdafx.h"
 #include "quote.h"
+#include "peaks.h"
 
 class TCluster {
 private:
   TInt RepresentativeQuoteId;
   TInt NumQuotes;
   TIntV QuoteIds;
+  TInt Id;
 
 public:
   TCluster();
@@ -20,10 +22,33 @@ public:
   TInt GetNumQuotes() const;
   TInt GetNumUniqueQuotes() const;
   void GetQuoteIds(TIntV &QuoteIds) const;
+  TInt GetId();
+  void SetId(TInt Id);
 
   void AddQuote(TQuoteBase *QB, const TIntV &QuoteIds);
   void AddQuote(TQuoteBase *QB, TInt QuoteId);
   void SetRepresentativeQuoteId(TInt QuoteId);
+
+  void GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize);
+  void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename);
+  void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize);
+};
+
+class TClusterBase {
+private:
+  TInt ClusterIdCounter;
+  THash<TInt, TQuote> IdToTClusters;
+  TInt GetNewQuoteId();
+
+public:
+  TClusterBase();
+  void Save(TSOut& SOut) const;
+  void Load(TSIn& SIn);
+  TQuote AddCluster(const TCluster& Cluster);
+  void RemoveCluster(TInt ClusterId);
+  bool GetCluster(TInt ClusterId, TCluster& RefC);
+  void GetAllClusterIds(TIntV &KeyV);
+  int Len();
 };
 
 // Compares TClusters by sum of quote frequencies
