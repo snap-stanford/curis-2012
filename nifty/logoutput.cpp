@@ -11,6 +11,7 @@ const TStr LogOutput::NumOriginalEdges = "NumOriginalEdges";
 const TStr LogOutput::NumRemainingEdges = "NumRemainingEdges";
 const TStr LogOutput::NumQuotes = "NumQuotes";
 const TStr LogOutput::NumClusters = "NumClusters";
+const TInt LogOutput::FrequencyCutoff = 400;
 
 LogOutput::LogOutput() {
   ShouldLog = true;
@@ -63,26 +64,63 @@ void LogOutput::WriteClusteringOutputToFile() {
 void LogOutput::OutputClusterInformation(TQuoteBase* QB, TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq) {
   if (!ShouldLog) return;
   TStr FileName = WebDirectory + TimeStamp + "/top_clusters.txt";
-  fprintf(stderr, "Filename: %s", FileName.CStr());
+  TStr HTMLFileName = WebDirectory + TimeStamp + "/clusters.html";
+  TStr Command = "mkdir -p " + WebDirectory + TimeStamp + "/cluster";
+  system(Command.CStr());
   FILE *F = fopen(FileName.CStr(), "w");
-  fprintf(stderr, "F: %p", F);
+  FILE *H = fopen(HTMLFileName.CStr(), "w");
 
-  fprintf(stderr, "File created\n");
+  // HTML setup
+  fprintf(H, "<html>");
+  fprintf(H, "<head>");
+  fprintf(H, "<title>Top Clusters</title>");
+  fprintf(H, "</head>");
+  fprintf(H, "<body>");
+  fprintf(H, "<table border=\"1\">");
+  fprintf(H, "<b><tr><td>Rank</td><td>Previous Rank</td><td>Quote</td></tr></b>");
+  /*<tr>
+  <td>Row 1, cell 1</td>
+  <td>Row 1, cell 2</td>
+  </tr>*/
+
+
   for (int i = 0; i < RepQuotesAndFreq.Len(); i++) {
-    //fprintf(stderr, "Representative quote: %d\n", RepQuotesAndFreq[i].Val1.Val);
     TQuote RepQuote;
     if (QB->GetQuote(RepQuotesAndFreq[i].Val1, RepQuote)) {
-      //fprintf(stderr, "Quote obtained!\n");
       TStr RepQuoteStr;
       RepQuote.GetContentString(RepQuoteStr);
-      //fprintf(stderr, "Content string obtained!\n");
       TInt FreqOfAllClusterQuotes = RepQuotesAndFreq[i].Val2;
-      //fprintf(stderr, "Frequency obtained: %d!\n", FreqOfAllClusterQuotes.Val);
       TIntV QuotesInCluster = RepQuotesAndFreq[i].Val3;
-      //fprintf(stderr, "Number of quotes in cluster: %d\n", QuotesInCluster.Len());
       fprintf(F, "%d\t%d\t%s\n", FreqOfAllClusterQuotes.Val, QuotesInCluster.Len(), RepQuoteStr.CStr());
+
+      // Write HTML
+      if (FreqOfAllClusterQuotes >= FrequencyCutoff) {
+        TStr URLLink = "<a href=\"cluster/" + TInt(i).GetStr() + ".html\">" + RepQuoteStr + "</a>";
+        fprintf(H, "<tr><td>%d</td><td>N/A</td><td>%s</td></tr>", i, URLLink.CStr());
+        TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(i).GetStr() + ".html";
+        FILE *C = fopen(ClusterFileName.CStr(), "w");
+        fprintf(C, "<html>");
+        fprintf(C, "<head>");
+        fprintf(C, "<title>%s</title>", RepQuoteStr.CStr());
+        fprintf(C, "</head>");
+        fprintf(C, "<body>");
+        fprintf(C, "<h2>%s</h2><br />", RepQuoteStr.CStr());
+        fprintf(C, "<h2>%d</h2><br /><br />", FreqOfAllClusterQuotes.Val);
+        for (int j = 0; j < QuotesInCluster.Len(); j++) {
+          TQuote Quote;
+          if (QB->GetQuote(QuotesInCluster[j], Quote)) {
+            TStr QuoteStr;
+            Quote.GetContentString(QuoteStr);
+            fprintf(C, "\t%d\t%s<br />", Quote.GetNumSources().Val, QuoteStr.CStr());
+          }
+        }
+        fprintf(C, "</body>");
+        fprintf(C, "</html>");
+        fclose(C);
+      }
+
+      // Write quote information
       for (int j = 0; j < QuotesInCluster.Len(); j++) {
-        //fprintf(stderr, "Actual quote: %d\n", QuotesInCluster[j].Val);
         TQuote Quote;
         if (QB->GetQuote(QuotesInCluster[j], Quote)) {
           TStr QuoteStr;
@@ -92,6 +130,13 @@ void LogOutput::OutputClusterInformation(TQuoteBase* QB, TVec<TTriple<TInt, TInt
       }
     }
   }
-  //Save(QuotesFile);
+
+  // HTML ending
+  fprintf(H, "</table>");
+  fprintf(H, "</body>");
+  fprintf(H, "</html>");
+
+  //Close files
   fclose(F);
+  fclose(H);
 }

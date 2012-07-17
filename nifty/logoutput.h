@@ -18,6 +18,7 @@ public:
   static const TStr NumQuotes;
   static const TStr WebDirectory;
   static const TStr NumClusters;
+  static const TInt FrequencyCutoff;
   LogOutput();
   void DisableLogging();
   void SetupFiles();
