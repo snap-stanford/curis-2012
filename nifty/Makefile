@@ -5,16 +5,16 @@ SNAP = ../../snap/snap-core
 GLIB = ../../snap/glib-core
 NLIB = lib
 
-all: filter memecluster
+all: memefilter memecluster
 opt: CXXFLAGS += -O3
 opt: LDFLAGS += -O3
-opt: filter memecluster
+opt: memefilter memecluster
 profile: CXXFLAGS += -pg
 profile: LDFLAGS += -pg
-profile: filter memecluster
+profile: memefilter memecluster
 
-filter: filter.cpp Snap.o niftylib.o
-	g++ -o filter filter.cpp Snap.o niftylib.o -I$(GLIB) -I$(SNAP) $(LDFLAGS) 
+memefilter: memefilter.cpp Snap.o niftylib.o
+	g++ -o memefilter memefilter.cpp Snap.o niftylib.o -I$(GLIB) -I$(SNAP) $(LDFLAGS) 
 	
 memecluster: memecluster.cpp Snap.o niftylib.o
 	g++ -o memecluster memecluster.cpp Snap.o niftylib.o -I$(GLIB) -I$(SNAP) $(LDFLAGS)

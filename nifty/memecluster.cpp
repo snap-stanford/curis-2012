@@ -67,22 +67,14 @@ int main(int argc, char *argv[]) {
   }
   // load QB and DB. Custom variables can be added later.
   TStr BaseString = "/lfs/1/tmp/curis/week/QBDB.bin";
-  TStr OutputString = "TopClusters.txt";
   if (Arguments.IsKey("qbdb")) {
     BaseString = Arguments.GetDat("qbdb");
-  }
-  if (Arguments.IsKey("output")) {
-    OutputString = Arguments.GetDat("output");
   }
   if (Arguments.IsKey("nolog")) {
     log.DisableLogging();
   }
 
   TFIn BaseFile(BaseString);
-
-  if (argc >= 3) {
-    OutputString = TStr(argv[2]);
-  }
   TQuoteBase *QB = new TQuoteBase;
   TDocBase *DB = new TDocBase;
   QB->Load(BaseFile);
