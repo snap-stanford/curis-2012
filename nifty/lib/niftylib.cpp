@@ -17,4 +17,5 @@
 #include "clustering.cpp"
 #include "clusterplot.cpp"
 #include "logoutput.cpp"
+#include "peaks.cpp"
 

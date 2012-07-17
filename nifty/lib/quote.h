@@ -6,7 +6,6 @@
 
 class TQuote {
 private:
-  static const int K;
   TInt Id;
   TStrV Content;
   TStrV ParsedContent;
@@ -14,13 +13,8 @@ private:
   TIntV Sources;
 
   void Init();
-  void GetFreqVector(TDocBase *DocBase, TIntFltPrV& FreqV, TVec<TSecTm>& HourOffsets, TInt BucketSize, TInt SlidingWindowSize);
-  TFlt CalcWindowAvg(TIntV& FreqV, TInt SlidingWindowSize);
 
 public:
-  static const uint NumSecondsInHour;
-  static const uint NumSecondsInWeek;
-
   TQuote();
   TQuote(TInt Id, const TStrV& Content);
   TQuote(TInt Id, const TStr& ContentString);

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "cluster.h"
 #include "quote.h"
+#include "peaks.h"
 
 TCluster::TCluster() {
 }
@@ -24,19 +25,19 @@ void TCluster::Load(TSIn& SIn) {
   QuoteIds.Load(SIn);
 }
 
-TInt TCluster::GetRepresentativeQuoteId() {
+TInt TCluster::GetRepresentativeQuoteId() const {
   return RepresentativeQuoteId;
 }
 
-TInt TCluster::GetNumQuotes() {
+TInt TCluster::GetNumQuotes() const {
   return NumQuotes;
 }
 
-TInt TCluster::GetNumUniqueQuotes() {
+TInt TCluster::GetNumUniqueQuotes() const {
   return QuoteIds.Len();
 }
 
-void TCluster::GetQuoteIds(TIntV &QuoteIds) {
+void TCluster::GetQuoteIds(TIntV &QuoteIds) const {
   QuoteIds = this->QuoteIds;
 }
 
@@ -57,15 +58,15 @@ void TCluster::SetRepresentativeQuoteId(TInt QuoteId) {
   this->RepresentativeQuoteId = QuoteId;
 }
 
-TInt GetId() {
+TInt TCluster::GetId() {
   return Id;
 }
 
-void SetId(TInt Id) {
+void TCluster::SetId(TInt Id) {
   this->Id = Id;
 }
 
-void TCluster::GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize) {
+void TCluster::GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize) {
   TIntV Sources;
   for (int i = 0; i < QuoteIds.Len(); i++) {
     TQuote Quote;
@@ -76,7 +77,7 @@ void TCluster::GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TVec<TSecTm>& 
     }
   }
 
-  Peaks::GetPeaks(DocBase, Sources, PeakTimesV, BucketSize, SlidingWindowSize);
+  Peaks::GetPeaks(DocBase, Sources, PeakTimesV, FreqV, BucketSize, SlidingWindowSize);
 }
 
 void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename) {
@@ -86,17 +87,23 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
 /// If BucketSize is > 1, a sliding window average will not be calculated
 //  Otherwise, if BucketSize = 1, a sliding window average of size SlidingWindowSize will be calculated
 void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize) {
-  TVec<TTriple<TInt, TFlt, TSecTm> >& PeakTimesV;
-  GetPeaks(DocBase, QuoteBase, Sources, PeakTimesV, BucketSize, SlidingWindowSize);
+  TFreqTripleV PeakTimesV;
+  TFreqTripleV FreqTripleV;
+  GetPeaks(DocBase, QuoteBase, PeakTimesV, FreqTripleV, BucketSize, SlidingWindowSize);
 
-  TIntFltPr PeakV;
+  TVec<TIntFltPr> PeakV;
   for (int i = 0; i < PeakTimesV.Len(); ++i) {
-    PeakV.Add(PeakTimesV[i].Val1, PeakTimesV[i].Val2);
+    PeakV.Add(TIntFltPr(PeakTimesV[i].Val1, PeakTimesV[i].Val2));
+  }
+
+  TVec<TIntFltPr> FreqV;
+  for (int i = 0; i < FreqTripleV.Len(); ++i) {
+    FreqV.Add(TIntFltPr(FreqTripleV[i].Val1, FreqTripleV[i].Val2));
   }
 
   TStr ContentStr;
   TQuote RepQuote;
-  if (QuoteBase->GetQuote(RepresenativeQuoteId, RepQuote)) {
+  if (QuoteBase->GetQuote(RepresentativeQuoteId, RepQuote)) {
     RepQuote.GetContentString(ContentStr);
   }
   TGnuPlot GP(Filename, "Frequency of Cluster " + Id.GetStr() + " Over Time: " + ContentStr);

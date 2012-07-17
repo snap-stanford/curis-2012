@@ -111,31 +111,29 @@ TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB) {
 }
 
 /// Sorts clusters in decreasing order, and finds representative quote for each cluster
-//  RepQuotesAndFreq is a vector of cluster results, where each TTriple<TInt, TInt, TIntV>
-//  contains the reference quote id, the total frequency of quotes in the cluster, and a
-//  vector of ids of the quotes in the cluster, in that order
-void Clustering::SortClustersByFreq(TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase) {
+//  RepQuotesAndFreq is a vector of cluster results, represented by TClusters
+void Clustering::SortClustersByFreq(TVec<TCluster>& ClusterSummaries, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase) {
   printf("Sorting clusters by frequency\n");
   for (int i = 0; i < Clusters.Len(); i++) {
     TIntV Cluster = Clusters[i];
-    TTriple<TInt, TInt, TIntV> ClusterRepQuoteAndFreq;
+    TInt RepQuoteId = 0;
+    TInt NumQuotes = 0;
     for (int j = 0; j < Cluster.Len(); j++) {
       TInt QId = Cluster[j];
       TQuote Q;
       QuoteBase->GetQuote(QId, Q);
-      ClusterRepQuoteAndFreq.Val2 += Q.GetNumSources();
+      NumQuotes += Q.GetNumSources();
       TNGraph::TNode Node = QGraph->GetNodeC(Q.GetId());
       if (Node.GetOutDeg() == 0) {
-        //Q.GetContentString(ClusterRepQuoteAndFreq.Val1);
-        ClusterRepQuoteAndFreq.Val1 = QId;
+        RepQuoteId = QId;
       }
     }
-    ClusterRepQuoteAndFreq.Val3 = Cluster;
-    RepQuotesAndFreq.Add(ClusterRepQuoteAndFreq);
+    TCluster ClusterSummary(RepQuoteId, NumQuotes, Cluster);
+    ClusterSummaries.Add(ClusterSummary);
   }
 
-  RepQuotesAndFreq.SortCmp(TCmpTripleByVal2<TInt, TInt, TIntV>(false));
-  printf("Sorted: %d\n", RepQuotesAndFreq.Len());
+  ClusterSummaries.SortCmp(TCmpTClusterByNumQuotes(false));
+  printf("Sorted: %d\n", ClusterSummaries.Len());
 }
 
 void Clustering::KeepAtMostOneChildPerNode(PNGraph& G, TIntSet& RootNodes, TQuoteBase *QB, TDocBase *DB) {

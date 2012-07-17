@@ -11,7 +11,7 @@ THashSet<TStr> URLBlackList;
 THashSet<TStr> CommonEnglishWordsList;
 
 void LoadCommonEnglishWords() {
-  PSIn EnglishWords = TFIn::New("common_english_words.txt");
+  PSIn EnglishWords = TFIn::New("resources/common_english_words.txt");
   TStr Word;
   while (!EnglishWords->Eof() && EnglishWords->GetNextLn(Word)) {
     CommonEnglishWordsList.AddKey(Word);
@@ -37,7 +37,7 @@ bool IsRobustlyEnglish(TStr Quote) {
 }
 
 void LoadURLBlackList() {
-  PSIn BlackListFile = TFIn::New("URLBlacklist");
+  PSIn BlackListFile = TFIn::New("resources/URLBlacklist");
   TStr BadURL;
   while (!BlackListFile->Eof() && BlackListFile->GetNextLn(BadURL)) {
     URLBlackList.AddKey(BadURL);
@@ -112,15 +112,24 @@ void OutputQuoteInformation(TQuoteBase* QuoteBase, TStr FileName) {
       fprintf(F, "%d\t%s\n", Quote.GetNumSources().Val, ContentString.CStr());
     }
   }
-  //Save(QuotesFile);
   fclose(F);
 }
 
 // usage filelist directory
 int main(int argc, char *argv[]) {
   printf("File name must be in the form: web-{year}-{month}-{day}T{hour}-{minute}-{second}Z.rar\n");
-  FILE *FLog = fopen("filter.log", "w");
-  TStr InFileName = "Spinn3rFileList.txt";
+
+  // Setup Output Directory
+  TSecTm Tm = TSecTm::GetCurTm();
+  TStr TimeStamp = TStr::Fmt("%04d-%02d-%02d",  Tm.GetYearN(), Tm.GetMonthN(), Tm.GetDayN());
+  TimeStamp += "_" + Tm.GetTmStr();
+  TStr Command = "mkdir -p /lfs/1/tmp/curis/output/filtering/" + TimeStamp;
+  system(Command.CStr());
+  TStr OutputDirectory = "/lfs/1/tmp/curis/output/filtering/" + TimeStamp + "/";
+
+  // Initialize
+  FILE *FLog = fopen((OutputDirectory + "filter.log").CStr(), "w");
+  TStr InFileName = "resources/Spinn3rFileList.txt";
   TStr OutFileName = "QuoteFrequencies.txt";
   if (argc >= 2) {
     InFileName = TStr(argv[1]);
@@ -135,13 +144,13 @@ int main(int argc, char *argv[]) {
   fprintf(FLog, "1: Initial Filtering:\n");
   TQuoteBase *TmpQB = new TQuoteBase;
   TDocBase *TmpDB = new TDocBase;
-  FILE *FTime = fopen("/lfs/1/tmp/curis/InvalidTimeUrl", "w");
+  FILE *FTime = fopen((OutputDirectory + "InvalidTimeUrl").CStr(), "w");
   int NSkipBlackList = 0, NSkipDuplicate = 0, NSkipInvalidTime = 0, NSkipNoValidQuote = 0;
   int NSkipNonEnglish = 0, NSkipTooShort = 0, NSkipTooLong = 0;
   THash<TStr, TInt> DuplicateUrl(Mega(100), true);
   // Read files and count the quotes
   TDataLoader Memes;
-  Memes.LoadFileList(InFileName, "/lfs/1/tmp/curis/spinn3r/new/");
+  Memes.LoadFileList(InFileName, "/lfs/1/tmp/curis/spinn3r/2012-01/");
   while (Memes.LoadNextFile()) {
     while (Memes.LoadNextEntry()) {
       if (IsUrlInBlackList(Memes.PostUrlStr)) { NSkipBlackList++;continue; }
@@ -189,7 +198,7 @@ int main(int argc, char *argv[]) {
     }
   }
   fclose(FTime);
-  FILE *FDup = fopen("/lfs/1/tmp/curis/DupUrl", "w");
+  FILE *FDup = fopen((OutputDirectory + "DupUrl").CStr(), "w");
   TVec<TPair<TStr, TInt> > DuplicateUrlV;
   DuplicateUrl.GetKeyDatPrV(DuplicateUrlV);
   fprintf(FDup, "%d\n", DuplicateUrlV.Len());
@@ -258,10 +267,10 @@ int main(int argc, char *argv[]) {
   fprintf(FLog, "Number of documents: %d\n", DB->Len());
   printf("\nLOADING DATA TO QUOTE BASE DONE!\n");
   printf("Writing quote frequencies...\n");
-  OutputQuoteInformation(QB, OutFileName);
+  OutputQuoteInformation(QB, OutputDirectory + OutFileName);
   printf("Done!\n");
   printf("Writing QuoteBase and DocBase\n");
-  TFOut FOut("/lfs/1/tmp/curis/QBDB.bin");
+  TFOut FOut(OutputDirectory + "QBDB.bin");
   QB->Save(FOut);
   DB->Save(FOut);
   printf("Done!\n");

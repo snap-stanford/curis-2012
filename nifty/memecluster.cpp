@@ -67,22 +67,14 @@ int main(int argc, char *argv[]) {
   }
   // load QB and DB. Custom variables can be added later.
   TStr BaseString = "/lfs/1/tmp/curis/week/QBDB.bin";
-  TStr OutputString = "TopClusters.txt";
   if (Arguments.IsKey("qbdb")) {
     BaseString = Arguments.GetDat("qbdb");
-  }
-  if (Arguments.IsKey("output")) {
-    OutputString = Arguments.GetDat("output");
   }
   if (Arguments.IsKey("nolog")) {
     log.DisableLogging();
   }
 
   TFIn BaseFile(BaseString);
-
-  if (argc >= 3) {
-    OutputString = TStr(argv[2]);
-  }
   TQuoteBase *QB = new TQuoteBase;
   TDocBase *DB = new TDocBase;
   QB->Load(BaseFile);
@@ -90,7 +82,7 @@ int main(int argc, char *argv[]) {
 
   //PlotQuoteFreq(QB, DB, 1, 6);
   //PrintQuoteURLs(QB, DB);
-
+ 
   // create clusters and save!
   QuoteGraph GraphCreator(QB);
   PNGraph QGraph;
@@ -100,20 +92,20 @@ int main(int argc, char *argv[]) {
   TIntSet RootNodes;
   TVec<TIntV> Clusters;
   ClusterJob.BuildClusters(RootNodes, Clusters, QB, DB, log);
-  TVec<TTriple<TInt, TInt, TIntV> > RepQuotesAndFreq;
-  ClusterJob.SortClustersByFreq(RepQuotesAndFreq, Clusters, QB);
+  TVec<TCluster> ClusterSummaries;
+  ClusterJob.SortClustersByFreq(ClusterSummaries, Clusters, QB);
 
   // OUTPUT
   log.SetupFiles(); // safe to make files now.
-  printf("Writing cluster information to file\n");
-  log.OutputClusterInformation(QB, RepQuotesAndFreq);
-  printf("Writing top clusters to file\n");
+  fprintf(stderr, "Writing cluster information to file\n");
+  log.OutputClusterInformation(QB, ClusterSummaries);
+  fprintf(stderr, "Writing top clusters to file\n");
   log.WriteClusteringOutputToFile();
 
   // plot output
   ClusterPlot Plotter(TStr("/lfs/1/tmp/curis/"));
   Plotter.PlotClusterSizeUnique(Clusters);
-  Plotter.PlotClusterSize(RepQuotesAndFreq);
+  Plotter.PlotClusterSize(ClusterSummaries);
   Plotter.PlotQuoteFrequencies(QB);
   delete QB;
   delete DB;

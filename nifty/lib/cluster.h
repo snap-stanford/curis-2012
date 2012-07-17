@@ -3,13 +3,14 @@
 
 #include "stdafx.h"
 #include "quote.h"
+#include "peaks.h"
 
 class TCluster {
 private:
   TInt RepresentativeQuoteId;
   TInt NumQuotes;
   TIntV QuoteIds;
-  TIntV Id;
+  TInt Id;
 
 public:
   TCluster();
@@ -17,18 +18,18 @@ public:
   TCluster(TSIn& SIn) : RepresentativeQuoteId(SIn), NumQuotes(SIn), QuoteIds(SIn) { }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
-  TInt GetRepresentativeQuoteId();
-  TInt GetNumQuotes();
-  TInt GetNumUniqueQuotes();
-  void GetQuoteIds(TIntV &QuoteIds);
-  void GetId();
-  void SetId();
+  TInt GetRepresentativeQuoteId() const;
+  TInt GetNumQuotes() const;
+  TInt GetNumUniqueQuotes() const;
+  void GetQuoteIds(TIntV &QuoteIds) const;
+  TInt GetId();
+  void SetId(TInt Id);
 
   void AddQuote(TQuoteBase *QB, const TIntV &QuoteIds);
   void AddQuote(TQuoteBase *QB, TInt QuoteId);
   void SetRepresentativeQuoteId(TInt QuoteId);
 
-  void GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize);
+  void GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize);
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename);
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize);
 };
@@ -49,6 +50,21 @@ public:
   void GetAllClusterIds(TIntV &KeyV);
   int Len();
 };
+
+// Compares TClusters by sum of quote frequencies
+class TCmpTClusterByNumQuotes {
+private:
+  bool IsAsc;
+public:
+  TCmpTClusterByNumQuotes(const bool& AscSort=true) : IsAsc(AscSort) { }
+  bool operator () (const TCluster& P1, const TCluster& P2) const {
+    if (IsAsc) {
+      return P1.GetNumQuotes() < P2.GetNumQuotes();
+    } else {
+      return P2.GetNumQuotes() < P1.GetNumQuotes();
+    }
+  }
 };
+
 
 #endif

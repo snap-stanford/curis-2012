@@ -62,7 +62,7 @@ void LogOutput::WriteClusteringOutputToFile() {
   fclose(F);
 }
 
-void LogOutput::OutputClusterInformation(TQuoteBase* QB, TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq) {
+void LogOutput::OutputClusterInformation(TQuoteBase* QB, TVec<TCluster>& ClusterSummaries) {
   if (!ShouldLog) return;
   TStr FileName = WebDirectory + TimeStamp + "/top_clusters.txt";
   TStr HTMLFileName = WebDirectory + TimeStamp + "/clusters.html";
@@ -85,13 +85,14 @@ void LogOutput::OutputClusterInformation(TQuoteBase* QB, TVec<TTriple<TInt, TInt
   </tr>*/
 
 
-  for (int i = 0; i < RepQuotesAndFreq.Len(); i++) {
+  for (int i = 0; i < ClusterSummaries.Len(); i++) {
     TQuote RepQuote;
-    if (QB->GetQuote(RepQuotesAndFreq[i].Val1, RepQuote)) {
+    if (QB->GetQuote(ClusterSummaries[i].GetRepresentativeQuoteId(), RepQuote)) {
       TStr RepQuoteStr;
       RepQuote.GetContentString(RepQuoteStr);
-      TInt FreqOfAllClusterQuotes = RepQuotesAndFreq[i].Val2;
-      TIntV QuotesInCluster = RepQuotesAndFreq[i].Val3;
+      TInt FreqOfAllClusterQuotes = ClusterSummaries[i].GetNumQuotes();
+      TIntV QuotesInCluster;
+      ClusterSummaries[i].GetQuoteIds(QuotesInCluster);
       fprintf(F, "%d\t%d\t%s\n", FreqOfAllClusterQuotes.Val, QuotesInCluster.Len(), RepQuoteStr.CStr());
 
       // Write HTML

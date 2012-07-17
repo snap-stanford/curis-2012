@@ -3,10 +3,6 @@
 #include "doc.h"
 #include "peaks.h"
 
-const uint TQuote::NumSecondsInHour = 3600;
-const uint TQuote::NumSecondsInWeek = 604800;
-const int TQuote::K = 5;
-
 PSwSet TQuote::StopWordSet = new TSwSet(swstEnMsdn);
 
 TQuote::TQuote() {
@@ -123,11 +119,11 @@ bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV) {
 }
 
 bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize) {
-  TVec<TTriple<TInt, TFlt, TSecTm> >& PeakTimesV;
-  Peaks::GetPeaks(DocBase, Sources, PeakTimesV, BucketSize, SlidingWindowSize);
+  TFreqTripleV PeakV;
+  Peaks::GetPeaks(DocBase, Sources, PeakV, BucketSize, SlidingWindowSize);
 
-  for (int i = 0; i < PeakTimesV.Len(); ++i) {
-    PeakTimesV.Add(PeakTimesV[i].Val3);
+  for (int i = 0; i < PeakV.Len(); ++i) {
+    PeakTimesV.Add(PeakV[i].Val3);
   }
 }
 
@@ -138,12 +134,18 @@ bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename) {
 /// If BucketSize is > 1, a sliding window average will not be calculated
 //  Otherwise, if BucketSize = 1, a sliding window average of size SlidingWindowSize will be calculated
 bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize) {
-  TVec<TTriple<TInt, TFlt, TSecTm> >& PeakTimesV;
-  Peaks::GetPeaks(DocBase, Sources, PeakTimesV, BucketSize, SlidingWindowSize);
+  TFreqTripleV PeakTimesV;
+  TFreqTripleV FreqTripleV;
+  Peaks::GetPeaks(DocBase, Sources, PeakTimesV, FreqTripleV, BucketSize, SlidingWindowSize);
 
-  TIntFltPr PeakV;
+  TVec<TIntFltPr> PeakV;
   for (int i = 0; i < PeakTimesV.Len(); ++i) {
-    PeakV.Add(PeakTimesV[i].Val1, PeakTimesV[i].Val2);
+    PeakV.Add(TIntFltPr(PeakTimesV[i].Val1, PeakTimesV[i].Val2));
+  }
+
+  TVec<TIntFltPr> FreqV;
+  for (int i = 0; i < FreqTripleV.Len(); ++i) {
+    FreqV.Add(TIntFltPr(FreqTripleV[i].Val1, FreqTripleV[i].Val2));
   }
 
   TStr ContentStr;

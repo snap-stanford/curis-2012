@@ -19,5 +19,6 @@
 #include "clustering.h"
 #include "clusterplot.h"
 #include "logoutput.h"
+#include "peaks.h"
 
 #endif
