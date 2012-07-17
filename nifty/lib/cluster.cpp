@@ -24,19 +24,19 @@ void TCluster::Load(TSIn& SIn) {
   QuoteIds.Load(SIn);
 }
 
-TInt TCluster::GetRepresentativeQuoteId() {
+TInt TCluster::GetRepresentativeQuoteId() const {
   return RepresentativeQuoteId;
 }
 
-TInt TCluster::GetNumQuotes() {
+TInt TCluster::GetNumQuotes() const {
   return NumQuotes;
 }
 
-TInt TCluster::GetNumUniqueQuotes() {
+TInt TCluster::GetNumUniqueQuotes() const {
   return QuoteIds.Len();
 }
 
-void TCluster::GetQuoteIds(TIntV &QuoteIds) {
+void TCluster::GetQuoteIds(TIntV &QuoteIds) const {
   QuoteIds = this->QuoteIds;
 }
 

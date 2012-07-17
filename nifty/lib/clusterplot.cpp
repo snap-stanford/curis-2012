@@ -51,20 +51,20 @@ void ClusterPlot::PlotClusterSizeUnique(TVec<TIntV> Clusters) {
 /*2) x-axis: total frequency quotes in the cluster, y-axis: number of
 clusters of frequency x
 3) x-axis: frequency of a quote, y-axis: number of quotes with freq. x. */
-void ClusterPlot::PlotClusterSize(TVec<TTriple<TInt, TInt, TIntV> >& RepQuotesAndFreq) {
+void ClusterPlot::PlotClusterSize(TVec<TCluster>& ClusterSummaries) {
   TGnuPlot Plot = TGnuPlot(RootDirectory + "plot_cluster_size", "Cluster Size Frequency - Total Quotes", false);
   Plot.SetXYLabel("number of quotes", "number of clusters");
   Plot.SetScale(gpsLog2XY);
 
-  TInt ClusterLen = RepQuotesAndFreq.Len();
+  TInt ClusterLen = ClusterSummaries.Len();
   TIntPrV Coordinates;
   TInt LastFrequency = -1;
   for (int i = 0; i < ClusterLen; ++i) {
     int j = i;
-    while (j < ClusterLen && RepQuotesAndFreq[j].Val2 == RepQuotesAndFreq[i].Val2) {
+    while (j < ClusterLen && ClusterSummaries[j].GetNumQuotes() == ClusterSummaries[i].GetNumQuotes()) {
       j++;
     }
-    Coordinates.Add(TIntPr(RepQuotesAndFreq[i].Val2, j - i));
+    Coordinates.Add(TIntPr(ClusterSummaries[i].GetNumQuotes(), j - i));
     i = j - 1;
   }
 

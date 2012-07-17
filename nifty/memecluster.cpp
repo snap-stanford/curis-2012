@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
 
   //PlotQuoteFreq(QB, DB, 1, 6);
   //PrintQuoteURLs(QB, DB);
-
+ 
   // create clusters and save!
   QuoteGraph GraphCreator(QB);
   PNGraph QGraph;
@@ -100,20 +100,20 @@ int main(int argc, char *argv[]) {
   TIntSet RootNodes;
   TVec<TIntV> Clusters;
   ClusterJob.BuildClusters(RootNodes, Clusters, QB, DB, log);
-  TVec<TTriple<TInt, TInt, TIntV> > RepQuotesAndFreq;
-  ClusterJob.SortClustersByFreq(RepQuotesAndFreq, Clusters, QB);
+  TVec<TCluster> ClusterSummaries;
+  ClusterJob.SortClustersByFreq(ClusterSummaries, Clusters, QB);
 
   // OUTPUT
   log.SetupFiles(); // safe to make files now.
-  printf("Writing cluster information to file\n");
-  log.OutputClusterInformation(QB, RepQuotesAndFreq);
-  printf("Writing top clusters to file\n");
+  fprintf(stderr, "Writing cluster information to file\n");
+  log.OutputClusterInformation(QB, ClusterSummaries);
+  fprintf(stderr, "Writing top clusters to file\n");
   log.WriteClusteringOutputToFile();
 
   // plot output
   ClusterPlot Plotter(TStr("/lfs/1/tmp/curis/"));
   Plotter.PlotClusterSizeUnique(Clusters);
-  Plotter.PlotClusterSize(RepQuotesAndFreq);
+  Plotter.PlotClusterSize(ClusterSummaries);
   Plotter.PlotQuoteFrequencies(QB);
   delete QB;
   delete DB;
