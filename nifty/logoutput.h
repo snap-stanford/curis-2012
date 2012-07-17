@@ -13,6 +13,7 @@ public:
   static const TStr OutputDirectory;
   static const TStr PercentEdgesDeleted;
   static const TStr PercentEdgesDeletedNotFromSubgraphs;
+  static const TStr PercentEdgesDeletedNFSBaseline;
   static const TStr NumOriginalEdges;
   static const TStr NumRemainingEdges;
   static const TStr NumQuotes;

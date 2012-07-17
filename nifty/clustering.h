@@ -10,7 +10,9 @@ class Clustering {
 private:
   PNGraph QGraph;
   LogOutput log;
-  TFlt ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB);
+  static TFlt ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB);
+  static void KeepAtMostOneChildPerNode(PNGraph& G, TIntSet& RootNodes, TQuoteBase *QB, TDocBase *DB);
+  static void GetAllWCCs(PNGraph& G, TVec<TIntV>& Clusters);
 
 public:
   void Save(TSOut& SOut) const;

@@ -7,6 +7,7 @@ const TStr LogOutput::OutputDirectory = "/lfs/1/tmp/curis/output/clustering/";
 const TStr LogOutput::WebDirectory = "../../public_html/curis/output/clustering/";
 const TStr LogOutput::PercentEdgesDeleted = "PercentEdgesDeleted";
 const TStr LogOutput::PercentEdgesDeletedNotFromSubgraphs = "PercentEdgesDeletedNotFromSubgraphs";
+const TStr LogOutput::PercentEdgesDeletedNFSBaseline = "PercentEdgesDeletedNFSBaseline";
 const TStr LogOutput::NumOriginalEdges = "NumOriginalEdges";
 const TStr LogOutput::NumRemainingEdges = "NumRemainingEdges";
 const TStr LogOutput::NumQuotes = "NumQuotes";
