@@ -168,6 +168,8 @@ int main(int argc, char *argv[]) {
       if (!IsPostTimeValid(Memes.PubTm, Memes.GetCurrentFileTime())) { fprintf(FTime, "%s\n", Memes.PostUrlStr.CStr());NSkipInvalidTime++;continue; }
       bool ContainValidQuote = false;
       for (int m = 0; m < Memes.MemeV.Len(); m++) {
+        // Change Memes.MemeV[m] to a space separated sequence of words, so CountWords works correctly
+        Memes.MemeV[m] = TStrUtil::GetCleanStr(Memes.MemeV[m]);
         if (IsEnglish(Memes.MemeV[m]) &&
             TStrUtil::CountWords(Memes.MemeV[m]) >= MinQtWrdLen &&
             TStrUtil::CountWords(Memes.MemeV[m]) <= MaxQtWrdLen) {
