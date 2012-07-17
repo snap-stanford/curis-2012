@@ -67,14 +67,13 @@ bool IsUrlInBlackList(const TChA &Url) {
 // Removes all punctuation in the quotes and replace with spaces.
 // Also converts upper case to lower case.
 // Adapted (but modified) from memes.h because I want a white list, not a blacklist.
-void FilterSpacesAndSetLowercase(TStr &QtStr) {
+void FilterSpacesAndSetLowercase(TChA &QtChA) {
   // Three passes...hopefully this isn't too slow.
-  TChA QtChA(QtStr);
-  for (int i = 0; i < QtChA.Len(); ++i) {
+  for (int i = 0; i < QtChA.Len(); i++) {
     if (!(isalpha(QtChA[i]) || QtChA[i] == '\'')) {
       QtChA[i] = ' ';
     } else {
-      QtChA[i] = tolower(QtStr[i]);
+      QtChA[i] = tolower(QtChA[i]);
     }
   }
   QtStr = TStr(QtChA);
@@ -85,6 +84,7 @@ void FilterSpacesAndSetLowercase(TStr &QtStr) {
     if (i > 0)  QtStr.InsStr(QtStr.Len()," ");
     QtStr.InsStr(QtStr.Len(), WordV[i]);
   }
+  QtChA = TChA(QtStr);
 }
 
 bool IsDuplicateUrl(const TChA &Url) {
@@ -168,11 +168,12 @@ int main(int argc, char *argv[]) {
       if (!IsPostTimeValid(Memes.PubTm, Memes.GetCurrentFileTime())) { fprintf(FTime, "%s\n", Memes.PostUrlStr.CStr());NSkipInvalidTime++;continue; }
       bool ContainValidQuote = false;
       for (int m = 0; m < Memes.MemeV.Len(); m++) {
+        // Change Memes.MemeV[m] to a space separated sequence of words, so CountWords works correctly
+        Memes.MemeV[m] = TStrUtil::GetCleanStr(Memes.MemeV[m]);
         if (IsEnglish(Memes.MemeV[m]) &&
             TStrUtil::CountWords(Memes.MemeV[m]) >= MinQtWrdLen &&
             TStrUtil::CountWords(Memes.MemeV[m]) <= MaxQtWrdLen) {
-          TStr QtStr = Memes.MemeV[m];
-          FilterSpacesAndSetLowercase(QtStr);
+          FilterSpacesAndSetLowercase(Memes.MemeV[m]);
           ContainValidQuote = true;
         } else {
           if (!IsEnglish(Memes.MemeV[m])) {
