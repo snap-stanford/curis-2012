@@ -183,9 +183,8 @@ bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize
   if (PeakV.Len() > 0) {
     GP.AddPlot(PeakV, gpwPoints, "Peaks");
   }
-  TStr SetXTic = TStr("set xtics 12\nset terminal png small size 1000,800");
+  TStr SetXTic = TStr("set xtics 24\nset terminal png small size 1000,800");
   GP.SavePng("./plots/" + Filename + ".png", 1000, 800, TStr(), SetXTic);
-  //GP.SavePng();
   return true;
 }
 
