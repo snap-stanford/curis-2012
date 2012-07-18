@@ -32,8 +32,8 @@ public:
   TInt GetId();
   TInt GetNumDomains(TDocBase *DocBase);
   TInt GetNumSources();
-  bool GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV);
-  bool GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize);
+  void GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV);
+  void GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize);
   bool GraphFreqOverTime(TDocBase *DocBase, TStr Filename);
   bool GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize);
 

@@ -13,7 +13,7 @@ void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB, TInt BucketSize, TInt SlidingWi
   for (int i = 0; i < 100; i++) {
     TQuote Q;
     QB->GetQuote(AllQuotes[i], Q);
-    TStr Filename = TStr("./plots/" + Q.GetNumSources().GetStr() + "Quote" + Q.GetId().GetStr());
+    TStr Filename = TStr(Q.GetNumSources().GetStr() + "Quote" + Q.GetId().GetStr());
     Q.GraphFreqOverTime(DB, Filename, BucketSize, SlidingWindowSize);
   }
 }

@@ -5,6 +5,7 @@
 
 const int Peaks::K = 5;
 const uint Peaks::NumSecondsInHour = 3600;
+const uint Peaks::NumSecondsInDay = 86400;
 const uint Peaks::NumSecondsInWeek = 604800;
 
 void Peaks::GetPeaks(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize) {
@@ -91,7 +92,10 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
   TDoc StartDoc;
   int StartDocIndex = 0;
   DocBase->GetDoc(SourcesSorted[StartDocIndex], StartDoc);
+
+  // Start time at 12am
   TUInt StartTime = TUInt(StartDoc.GetDate().GetAbsSecs());
+  StartTime = (StartTime / NumSecondsInDay) * NumSecondsInDay;
 
   TInt Frequency = 1;
   TInt HourNum = 0;

@@ -12,6 +12,7 @@ class Peaks {
 private:
   static const int K;
   static const uint NumSecondsInHour;
+  static const uint NumSecondsInDay;
   static const uint NumSecondsInWeek;
 
   static void GetPeaksEquationFunction(TFreqTripleV& FreqV, TFltV& FreqFltV);

@@ -114,5 +114,6 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
     GP.AddPlot(PeakV, gpwPoints, "Peaks");
   }
   fprintf(stderr, "saving png");
-  GP.SavePng(Filename + ".png");
+  TStr SetXTic = TStr("set xtics 12\nset terminal png small size 1000,800");
+  GP.SavePng(Filename + ".png", 1000, 800, TStr(), SetXTic);
 }
