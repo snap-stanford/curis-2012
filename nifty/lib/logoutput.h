@@ -20,6 +20,7 @@ public:
   static const TStr WebDirectory;
   static const TStr NumClusters;
   static const TInt FrequencyCutoff;
+  static const TInt PeakThreshold;
   LogOutput();
   void DisableLogging();
   void SetupFiles();

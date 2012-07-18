@@ -116,6 +116,7 @@ void Clustering::SortClustersByFreq(TVec<TCluster>& ClusterSummaries, TVec<TIntV
   fprintf(stderr, "Sorting clusters by frequency\n");
   for (int i = 0; i < Clusters.Len(); i++) {
     TIntV Cluster = Clusters[i];
+    Cluster.SortCmp(TCmpQuoteByFreq(false, QuoteBase)); // sort by descending frequency
     TInt RepQuoteId = 0;
     TInt NumQuotes = 0;
     for (int j = 0; j < Cluster.Len(); j++) {
