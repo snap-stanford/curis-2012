@@ -139,11 +139,11 @@ void TQuote::StemAndStopWordsContentString(const TStrV &ContentV, TStrV &NewCont
   }
 }
 
-bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV) {
+void TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV) {
   return GetPeaks(DocBase, PeakTimesV, TInt(1), TInt(1));
 }
 
-bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize) {
+void TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize) {
   fprintf(stderr, "getting peaks\n");
   TFreqTripleV PeakV;
   Peaks::GetPeaks(DocBase, Sources, PeakV, BucketSize, SlidingWindowSize);
@@ -153,13 +153,13 @@ bool TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSi
   }
 }
 
-bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename) {
+void TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename) {
   return GraphFreqOverTime(DocBase, Filename, TInt(1), TInt(1));
 }
 
 /// If BucketSize is > 1, a sliding window average will not be calculated
 //  Otherwise, if BucketSize = 1, a sliding window average of size SlidingWindowSize will be calculated
-bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize) {
+void TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize) {
   TFreqTripleV PeakTimesV;
   TFreqTripleV FreqTripleV;
   Peaks::GetPeaks(DocBase, Sources, PeakTimesV, FreqTripleV, BucketSize, SlidingWindowSize);
@@ -184,7 +184,6 @@ bool TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize
     GP.AddPlot(PeakV, gpwPoints, "Peaks");
   }
   GP.SavePng();
-  return true;
 }
 
 TQuoteBase::TQuoteBase() {

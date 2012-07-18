@@ -5,5 +5,6 @@
 #include "lib/niftylib.h"
 
 #define TWITTER_BOOTSTRAP "../../../bootstrap/css/bootstrap.css"
+#define TWITTER_BOOTSTRAP2 "../../../../bootstrap/css/bootstrap.css"
 
 #endif
