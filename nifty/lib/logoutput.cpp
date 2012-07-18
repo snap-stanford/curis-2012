@@ -73,13 +73,15 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TClu
   FILE *H = fopen(HTMLFileName.CStr(), "w");
 
   // HTML setup
-  fprintf(H, "<html>");
-  fprintf(H, "<head>");
-  fprintf(H, "<title>Top Clusters</title>");
-  fprintf(H, "</head>");
-  fprintf(H, "<body>");
-  fprintf(H, "<table border=\"1\">");
-  fprintf(H, "<b><tr><td>Rank</td><td>Previous Rank</td><td>Quote</td></tr></b>");
+  fprintf(H, "<html>\n");
+  fprintf(H, "<head>\n");
+  fprintf(H, "<title>Top Clusters</title>\n");
+  fprintf(H, "<link href=\"%s\" rel=\"stylesheet\">\n", TWITTER_BOOTSTRAP);
+  fprintf(H, "</head>\n");
+  fprintf(H, "<body>\n");
+  fprintf(H, "<div class=\"page-header\"><h1>Top Clusters</h1></div>\n");
+  fprintf(H, "<table border=\"1\" class=\"table table-condensed table-striped\">\n");
+  fprintf(H, "<b><tr><td>Rank</td><td>Previous Rank</td><td>Quote</td></tr></b>\n");
   /*<tr>
   <td>Row 1, cell 1</td>
   <td>Row 1, cell 2</td>
@@ -99,29 +101,30 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TClu
       // Write HTML
       if (FreqOfAllClusterQuotes >= FrequencyCutoff) {
         TStr URLLink = "<a href=\"cluster/" + TInt(i).GetStr() + ".html\">" + RepQuoteStr + "</a>";
-        fprintf(H, "<tr><td>%d</td><td>N/A</td><td>%s</td></tr>", i, URLLink.CStr());
+        fprintf(H, "<tr><td>%d</td><td>N/A</td><td>%s</td></tr>\n", i, URLLink.CStr());
         TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(i).GetStr() + ".html";
         TStr ImageFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(i).GetStr();
         ClusterSummaries[i].GraphFreqOverTime(DB, QB, ImageFileName, 2, 1);
         FILE *C = fopen(ClusterFileName.CStr(), "w");
-        fprintf(C, "<html>");
-        fprintf(C, "<head>");
-        fprintf(C, "<title>%s</title>", RepQuoteStr.CStr());
-        fprintf(C, "</head>");
-        fprintf(C, "<body>");
-        fprintf(C, "<h2>%s</h2><br />", RepQuoteStr.CStr());
-        fprintf(C, "<h2>%d</h2><br /><br />", FreqOfAllClusterQuotes.Val);
-        fprintf(C, "<img src=\"%d.png\" />", i);
+        fprintf(C, "<html>\n");
+        fprintf(C, "<head>\n");
+        fprintf(C, "<title>%s</title>\n", RepQuoteStr.CStr());
+        fprintf(C, "<link href=\"%s\" rel=\"stylesheet\">\n", TWITTER_BOOTSTRAP);
+        fprintf(C, "</head>\n");
+        fprintf(C, "<body>\n");
+        fprintf(C, "<h2>%s</h2><br />\n", RepQuoteStr.CStr());
+        fprintf(C, "<h2>%d</h2><br /><br />\n", FreqOfAllClusterQuotes.Val);
+        fprintf(C, "<img src=\"%d.png\" /><br />\n", i);
         for (int j = 0; j < QuotesInCluster.Len(); j++) {
           TQuote Quote;
           if (QB->GetQuote(QuotesInCluster[j], Quote)) {
             TStr QuoteStr;
             Quote.GetContentString(QuoteStr);
-            fprintf(C, "\t%d\t%s<br />", Quote.GetNumSources().Val, QuoteStr.CStr());
+            fprintf(C, "\t%d\t%s<br />\n", Quote.GetNumSources().Val, QuoteStr.CStr());
           }
         }
-        fprintf(C, "</body>");
-        fprintf(C, "</html>");
+        fprintf(C, "</body>\n");
+        fprintf(C, "</html>\n");
         fclose(C);
       }
 
@@ -138,9 +141,9 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TClu
   }
 
   // HTML ending
-  fprintf(H, "</table>");
-  fprintf(H, "</body>");
-  fprintf(H, "</html>");
+  fprintf(H, "</table>\n");
+  fprintf(H, "</body>\n");
+  fprintf(H, "</html>\n");
 
   //Close files
   fclose(F);
