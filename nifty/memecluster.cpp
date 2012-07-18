@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
   // OUTPUT
   log.SetupFiles(); // safe to make files now.
   fprintf(stderr, "Writing cluster information to file\n");
-  log.OutputClusterInformation(QB, ClusterSummaries);
+  log.OutputClusterInformation(DB, QB, ClusterSummaries);
   fprintf(stderr, "Writing top clusters to file\n");
   log.WriteClusteringOutputToFile();
 

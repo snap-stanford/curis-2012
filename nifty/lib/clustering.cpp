@@ -46,12 +46,13 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
 
   printf("Deleting extra graph edges...\n");
   KeepAtMostOneChildPerNode(QGraph, RootNodes, QB, DB);
+  fprintf(stderr, "edges deleted!\n");
 
   log.LogValue(LogOutput::NumRemainingEdges, TInt(QGraph->GetEdges()));
   log.LogValue(LogOutput::PercentEdgesDeleted, TFlt(100 - QGraph->GetEdges() * 100.0 / NumEdgesOriginal));
 
   // find weakly connected components. these are our clusters. largely taken from memes.h
-  printf("Finding weakly connected components\n");
+  fprintf(stderr, "Finding weakly connected components\n");
   GetAllWCCs(QGraph, Clusters);
   log.LogValue(LogOutput::NumClusters, TInt(Clusters.Len()));
 
@@ -82,7 +83,6 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
     NumEdgesInducedSubgraphs += SubgraphP->GetEdges();
   }
   
-  fprintf(stderr, "baseline percent edges deleted, not from subgraphs: %f\n", TFlt(100 - NumEdgesInducedSubgraphs * 100.0 / NumEdgesOriginal).Val);
   log.LogValue(LogOutput::PercentEdgesDeletedNFSBaseline, TFlt(100 - NumEdgesInducedSubgraphs * 100.0 / NumEdgesOriginal));
   
 }
@@ -102,8 +102,8 @@ TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB) {
   //printf("getting peak..\n");
   if (SourcePeakVectors.Len() > 0 && DestPeakVectors.Len() > 0)
     PeakDistanceInSecs = TInt::Abs(SourcePeakVectors[0].GetAbsSecs() - DestPeakVectors[0].GetAbsSecs());
-  else
-    printf("GAH!");
+  //else
+    //printf("GAH!");
 
   // adhoc function between frequency and edit distance and peak diff.
   // TODO: learn this! haha :)
@@ -113,7 +113,7 @@ TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB) {
 /// Sorts clusters in decreasing order, and finds representative quote for each cluster
 //  RepQuotesAndFreq is a vector of cluster results, represented by TClusters
 void Clustering::SortClustersByFreq(TVec<TCluster>& ClusterSummaries, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase) {
-  printf("Sorting clusters by frequency\n");
+  fprintf(stderr, "Sorting clusters by frequency\n");
   for (int i = 0; i < Clusters.Len(); i++) {
     TIntV Cluster = Clusters[i];
     TInt RepQuoteId = 0;
@@ -133,7 +133,7 @@ void Clustering::SortClustersByFreq(TVec<TCluster>& ClusterSummaries, TVec<TIntV
   }
 
   ClusterSummaries.SortCmp(TCmpTClusterByNumQuotes(false));
-  printf("Sorted: %d\n", ClusterSummaries.Len());
+  fprintf(stderr, "Sorted: %d\n", ClusterSummaries.Len());
 }
 
 void Clustering::KeepAtMostOneChildPerNode(PNGraph& G, TIntSet& RootNodes, TQuoteBase *QB, TDocBase *DB) {
@@ -145,7 +145,6 @@ void Clustering::KeepAtMostOneChildPerNode(PNGraph& G, TIntSet& RootNodes, TQuot
       TInt NodeDegree = Node.GetOutDeg();
       if (NodeDegree == 0) {
         RootNodes.AddKey(Node.GetId());
-        //printf("ROOT NODE\n");
       } else if (NodeDegree > 1) {
         TFlt MaxScore = 0;
         TInt MaxNodeId = 0;
@@ -163,6 +162,7 @@ void Clustering::KeepAtMostOneChildPerNode(PNGraph& G, TIntSet& RootNodes, TQuot
             }
           }
         }
+
         // remove all other edges, backwards to prevent indexing fail
         for (int i = 0; i < NodeV.Len(); i++) {
           if (NodeV[i] != MaxNodeId) {
@@ -175,7 +175,7 @@ void Clustering::KeepAtMostOneChildPerNode(PNGraph& G, TIntSet& RootNodes, TQuot
       }
     }
   }
-  printf("%d nodes with out degree 1 found.\n", count);
+  fprintf(stderr, "%d nodes with out degree 1 found.\n", count);
 }
 
 void Clustering::GetAllWCCs(PNGraph& G, TVec<TIntV>& Clusters) {
@@ -184,7 +184,7 @@ void Clustering::GetAllWCCs(PNGraph& G, TVec<TIntV>& Clusters) {
   Components.Sort(false);
   Clusters.Clr(false);
   TIntSet SeenSet;
-  printf("%d weakly connected components discovered.", Components.Len());
+  fprintf(stderr, "%d weakly connected components discovered.", Components.Len());
   for (int i = 0; i < Components.Len(); i++) {
     for (int n = 0; n < Components[i].NIdV.Len(); n++) {
       IAssert(! SeenSet.IsKey(Components[i].NIdV[n]));

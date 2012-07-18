@@ -113,5 +113,6 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
   if (PeakV.Len() > 0) {
     GP.AddPlot(PeakV, gpwPoints, "Peaks");
   }
-  GP.SavePng(FileName);
+  fprintf(stderr, "saving png");
+  GP.SavePng(Filename + ".png");
 }
