@@ -36,18 +36,18 @@ int main(int argc, char *argv[]) {
 
   fprintf(stderr, "loading clusters\n");
 
-  TVec<TCluster> *ClusterSummaries = new TVec<TCluster>();
-  TVec<TIntV> *Clusters = new TVec<TIntV>();
+  TVec<TIntV> Clusters;
+  TVec<TCluster> ClusterSummaries;
   TFIn ClusterFile(BaseString + "clusters.bin");
   fprintf(stderr, "%s%s\n", BaseString.CStr(), "clusters.bin");
-  ClusterSummaries->Load(ClusterFile);
+  Clusters.Load(ClusterFile);
+  fprintf(stderr, "loading clusters\n");
+  ClusterSummaries.Load(ClusterFile);
   fprintf(stderr, "did it get here?\n");
-  TCluster tmp = (*ClusterSummaries)[0];
+  TCluster tmp = ClusterSummaries[0];
   fprintf(stderr, "ASDFSADFAF %d\n", tmp.GetRepresentativeQuoteId().Val);
   fprintf(stderr, "loading clusters\n");
   Log.Load(ClusterFile);
-  fprintf(stderr, "loading clusters\n");
-  Clusters->Load(ClusterFile);
   fprintf(stderr, "loading clusters\n");
 
   // OUTPUT
@@ -59,8 +59,8 @@ int main(int argc, char *argv[]) {
 
   // plot output
   ClusterPlot Plotter(TStr("/lfs/1/tmp/curis/"));
-  Plotter.PlotClusterSizeUnique(*Clusters);
-  Plotter.PlotClusterSize(*ClusterSummaries);
+  Plotter.PlotClusterSizeUnique(Clusters);
+  Plotter.PlotClusterSize(ClusterSummaries);
   Plotter.PlotQuoteFrequencies(QB);
 
   delete QB;
