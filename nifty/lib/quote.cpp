@@ -140,7 +140,7 @@ void TQuote::StemAndStopWordsContentString(const TStrV &ContentV, TStrV &NewCont
 }
 
 void TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV) {
-  return GetPeaks(DocBase, PeakTimesV, TInt(1), TInt(1));
+  GetPeaks(DocBase, PeakTimesV, TInt(1), TInt(1));
 }
 
 void TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize) {
@@ -174,14 +174,16 @@ void TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize
 
   TStr ContentStr;
   GetContentString(ContentStr);
-  TGnuPlot GP(Filename, "Frequency of Quote " + Id.GetStr() + " Over Time: " + ContentStr);
+  TGnuPlot GP("./plots/" + Filename, "Frequency of Quote " + Id.GetStr() + " Over Time: " + ContentStr);
   GP.SetXLabel(TStr("Hour Offset"));
   GP.SetYLabel(TStr("Frequency of Quote"));
   GP.AddPlot(FreqV, gpwLinesPoints, "Frequency");
   if (PeakV.Len() > 0) {
     GP.AddPlot(PeakV, gpwPoints, "Peaks");
   }
-  GP.SavePng();
+  TStr SetXTic = TStr("set xtics 24\nset terminal png small size 1000,800");
+  GP.SavePng("./plots/" + Filename + ".png", 1000, 800, TStr(), SetXTic);
+  return true;
 }
 
 TQuoteBase::TQuoteBase() {
