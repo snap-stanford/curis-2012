@@ -144,17 +144,15 @@ void TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV) {
 }
 
 void TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize) {
-  fprintf(stderr, "getting peaks\n");
   TFreqTripleV PeakV;
   Peaks::GetPeaks(DocBase, Sources, PeakV, BucketSize, SlidingWindowSize);
-  fprintf(stderr, "peaks gotten\n");
   for (int i = 0; i < PeakV.Len(); ++i) {
     PeakTimesV.Add(PeakV[i].Val3);
   }
 }
 
 void TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename) {
-  return GraphFreqOverTime(DocBase, Filename, TInt(1), TInt(1));
+  GraphFreqOverTime(DocBase, Filename, TInt(1), TInt(1));
 }
 
 /// If BucketSize is > 1, a sliding window average will not be calculated

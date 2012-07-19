@@ -8,7 +8,7 @@ class LogOutput {
 private:
   THash<TStr, TStr> OutputValues;
   TStr TimeStamp;
-  bool ShouldLog;
+  TBool ShouldLog;
 public:
   static const TStr OutputDirectory;
   static const TStr PercentEdgesDeleted;
@@ -22,6 +22,8 @@ public:
   static const TInt FrequencyCutoff;
   static const TInt PeakThreshold;
   LogOutput();
+  void Save(TSOut& SOut) const;
+  void Load(TSIn& SIn);
   void DisableLogging();
   void SetupFiles();
   void LogValue(const TStr Key, TStr Value);

@@ -19,16 +19,30 @@ LogOutput::LogOutput() {
   ShouldLog = true;
 }
 
+void LogOutput::Save(TSOut& SOut) const {
+  OutputValues.Save(SOut);
+  TimeStamp.Save(SOut);
+  ShouldLog.Save(SOut);
+}
+
+void LogOutput::Load(TSIn& SIn) {
+  OutputValues.Load(SIn);
+  TimeStamp.Load(SIn);
+  ShouldLog.Load(SIn);
+}
+
 void LogOutput::DisableLogging() {
   ShouldLog = false;
 }
 
 void LogOutput::SetupFiles() {
   TSecTm Tm = TSecTm::GetCurTm();
+
   TimeStamp= TStr::Fmt("%04d-%02d-%02d",  Tm.GetYearN(), Tm.GetMonthN(), Tm.GetDayN());
   TimeStamp += "_" + Tm.GetTmStr();
-  //TimeStamp = Tm.GetYmdTmStr() + "_" + Tm.GetTmStr();
+
   printf("%s %s\n", TimeStamp.CStr(), Tm.GetTmStr().CStr());
+
   //TStr Command = "mkdir -p " + OutputDirectory + TimeStamp;
   //system(Command.CStr());
   TStr Command = "mkdir -p " + WebDirectory + TimeStamp;

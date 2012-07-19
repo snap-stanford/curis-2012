@@ -9,7 +9,7 @@ private:
   TStr RootDirectory;
 public:
   ClusterPlot(TStr RootDirectory);
-  void PlotClusterSizeUnique(TVec<TIntV> Clusters);
+  void PlotClusterSizeUnique(TVec<TIntV>& Clusters);
   void PlotClusterSize(TVec<TCluster>& ClusterSummaries);
   void PlotQuoteFrequencies(TQuoteBase* QB);
   //void PlotClusterPeaks(TTriple<TInt, TInt, TIntV>& Cluster);

@@ -8,7 +8,7 @@ ClusterPlot::ClusterPlot(TStr RootDirectory) {
 
 /* x-axis: number of different quotes in the cluster, y-axis: number
  * of clusters with x quotes */
-void ClusterPlot::PlotClusterSizeUnique(TVec<TIntV> Clusters) {
+void ClusterPlot::PlotClusterSizeUnique(TVec<TIntV>& Clusters) {
   TGnuPlot Plot = TGnuPlot(RootDirectory + "plot_unique_clusters", "Cluster Size Frequency - Unique Quotes", false);
   Plot.SetXYLabel("number of unique quotes", "number of clusters");
   Plot.SetScale(gpsLog2XY);
