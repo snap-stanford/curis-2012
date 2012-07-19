@@ -152,7 +152,7 @@ void TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSi
 }
 
 void TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename) {
-  return GraphFreqOverTime(DocBase, Filename, TInt(1), TInt(1));
+  GraphFreqOverTime(DocBase, Filename, TInt(1), TInt(1));
 }
 
 /// If BucketSize is > 1, a sliding window average will not be calculated
@@ -183,7 +183,6 @@ void TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize
   }
   TStr SetXTic = TStr("set xtics 24\nset terminal png small size 1000,800");
   GP.SavePng("./plots/" + Filename + ".png", 1000, 800, TStr(), SetXTic);
-  return true;
 }
 
 TQuoteBase::TQuoteBase() {
