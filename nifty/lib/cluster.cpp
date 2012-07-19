@@ -129,7 +129,9 @@ void TCluster::MergeClusters(TCluster& MergedCluster, TCluster& Cluster1, TClust
   MergedQuoteIds.AddV(QuoteIds2);
 
   // Only count the unique sources for the new frequency of the cluster
-  TInt NumUniqueSources = GetNumUniqueSources(QuoteIds1);
+  TIntV UniqueSources;
+  GetUniqueSources(UniqueSources, MergedQuoteIds, QB);
+  TInt NumUniqueSources = UniqueSources.Len();
 
   // The new representative quote is the quote with the longer content string
   TInt RepQuoteId1 = Cluster1.GetRepresentativeQuoteId();
@@ -142,13 +144,13 @@ void TCluster::MergeClusters(TCluster& MergedCluster, TCluster& Cluster1, TClust
   RepQuote2.GetContentString(RepQuoteContentStr2);
   TInt MergedRepQuoteId = RepQuoteContentStr1.Len() >= RepQuoteContentStr2.Len() ? RepQuoteId1 : RepQuoteId2;
 
-  MergedCluster = TCluster(MergedRepQuoteId, NumMergedQuotes, MergedQuoteIds);
+  MergedCluster = TCluster(MergedRepQuoteId, NumUniqueSources, MergedQuoteIds);
 }
 
 /// Calculates the number of unique sources among the quotes in a cluster,
 //  to get the frequency of the cluster
-TInt TCluster::GetNumUniqueSources(TIntV& QuoteIds, TQuoteBase *QB) {
-  THashSet<TInt> MergedSources;
+void TCluster::GetUniqueSources(TIntV& UniqueSources, TIntV& QuoteIds, TQuoteBase *QB) {
+  TIntSet MergedSources;
   for (int i = 0; i < QuoteIds.Len(); i++) {
     TQuote Q;
     QB->GetQuote(QuoteIds[i], Q);
@@ -156,5 +158,8 @@ TInt TCluster::GetNumUniqueSources(TIntV& QuoteIds, TQuoteBase *QB) {
     Q.GetSources(QSources);
     MergedSources.AddKeyV(QSources);
   }
-  return TInt(MergedSources.Len());
+
+  for (TIntSet::TIter DocId = MergedSources.BegI(); DocId < MergedSources.EndI(); DocId++) {
+    UniqueSources.Add(*DocId);
+  }
 }

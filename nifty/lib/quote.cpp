@@ -185,7 +185,6 @@ void TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize
   }
   TStr SetXTic = TStr("set xtics 24\nset terminal png small size 1000,800");
   GP.SavePng("./plots/" + Filename + ".png", 1000, 800, TStr(), SetXTic);
-  return true;
 }
 
 TQuoteBase::TQuoteBase() {
