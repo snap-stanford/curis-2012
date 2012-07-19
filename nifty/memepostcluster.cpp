@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include <stdio.h>
 
+const int FrequencyCutoff = 300;
+const double ClusterSourceOverlapThreshold = 0.9;
+
 /// Compare all pairs of clusters with frequency cutoff above the threshold
 //  FrequencyCutoff, and merges the pair of clusters if any quote of one is
 //  a substring of a quote of the other cluster's
@@ -62,6 +65,58 @@ void MergeClustersBasedOnSubstrings(TVec<TCluster>& MergedTopClusters, TVec<TClu
   }
 }
 
+// typical walkthrough function as covered in CS276.
+double ComputeClusterSourceOverlap(TIntV& Larger, TIntV& Smaller) {
+  int Li = 0;
+  int Si = 0;
+  int count = 0;
+  while (Li < Larger.Len() && Si < Larger.Len()) {
+    if (Larger[Li] == Smaller[Si]) {
+      ++count;
+      ++Li;
+      ++Si;
+    } else if(Larger[Li] > Smaller[Si]) {
+      ++Si;
+    } else {
+      ++Li;
+    }
+  }
+  return count * 1.0 / Smaller.Len();
+}
+
+void MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>& TopClusters) {
+  int NumClusters = TopClusters.Len();
+  for (int i = 1; i < NumClusters; ++i) {
+    TIntV QuoteIds;
+    TopClusters[i].GetQuoteIds(QuoteIds);
+    TIntV UniqueSources;
+    UniqueSources.Sort(true);
+    TCluster::GetUniqueSources(UniqueSources, QuoteIds, QB);
+    for (int j = 0; j < i; ++j) {
+      TIntV MoreQuoteIds;
+      TopClusters[i].GetQuoteIds(MoreQuoteIds);
+      TIntV MoreUniqueSources;
+      TCluster::GetUniqueSources(MoreUniqueSources, MoreQuoteIds, QB);
+      MoreUniqueSources.Sort(true);
+      double Overlap = ComputeClusterSourceOverlap(MoreUniqueSources, UniqueSources);
+      if (Overlap > ClusterSourceOverlapThreshold) {
+        // TODO: merging!
+      }
+    }
+  }
+}
+
+void GetTopClusters(TVec<TCluster>& SortedClusters, TVec<TCluster>& TopClusters) {
+  int NumClusters = SortedClusters.Len();
+  for (int i = 0; i < NumClusters; ++i) {
+    if (SortedClusters[i].GetNumQuotes() < FrequencyCutoff) {
+      i = NumClusters; // Clusters are sorted so we can stop adding to TopClusters now
+    } else {
+      TopClusters.Add(SortedClusters[i]);
+    }
+  }
+}
+
 int main(int argc, char *argv[]) {
   LogOutput Log;
   THash<TStr, TStr> Arguments;
@@ -102,24 +157,17 @@ int main(int argc, char *argv[]) {
   TFIn ClusterFile(BaseString + "clusters.bin");
   fprintf(stderr, "%s%s\n", BaseString.CStr(), "clusters.bin");
   Clusters.Load(ClusterFile);
-  fprintf(stderr, "loading clusters\n");
   ClusterSummaries.Load(ClusterFile);
-  fprintf(stderr, "did it get here?\n");
   TCluster tmp = ClusterSummaries[0];
-  fprintf(stderr, "ASDFSADFAF %d\n", tmp.GetRepresentativeQuoteId().Val);
-  fprintf(stderr, "loading clusters\n");
   Log.Load(ClusterFile);
-  fprintf(stderr, "loading clusters\n");
 
   TVec<TCluster> MergedTopClusters;
   MergeClustersBasedOnSubstrings(MergedTopClusters, ClusterSummaries, FrequencyCutoff, QB);
 
   // OUTPUT
-  /*Log.SetupFiles(); // safe to make files now.
-  fprintf(stderr, "Writing cluster information to file\n");
-  Log.OutputClusterInformation(DB, QB, *ClusterSummaries);
-  fprintf(stderr, "Writing top clusters to file\n");
-  Log.WriteClusteringOutputToFile();*/
+  Log.SetupFiles(); // safe to make files now.
+  Log.OutputClusterInformation(DB, QB, ClusterSummaries);
+  Log.WriteClusteringOutputToFile();
 
   // plot output
   ClusterPlot Plotter(TStr("/lfs/1/tmp/curis/"));
@@ -130,7 +178,5 @@ int main(int argc, char *argv[]) {
   delete QB;
   delete DB;
   printf("Done!\n");
-  return 0;
-
   return 0;
 }
