@@ -14,7 +14,7 @@ profile: LDFLAGS += -pg
 profile: memefilter memecluster memepostcluster
 
 memefilter: memefilter.cpp Snap.o niftylib.o
-	g++ -o memefilter memefilter.cpp Snap.o niftylib.o -I$(GLIB) -I$(SNAP) $(LDFLAGS) 
+	g++ -o memefilter memefilter.cpp Snap.o niftylib.o -fopenmp -I$(GLIB) -I$(SNAP) $(LDFLAGS) 
 	
 memecluster: memecluster.cpp Snap.o niftylib.o
 	g++ -o memecluster memecluster.cpp Snap.o niftylib.o -I$(GLIB) -I$(SNAP) $(LDFLAGS)

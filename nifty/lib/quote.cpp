@@ -81,11 +81,11 @@ TInt TQuote::GetId() {
   return Id;
 }
 
-TInt TQuote::GetNumDomains(TDocBase *DocBase) {
+TInt TQuote::GetNumDomains(TDocBase &DocBase) {
   THashSet<TStr> DomSet;
   for (int u = 0; u < Sources.Len(); u++) {
     TDoc Doc;
-    if(DocBase->GetDoc(Sources[u], Doc)) {
+    if(DocBase.GetDoc(Sources[u], Doc)) {
       TStr DocUrl;
       Doc.GetUrl(DocUrl);
       DomSet.AddKey(TStrUtil::GetDomNm(DocUrl));

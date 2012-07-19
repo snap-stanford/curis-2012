@@ -30,7 +30,7 @@ public:
   TInt GetContentNumWords();
   TInt GetParsedContentNumWords();
   TInt GetId();
-  TInt GetNumDomains(TDocBase *DocBase);
+  TInt GetNumDomains(TDocBase &DocBase);
   TInt GetNumSources();
   void GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV);
   void GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize);
