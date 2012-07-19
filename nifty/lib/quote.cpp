@@ -288,3 +288,76 @@ void TQuoteBase::Load(TSIn& SIn) {
   IdToTQuotes.Load(SIn);
   QuoteToId.Load(SIn);
 }
+
+/// Returns true if one of the quotes is a "substring" of the other, and false otherwise.
+//  Compares the parsed content of the quotes, rather than the original content
+//  Based off the method TQuoteBs::IsLinkPhrases in memes.cpp of memecluster.
+bool TQuoteBase::IsSubstring(TInt QuoteId1, TInt QuoteId2) {
+  TQuote Quote1, Quote2;
+  GetQuote(QuoteId1, Quote1);
+  GetQuote(QuoteId2, Quote2);
+  TInt ShortLen = TMath::Mn(Quote1.GetParsedContentNumWords(), Quote2.GetParsedContentNumWords());
+  TStrV ParsedContent1, ParsedContent2;
+  Quote1.GetParsedContent(ParsedContent1);
+  Quote2.GetParsedContent(ParsedContent2);
+
+  TInt Overlap = LongestSubSequenceOfWords(ParsedContent1, ParsedContent2);
+  bool DoMerge = false;
+  if (ShortLen <= 5 && Overlap == ShortLen) { DoMerge=true; } // full overlap, no skip
+  else if ((ShortLen == 6 && Overlap >= 5 )) { DoMerge=true; }
+  else if (Overlap/double(ShortLen+3) > 0.5 || Overlap > 10) { DoMerge=true; }
+  return DoMerge;
+}
+
+/// Finds the length of the approximate longest common subsequence of words
+//  Based off the method TQuoteBs::LongestCmnSubSq(const TIntV& WIdV1, const TIntV& WIdV2,
+//  int& WIdV1Start, int& WIdV2Start, int& SkipId) in memes.cpp of memecluster
+TInt TQuoteBase::LongestSubSequenceOfWords(const TStrV& Content1, const TStrV& Content2) {
+  const TStrV& V1 = Content1.Len() > Content2.Len() ? Content1:Content2; // long
+  const TStrV& V2 = Content1.Len() > Content2.Len() ? Content2:Content1; // short
+  TInt V1Len = V1.Len();
+  TInt V2Len = V2.Len();
+
+  THash<TStr, TIntV> SharedWordsH;
+  THashSet<TStr> V2WordsSet;
+
+  TInt WordV1Start, WordV2Start, SkipId;
+  WordV1Start = WordV2Start = SkipId = 0;
+  for (int i = 0; i < V2Len; i++) { // word position index
+    V2WordsSet.AddKey(V2[i]);
+  }
+  for (int i = 0; i < V1Len; i++) { // word position index
+    if (V2WordsSet.IsKey(V1[i])) {
+      SharedWordsH.AddDat(V1[i]).Add(i);
+    }
+  }
+
+  // Counts the sequence length
+  int MaxLen = 0;
+  for (int w = 0; w < V2Len; w++) {
+    TStr Word = V2[w];
+    if (! SharedWordsH.IsKey(Word)) { continue; }
+    TIntV& OccV = SharedWordsH.GetDat(Word);
+    for (int o = 0; o < OccV.Len(); o++) {
+      int beg = OccV[o];
+      int cnt = 0, tmp = 0;
+      while (w+cnt < V2Len && beg+cnt < V1Len && V2[w+cnt]==V1[beg+cnt]) { cnt++; tmp=0; }           // no skip
+      while (beg+1+cnt < V1Len && w+cnt < V2Len && V2[w+cnt]==V1[beg+cnt+1]) { cnt++; tmp=-1; }      // skip word in long
+      while (beg+cnt+1 < V1Len && w+cnt+1 < V2Len && V2[w+cnt+1]==V1[beg+cnt+1]) {  cnt++; tmp=-2;}  // skip word in both
+      while (beg+cnt < V1Len && w+cnt+1 < V2Len && V2[w+cnt+1]==V1[beg+cnt]) { cnt++; tmp=-3;}       // skip word in short
+      if (MaxLen < cnt) {
+        MaxLen = cnt;
+        SkipId=tmp;
+        WordV1Start = beg;
+        WordV2Start = w;
+      }
+      IAssert(cnt >= 1);
+    }
+  }
+  if (! (Content1.Len()>Content2.Len())) {
+    int tmp = WordV1Start;
+    WordV1Start = WordV2Start;
+    WordV2Start = tmp;
+  }
+  return MaxLen;
+}
