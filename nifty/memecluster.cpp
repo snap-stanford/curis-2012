@@ -54,12 +54,12 @@ void PrintQuoteURLs(TQuoteBase *QB, TDocBase *DB) {
 }
 
 int main(int argc, char *argv[]) {
-  LogOutput log;
+  LogOutput Log;
   THash<TStr, TStr> Arguments;
   for (int i = 1; i < argc; i++) {
     if (strlen(argv[i]) >= 2 && argv[i][0] == '-' && i + 1 < argc) {
       Arguments.AddDat(TStr(argv[i] + 1), TStr(argv[i + 1]));
-      log.LogValue(TStr(argv[i] + 1), TStr(argv[i + 1]));
+      Log.LogValue(TStr(argv[i] + 1), TStr(argv[i + 1]));
       i++;
     } else {
       printf("Error: incorrect format. Usage: ./memetracker [-paramName parameter]");
@@ -67,15 +67,21 @@ int main(int argc, char *argv[]) {
     }
   }
   // load QB and DB. Custom variables can be added later.
-  TStr BaseString = "/lfs/1/tmp/curis/week/QBDB.bin";
+  TStr BaseString = TWOWEEK_DIRECTORY;
   if (Arguments.IsKey("qbdb")) {
-    BaseString = Arguments.GetDat("qbdb");
+    TStr BaseArg = Arguments.GetDat("qbdb");
+    if (BaseArg == "week") {
+      BaseString = WEEK_DIRECTORY;
+    } else if (BaseArg == "day"){
+      BaseString = DAY_DIRECTORY;
+    }
   }
   if (Arguments.IsKey("nolog")) {
-    log.DisableLogging();
+    Log.DisableLogging();
   }
 
-  TFIn BaseFile(BaseString);
+  TFIn BaseFile(BaseString + "QBDB.bin");
+  fprintf(stderr, "%s%s", BaseString.CStr(), "QBDB.bin");
   TQuoteBase *QB = new TQuoteBase;
   TDocBase *DB = new TDocBase;
   QB->Load(BaseFile);
@@ -94,22 +100,30 @@ int main(int argc, char *argv[]) {
   ClusterJob.SetGraph(QGraph);
   TIntSet RootNodes;
   TVec<TIntV> Clusters;
-  ClusterJob.BuildClusters(RootNodes, Clusters, QB, DB, log);
+  ClusterJob.BuildClusters(RootNodes, Clusters, QB, DB, Log);
   TVec<TCluster> ClusterSummaries;
   ClusterJob.SortClustersByFreq(ClusterSummaries, Clusters, QB);
 
+  // SAVE TO FILES
+  TFOut FOut(BaseString + "clusters.bin");
+  Clusters.Save(FOut); //TODO: rewrite the method that needs this?
+  ClusterSummaries.Save(FOut);
+  Log.Save(FOut);
+
+  /*
   // OUTPUT
-  log.SetupFiles(); // safe to make files now.
+  Log.SetupFiles(); // safe to make files now.
   fprintf(stderr, "Writing cluster information to file\n");
-  log.OutputClusterInformation(DB, QB, ClusterSummaries);
+  Log.OutputClusterInformation(DB, QB, ClusterSummaries);
   fprintf(stderr, "Writing top clusters to file\n");
-  log.WriteClusteringOutputToFile();
+  Log.WriteClusteringOutputToFile();
 
   // plot output
   ClusterPlot Plotter(TStr("/lfs/1/tmp/curis/"));
   Plotter.PlotClusterSizeUnique(Clusters);
   Plotter.PlotClusterSize(ClusterSummaries);
   Plotter.PlotQuoteFrequencies(QB);
+  */
   delete QB;
   delete DB;
   printf("Done!\n");

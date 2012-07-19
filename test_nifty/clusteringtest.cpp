@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
   
   printf("Number of quotes in quote base should be 4; actually is: %d\n", QuoteBase->Len());
 
-  QuoteGraph GraphCreator(QuoteBase);
+  /*QuoteGraph GraphCreator(QuoteBase);
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
   Clustering ClusterJob;
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     TStr QuoteStr;
     RepQuotesAndFreq[i].Val1.GetContentString(QuoteStr);
     printf("%d\t%s\n", RepQuotesAndFreq[i].Val2.Val, QuoteStr.CStr());
-  }
+  }*/ // THIS IS NOT A VALID TEST
 
   delete QuoteBase;
   

@@ -15,7 +15,7 @@ private:
 public:
   TCluster();
   TCluster(TInt RepresentativeQuoteId, TInt NumQuotes, const TIntV QuoteIds);
-  TCluster(TSIn& SIn) : RepresentativeQuoteId(SIn), NumQuotes(SIn), QuoteIds(SIn) { }
+  TCluster(TSIn& SIn) : RepresentativeQuoteId(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn){ }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   TInt GetRepresentativeQuoteId() const;

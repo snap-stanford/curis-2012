@@ -11,18 +11,21 @@ TCluster::TCluster(TInt RepresentativeQuoteId, TInt NumQuotes, const TIntV Quote
   this->RepresentativeQuoteId = RepresentativeQuoteId;
   this->NumQuotes = NumQuotes;
   this->QuoteIds = QuoteIds;
+  this->Id = 1;
 }
 
 void TCluster::Save(TSOut& SOut) const {
   RepresentativeQuoteId.Save(SOut);
   NumQuotes.Save(SOut);
   QuoteIds.Save(SOut);
+  Id.Save(SOut);
 }
 
 void TCluster::Load(TSIn& SIn) {
   RepresentativeQuoteId.Load(SIn);
   NumQuotes.Load(SIn);
   QuoteIds.Load(SIn);
+  Id.Load(SIn);
 }
 
 TInt TCluster::GetRepresentativeQuoteId() const {
