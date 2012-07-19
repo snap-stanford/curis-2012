@@ -11,7 +11,7 @@ const double ClusterSourceOverlapThreshold = 0.9;
 void MergeClustersBasedOnSubstrings(TVec<TCluster>& MergedTopClusters, TVec<TCluster>& ClusterSummaries,
                                     TInt FrequencyCutoff, TQuoteBase *QB) {
   fprintf(stderr, "Merging clusters\n");
-  TVec<TInt> Merged;  // Contains ids of clusters that have already been merged into another
+  TVec<TInt> ToSkip;  // Contains ids of clusters that have already been merged into another
 
   // Set all cluster id's to their index in the sorted ClusterSummaries vector
   for (int i = 0; ClusterSummaries[i].GetNumQuotes() >= FrequencyCutoff; i++) {
@@ -20,15 +20,15 @@ void MergeClustersBasedOnSubstrings(TVec<TCluster>& MergedTopClusters, TVec<TClu
 
   for (int i = 0; ClusterSummaries[i].GetNumQuotes() >= FrequencyCutoff; i++) {
   // Assumption: the requirements for merging two clusters are transitive
-    if (Merged.SearchForw(ClusterSummaries[i].GetId()) >= 0) continue;
-
+    if (ToSkip.SearchForw(ClusterSummaries[i].GetId()) >= 0) continue;
+    TCluster CurrentCluster = ClusterSummaries[i];  // Other clusters may be merged into this one
     for (int j = i + 1; ClusterSummaries[j].GetNumQuotes() >= FrequencyCutoff; j++) {
       // Compare all the quotes of the two clusters to check if one is
       // a substring of another
       TIntV QuoteIds1;
       TIntV QuoteIds2;
-      ClusterSummaries[i].GetQuoteIds(QuoteIds1);
-      ClusterSummaries[i].GetQuoteIds(QuoteIds2);
+      CurrentCluster.GetQuoteIds(QuoteIds1);
+      ClusterSummaries[j].GetQuoteIds(QuoteIds2);
 
       bool DoMerge = false;
       for (int q1 = 0; q1 < QuoteIds1.Len(); q1++) {
@@ -42,26 +42,21 @@ void MergeClustersBasedOnSubstrings(TVec<TCluster>& MergedTopClusters, TVec<TClu
       }
 
       if (DoMerge) {
-        TCluster MergedCluster;
-        TCluster::MergeClusters(MergedCluster, ClusterSummaries[i], ClusterSummaries[j], QB);
-        MergedTopClusters.Add(MergedCluster);
-        Merged.Add(ClusterSummaries[i].GetId());
-        Merged.Add(ClusterSummaries[j].GetId());
+        CurrentCluster.MergeWithCluster(ClusterSummaries[j], QB);
+        
+        ToSkip.Add(ClusterSummaries[j].GetId());
 
         // For testing, print out which two clusters were merged:
         TQuote RepQuote1, RepQuote2;
-        QB->GetQuote(ClusterSummaries[i].GetRepresentativeQuoteId(), RepQuote1);
+        QB->GetQuote(CurrentCluster.GetRepresentativeQuoteId(), RepQuote1);
         QB->GetQuote(ClusterSummaries[j].GetRepresentativeQuoteId(), RepQuote2);
         TStr RepQuoteStr1, RepQuoteStr2;
         RepQuote1.GetContentString(RepQuoteStr1);
         RepQuote2.GetContentString(RepQuoteStr2);
-        fprintf(stderr, "Merged clusters %s and %s\n", RepQuoteStr1.CStr(), RepQuoteStr2.CStr());
+        fprintf(stderr, "Merged cluster %s into %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
       }
     }
-
-    if (Merged.SearchForw(ClusterSummaries[i].GetId()) < 0) {
-      MergedTopClusters.Add(ClusterSummaries[i]);
-    }
+    MergedTopClusters.Add(CurrentCluster);
   }
 }
 
