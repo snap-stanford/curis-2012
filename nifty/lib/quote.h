@@ -48,6 +48,7 @@ private:
   TInt QuoteIdCounter;
   THash<TInt, TQuote> IdToTQuotes;
   THash<TStrV, TInt> QuoteToId;
+  TInt LongestSubSequenceOfWords(const TStrV& Content1, const TStrV& Content2);
 public:
   TQuoteBase();
   // returns true if new TQuote created, false otherwise.
@@ -61,6 +62,7 @@ public:
   bool GetQuote(TInt QuoteId, TQuote &RefQ);
   void GetAllQuoteIds(TIntV &KeyV);
   int Len();
+  bool IsSubstring(TInt QuoteId1, TInt QuoteId2);
 };
 
 // Compares two quotes by their frequency

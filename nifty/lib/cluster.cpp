@@ -120,3 +120,47 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
   TStr SetXTic = TStr("set xtics 24\nset terminal png small size 1000,800");
   GP.SavePng(Filename + ".png", 1000, 800, TStr(), SetXTic);
 }
+
+/// Merges OtherCluster into this cluster
+void TCluster::MergeWithCluster(TCluster& OtherCluster, TQuoteBase *QB) {
+  // Put the quote ids of the two clusters together into one vector
+  
+  TIntV OtherQuoteIds;
+  OtherCluster.GetQuoteIds(OtherQuoteIds);
+  QuoteIds.AddV(OtherQuoteIds);
+
+  // Only count the unique sources for the new frequency of the cluster
+  TIntV UniqueSources;
+  GetUniqueSources(UniqueSources, QuoteIds, QB);
+  NumQuotes = UniqueSources.Len();
+
+  // The new representative quote is the quote with the longer content string
+  TInt OtherRepQuoteId = OtherCluster.GetRepresentativeQuoteId();
+  TQuote ThisRepQuote;
+  TQuote OtherRepQuote;
+  QB->GetQuote(RepresentativeQuoteId, ThisRepQuote);
+  QB->GetQuote(OtherRepQuoteId, OtherRepQuote);
+  TStr RepQuoteContentStr, OtherRepQuoteContentStr;
+  ThisRepQuote.GetContentString(RepQuoteContentStr);
+  OtherRepQuote.GetContentString(OtherRepQuoteContentStr);
+  if (OtherRepQuoteContentStr.Len() > RepQuoteContentStr.Len()) {
+    RepresentativeQuoteId = OtherRepQuoteId;
+  }
+}
+
+/// Calculates the number of unique sources among the quotes in a cluster,
+//  to get the frequency of the cluster
+void TCluster::GetUniqueSources(TIntV& UniqueSources, TIntV& QuoteIds, TQuoteBase *QB) {
+  TIntSet MergedSources;
+  for (int i = 0; i < QuoteIds.Len(); i++) {
+    TQuote Q;
+    QB->GetQuote(QuoteIds[i], Q);
+    TIntV QSources;
+    Q.GetSources(QSources);
+    MergedSources.AddKeyV(QSources);
+  }
+
+  for (TIntSet::TIter DocId = MergedSources.BegI(); DocId < MergedSources.EndI(); DocId++) {
+    UniqueSources.Add(*DocId);
+  }
+}
