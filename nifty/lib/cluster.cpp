@@ -120,3 +120,49 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
   TStr SetXTic = TStr("set xtics 24\nset terminal png small size 1000,800");
   GP.SavePng(Filename + ".png", 1000, 800, TStr(), SetXTic);
 }
+
+/// Merges Cluster1 and Cluster2 into one cluster, MergedCluster
+void TCluster::MergeClusters(TCluster& MergedCluster, TCluster& Cluster1, TCluster& Cluster2, TQuoteBase *QB) {
+  // Put the quote ids of the two clusters together into one vector
+  TIntV MergedQuoteIds;
+  TIntV QuoteIds1, QuoteIds2;
+  Cluster1.GetQuoteIds(QuoteIds1);
+  Cluster2.GetQuoteIds(QuoteIds2);
+  MergedQuoteIds.AddV(QuoteIds1);
+  MergedQuoteIds.AddV(QuoteIds2);
+
+  // Only count the unique sources for the new frequency of the cluster
+  TIntV UniqueSources;
+  GetUniqueSources(UniqueSources, MergedQuoteIds, QB);
+  TInt NumUniqueSources = UniqueSources.Len();
+
+  // The new representative quote is the quote with the longer content string
+  TInt RepQuoteId1 = Cluster1.GetRepresentativeQuoteId();
+  TInt RepQuoteId2 = Cluster2.GetRepresentativeQuoteId();
+  TQuote RepQuote1, RepQuote2;
+  QB->GetQuote(RepQuoteId1, RepQuote1);
+  QB->GetQuote(RepQuoteId2, RepQuote2);
+  TStr RepQuoteContentStr1, RepQuoteContentStr2;
+  RepQuote1.GetContentString(RepQuoteContentStr1);
+  RepQuote2.GetContentString(RepQuoteContentStr2);
+  TInt MergedRepQuoteId = RepQuoteContentStr1.Len() >= RepQuoteContentStr2.Len() ? RepQuoteId1 : RepQuoteId2;
+
+  MergedCluster = TCluster(MergedRepQuoteId, NumUniqueSources, MergedQuoteIds);
+}
+
+/// Calculates the number of unique sources among the quotes in a cluster,
+//  to get the frequency of the cluster
+void TCluster::GetUniqueSources(TIntV& UniqueSources, TIntV& QuoteIds, TQuoteBase *QB) {
+  TIntSet MergedSources;
+  for (int i = 0; i < QuoteIds.Len(); i++) {
+    TQuote Q;
+    QB->GetQuote(QuoteIds[i], Q);
+    TIntV QSources;
+    Q.GetSources(QSources);
+    MergedSources.AddKeyV(QSources);
+  }
+
+  for (TIntSet::TIter DocId = MergedSources.BegI(); DocId < MergedSources.EndI(); DocId++) {
+    UniqueSources.Add(*DocId);
+  }
+}
