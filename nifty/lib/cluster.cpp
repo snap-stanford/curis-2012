@@ -143,7 +143,9 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
 /// Merges OtherCluster into this cluster
 void TCluster::MergeWithCluster(TCluster& OtherCluster, TQuoteBase *QB, bool KeepOneRepId) {
   // Put the quote ids of the two clusters together into one vector
-  
+  s;
+    GetUniqueSources(UniqueSources, QuoteIds, QB);
+    NumQuotes = UniqueSources.Len();
   TIntV OtherQuoteIds;
   OtherCluster.GetQuoteIds(OtherQuoteIds);
   QuoteIds.AddV(OtherQuoteIds);
