@@ -80,12 +80,11 @@ int main(int argc, char *argv[]) {
     Log.DisableLogging();
   }
 
-  TFIn BaseFile(BaseString + "QBDB.bin");
-  fprintf(stderr, "%s%s", BaseString.CStr(), "QBDB.bin");
-  TQuoteBase *QB = new TQuoteBase;
-  TDocBase *DB = new TDocBase;
-  QB->Load(BaseFile);
-  DB->Load(BaseFile);
+  TQuoteBase QB;
+  TDocBase DB;
+  fprintf(stderr, "Loading QB and DB from file...\n");
+  TDataLoader::LoadQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, QB, DB);
+  fprintf(stderr, "Done!\n");
 
   //PlotQuoteFreq(QB, DB, 1, 6);
   //PrintQuoteURLs(QB, DB);
@@ -93,19 +92,19 @@ int main(int argc, char *argv[]) {
   fprintf(stderr, "Creating clusters\n");
  
   // create clusters and save!
-  QuoteGraph GraphCreator(QB);
+  QuoteGraph GraphCreator(&QB);
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
   Clustering ClusterJob;
   ClusterJob.SetGraph(QGraph);
   TIntSet RootNodes;
   TVec<TIntV> Clusters;
-  ClusterJob.BuildClusters(RootNodes, Clusters, QB, DB, Log);
+  ClusterJob.BuildClusters(RootNodes, Clusters, &QB, &DB, Log);
   TVec<TCluster> ClusterSummaries;
-  ClusterJob.SortClustersByFreq(ClusterSummaries, Clusters, QB);
+  ClusterJob.SortClustersByFreq(ClusterSummaries, Clusters, &QB);
 
   // SAVE TO FILES
-  TFOut FOut(BaseString + "clusters.bin");
+  TFOut FOut("/lfs/1/tmp/curis/clusters.bin");
   Clusters.Save(FOut); //TODO: rewrite the method that needs this?
   ClusterSummaries.Save(FOut);
   Log.Save(FOut);
@@ -124,8 +123,8 @@ int main(int argc, char *argv[]) {
   Plotter.PlotClusterSize(ClusterSummaries);
   Plotter.PlotQuoteFrequencies(QB);
   */
-  delete QB;
-  delete DB;
+  //delete QB;
+  //delete DB;
   printf("Done!\n");
   return 0;
 }

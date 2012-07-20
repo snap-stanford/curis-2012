@@ -1,67 +1,33 @@
 #include "stdafx.h"
 #include "dataloader.h"
 
-TDataLoader::TDataLoader() {
-  CurrentFileId = -1;
+bool TDataLoader::LoadFile(const TStr &Prefix, const TStr &FileName) {
+  FILE *fin = fopen((Prefix + FileName).CStr(), "r");
+  if (fin == NULL) {
+    printf("Error reading file %s, ignore...\n", FileName.CStr());
+    return false;
+  }
+  fclose(fin);
+  SInPt = TZipIn::New(Prefix + FileName);
+  CurrentFileName = FileName;
+  return true;
 }
 
-
-bool TDataLoader::LoadNextFile() {
-	if (CurrentFileId == FileList.Len() || CurrentFileId == -1) {
-		return false;
-	} else {
-	  SInPt = TZipIn::New(Prefix + FileList[CurrentFileId]);
-	  //SInPt = TFIn::New(Prefix + FileList[CurrentFileId]);
-	  CurrentFileId++;
-		return true;
-	}
-}
-
-void TDataLoader::LoadFileList(const TStr& InFileName, const TStr& Directory) {
-	// Get file list from file
-  FileList.Clr();
-
-	Prefix = Directory;
-	PSIn InFileNameF = TFIn::New(InFileName);
-	TStr FileName;
-	while (!InFileNameF->Eof() && InFileNameF->GetNextLn(FileName))
-		FileList.Add(FileName);
-
-	TChAV DeleteList;
-	// Test whether each file is good
-	for (int i = 0; i < FileList.Len(); i++) {
-		FILE *fin = fopen((Prefix + FileList[i]).CStr(), "r");
-		if (fin == NULL) {
-			printf("Error reading file %s, ignore...\n", FileList[i].CStr());
-			DeleteList.Add(FileList[i]);
-		} else {
-			fclose(fin);
-		}
-	}
-	for (int i = 0; i < DeleteList.Len(); i++)
-		FileList.DelIfIn(DeleteList[i]);
-	CurrentFileId = 0;
-}
-
-TSecTm TDataLoader::GetCurrentFileTime() {
+TSecTm TDataLoader::GetFileTime(const TStr &FileName) {
   int i;
-  for (i = 0; i < FileList[CurrentFileId - 1].Len(); i++) {
-    if (FileList[CurrentFileId - 1][i] == '-') { i++; break; }
+  for (i = 0; i < FileName.Len(); i++) {
+    if (FileName[i] == '-') { i++; break; }
   }
-
   TChA tmp_date;
-  for (; i < FileList[CurrentFileId - 1].Len(); i++) {
-    if (FileList[CurrentFileId - 1][i] == 'T') { i++; break; }
-    tmp_date += FileList[CurrentFileId - 1][i];
+  for (; i < FileName.Len(); i++) {
+    if (FileName[i] == 'T') { i++; break; }
+    tmp_date += FileName[i];
   }
-
   tmp_date += ' ';
-
-  for (; i < FileList[CurrentFileId - 1].Len(); i++) {
-    if (FileList[CurrentFileId - 1][i] == 'Z') { break; }
-    tmp_date += FileList[CurrentFileId - 1][i];
+  for (; i < FileName.Len(); i++) {
+    if (FileName[i] == 'Z') { break; }
+    tmp_date += FileName[i];
   }
-
   return TSecTm::GetDtTmFromYmdHmsStr(TStr(tmp_date), '-', '-');
 }
 
@@ -141,4 +107,55 @@ bool TDataLoader::LoadNextEntry() {
 		LineCnt++;
 	} while (SIn.GetNextLn(CurLn));
 	return true;
+}
+
+void TDataLoader::LoadQBDB(const TStr &Prefix, const TStr &InFileName, TQuoteBase &QB, TDocBase &DB) {
+  THashSet<TMd5Sig> SeenUrlSet(Mega(100), true);
+  PSIn InFileNameF = TFIn::New(InFileName);
+  TStr Date;
+  while (!InFileNameF->Eof() && InFileNameF->GetNextLn(Date)) {
+    TStr CurFileName = "QBDB" + Date + ".bin";
+    TFIn CurFile(Prefix + CurFileName);
+    THashSet<TInt> SeenDocSet;
+
+    TQuoteBase TmpQB;
+    TDocBase TmpDB;
+    TmpQB.Load(CurFile);
+    TmpDB.Load(CurFile);
+
+    TIntV DocIds;
+    TmpDB.GetAllDocIds(DocIds);
+    for (int i = 0; i < DocIds.Len(); i++) {
+      TDoc D;
+      TmpDB.GetDoc(DocIds[i], D);
+      TStr DUrl;
+      D.GetUrl(DUrl);
+      TMd5Sig UrlSig = TMd5Sig(DUrl);
+      if (SeenUrlSet.IsKey(UrlSig)) {
+        SeenDocSet.AddKey(DocIds[i]);
+        continue;
+      }
+      SeenUrlSet.AddKey(UrlSig);
+    }
+
+    TIntV QuoteIds;
+    TmpQB.GetAllQuoteIds(QuoteIds);
+    for (int i = 0; i < QuoteIds.Len(); i++) {
+      TQuote Q;
+      TmpQB.GetQuote(QuoteIds[i], Q);
+      TStr QContentString;
+      Q.GetContentString(QContentString);
+      TIntV Sources;
+      Q.GetSources(Sources);
+
+      for (int j = 0; j < Sources.Len(); j++) {
+        if (!SeenDocSet.IsKey(Sources[j])) {
+          TDoc D;
+          TmpDB.GetDoc(Sources[j], D);
+          TInt NewSourceId = DB.AddDoc(D);
+          QB.AddQuote(QContentString, NewSourceId);
+        }
+      }
+    }
+  }
 }

@@ -2,12 +2,11 @@
 #define dataloader_h
 
 #include "../../snap/snap-core/Snap.h"
+#include "niftylib.h"
 
 class TDataLoader {
 private:
-  TStr Prefix;
-  TChAV FileList;
-  TInt CurrentFileId;
+  TStr CurrentFileName;
   PSIn SInPt;
   TChA CurLn;
 public:
@@ -20,13 +19,12 @@ public:
   TVec<TChA> LinkV;       // link url
   TVec<TInt> LinkPosV;    // url begins at ContentStr[LinkPosV[i]]
 public:
-  TDataLoader();
   void Clr();
-  void LoadFileList(const TStr&, const TStr&);
-  TSecTm GetCurrentFileTime();
-  bool LoadNextFile();
+  bool LoadFile(const TStr&, const TStr&);
   bool LoadNextEntry();
-  int GetNumFiles() { return FileList.Len(); }
+
+  static TSecTm GetFileTime(const TStr&);
+  static void LoadQBDB(const TStr &, const TStr&, TQuoteBase&, TDocBase&);
 };
 
 #endif
