@@ -12,17 +12,18 @@ void MergeClustersBasedOnSubstrings(TVec<TCluster>& MergedTopClusters, TVec<TClu
                                     TInt FrequencyCutoff, TQuoteBase *QB) {
   fprintf(stderr, "Merging clusters\n");
   TVec<TInt> ToSkip;  // Contains ids of clusters that have already been merged into another
+  TInt NumClusters = ClusterSummaries.Len();
 
   // Set all cluster id's to their index in the sorted ClusterSummaries vector
-  for (int i = 0; ClusterSummaries[i].GetNumQuotes() >= FrequencyCutoff; i++) {
+  for (int i = 0;  i < NumClusters && ClusterSummaries[i].GetNumQuotes() >= FrequencyCutoff; i++) {
     ClusterSummaries[i].SetId(TInt(i));
   }
 
-  for (int i = 0; ClusterSummaries[i].GetNumQuotes() >= FrequencyCutoff; i++) {
+  for (int i = 0; i < NumClusters && ClusterSummaries[i].GetNumQuotes() >= FrequencyCutoff; i++) {
   // Assumption: the requirements for merging two clusters are transitive
     if (ToSkip.SearchForw(ClusterSummaries[i].GetId()) >= 0) continue;
     TCluster CurrentCluster = ClusterSummaries[i];  // Other clusters may be merged into this one
-    for (int j = i + 1; ClusterSummaries[j].GetNumQuotes() >= FrequencyCutoff; j++) {
+    for (int j = i + 1; j < NumClusters && ClusterSummaries[j].GetNumQuotes() >= FrequencyCutoff; j++) {
       // Compare all the quotes of the two clusters to check if one is
       // a substring of another
       TIntV QuoteIds1;
@@ -55,6 +56,7 @@ void MergeClustersBasedOnSubstrings(TVec<TCluster>& MergedTopClusters, TVec<TClu
     }
     MergedTopClusters.Add(CurrentCluster);
   }
+
   fprintf(stderr, "merged clusters\n");
 }
 
@@ -164,7 +166,7 @@ int main(int argc, char *argv[]) {
 
   // OUTPUT
   Log.SetupFiles(); // safe to make files now.
-  Log.OutputClusterInformation(DB, QB, ClusterSummaries);
+  Log.OutputClusterInformation(DB, QB, MergedTopClusters);
   Log.WriteClusteringOutputToFile();
 
   // plot output

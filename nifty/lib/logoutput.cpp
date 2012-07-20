@@ -124,7 +124,7 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TClu
       ClusterSummaries[i].GetPeaks(DB, QB, PeakTimesV, FreqV, 2, 1);
       if (PeakTimesV.Len() <= LogOutput::PeakThreshold) {
         ++Rank;
-        TStr URLLink = "<a href=\"cluster/" + TInt(i).GetStr() + ".html\">" + RepQuoteStr + "</a>";
+        TStr URLLink = "<a href=\"cluster/" + TInt(Rank).GetStr() + ".html\">" + RepQuoteStr + "</a>";
         fprintf(H, "<tr><td>%d</td><td>N/A</td><td>%d</td><td>%s</td></tr>\n", Rank, ClusterSummaries[i].GetNumQuotes().Val, URLLink.CStr());
         TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(Rank).GetStr() + ".html";
         TStr ImageFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(Rank).GetStr();
