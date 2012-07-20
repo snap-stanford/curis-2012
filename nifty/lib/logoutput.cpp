@@ -140,14 +140,17 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TClu
         fprintf(C, "<div class=\"page-header\"><h2>%s</h2></div>\n", RepQuoteStr.CStr());
         fprintf(C, "<img src=\"%d.png\" /><br />\n", Rank);
         fprintf(C, "</center>\n");
+        fprintf(C, "<table border=\"1\" class=\"table table-condensed table-striped\">\n");
+        fprintf(C, "<b><tr><td>Frequency</td><td>Quote</td></tr></b>\n");
         for (int j = 0; j < QuotesInCluster.Len(); j++) {
           TQuote Quote;
           if (QB->GetQuote(QuotesInCluster[j], Quote)) {
             TStr QuoteStr;
             Quote.GetContentString(QuoteStr);
-            fprintf(C, "\t%d\t%s<br />\n", Quote.GetNumSources().Val, QuoteStr.CStr());
+            fprintf(C, "<tr><td>%d</td><td>%s</td></tr>\n", Quote.GetNumSources().Val, QuoteStr.CStr());
           }
         }
+        fprintf(C, "</table>\n");
         fprintf(C, "</body>\n");
         fprintf(C, "</html>\n");
         fclose(C);
