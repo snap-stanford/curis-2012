@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
     TDataLoader Memes;
     for (int j = 0; j < 24; j++) {
       TStr CurFile = "web-" + DateList[i] + TStr::Fmt("T%02d-00-00Z.rar", j);
-      if(!Memes.LoadFile("/lfs/1/tmp/curis/spinn3r/2012-01/", CurFile)) {continue;}
+      if(!Memes.LoadFile("/lfs/1/tmp/curis/spinn3r/new/", CurFile)) {continue;}
       while (Memes.LoadNextEntry()) {
         if (IsUrlInBlackList(Memes.PostUrlStr)) { NSkipBlackList++;continue; }
         TMd5Sig UrlSig = TMd5Sig(Memes.PostUrlStr);

@@ -114,31 +114,47 @@ void TDataLoader::LoadQBDB(const TStr &Prefix, const TStr &InFileName, TQuoteBas
   PSIn InFileNameF = TFIn::New(InFileName);
   TStr Date;
   while (!InFileNameF->Eof() && InFileNameF->GetNextLn(Date)) {
-    TStr CurFileName = Prefix + "QBDB" + Date + ".bin";
+    TStr CurFileName = "QBDB" + Date + ".bin";
+    TFIn CurFile(Prefix + CurFileName);
+    THashSet<TInt> SeenDocSet;
+
     TQuoteBase TmpQB;
     TDocBase TmpDB;
-    TmpQB.Load(CurFileName);
-    TmpDB.Load(CurFileFile);
+    TmpQB.Load(CurFile);
+    TmpDB.Load(CurFile);
+
+    TIntV DocIds;
+    TmpDB.GetAllDocIds(DocIds);
+    for (int i = 0; i < DocIds.Len(); i++) {
+      TDoc D;
+      TmpDB.GetDoc(DocIds[i], D);
+      TStr DUrl;
+      D.GetUrl(DUrl);
+      TMd5Sig UrlSig = TMd5Sig(DUrl);
+      if (SeenUrlSet.IsKey(UrlSig)) {
+        SeenDocSet.AddKey(DocIds[i]);
+        continue;
+      }
+      SeenUrlSet.AddKey(UrlSig);
+    }
 
     TIntV QuoteIds;
     TmpQB.GetAllQuoteIds(QuoteIds);
     for (int i = 0; i < QuoteIds.Len(); i++) {
       TQuote Q;
-      TmpQB.GetQuote(QuoteIds[j], Q);
+      TmpQB.GetQuote(QuoteIds[i], Q);
       TStr QContentString;
       Q.GetContentString(QContentString);
       TIntV Sources;
       Q.GetSources(Sources);
+
       for (int j = 0; j < Sources.Len(); j++) {
-        TDoc D;
-        TmpDB.GetDoc(Sources[j], D);
-        TStr DUrl;
-        D.GetUrl(DUrl);
-        TMd5Sig UrlSig = TMd5Sig(DUrl);
-        if (SeenUrlSet.IsKey(UrlSig)) { continue; }
-        SeenUrlSet.AddKey(UrlSig);
-        TInt NewSourceId = DB.AddDoc(D);
-        QB.AddQuote(QContentString, NewSourceId);
+        if (!SeenDocSet.IsKey(Sources[j])) {
+          TDoc D;
+          TmpDB.GetDoc(Sources[j], D);
+          TInt NewSourceId = DB.AddDoc(D);
+          QB.AddQuote(QContentString, NewSourceId);
+        }
       }
     }
   }
