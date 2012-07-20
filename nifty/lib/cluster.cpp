@@ -138,30 +138,28 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
   GP.SavePng(Filename + ".png", 1000, 800, TStr(), SetXTic);
 }
 
-/// Merges Cluster1 and Cluster2 into one cluster, MergedCluster
-void TCluster::MergeClusters(TCluster& MergedCluster, TCluster& Cluster1, TCluster& Cluster2, TQuoteBase *QB) {
+/// Merges OtherCluster into this cluster
+void TCluster::MergeWithCluster(TCluster& OtherCluster, TQuoteBase *QB) {
   // Put the quote ids of the two clusters together into one vector
-  TIntV MergedQuoteIds;
-  TIntV QuoteIds1, QuoteIds2;
-  Cluster1.GetQuoteIds(QuoteIds1);
-  Cluster2.GetQuoteIds(QuoteIds2);
-  MergedQuoteIds.AddV(QuoteIds1);
-  MergedQuoteIds.AddV(QuoteIds2);
+  
+  TIntV OtherQuoteIds;
+  OtherCluster.GetQuoteIds(OtherQuoteIds);
+  QuoteIds.AddV(OtherQuoteIds);
 
   // Only count the unique sources for the new frequency of the cluster
   TIntV UniqueSources;
-  GetUniqueSources(UniqueSources, MergedQuoteIds, QB);
-  TInt NumUniqueSources = UniqueSources.Len();
+  GetUniqueSources(UniqueSources, QuoteIds, QB);
+  NumQuotes = UniqueSources.Len();
 
   // The new representative quote is the quote with the longer content string
-  TStr RepQuoteStr1, RepQuoteStr2;
-  Cluster1.GetRepresentativeQuoteString(RepQuoteStr1, QB);
-  Cluster2.GetRepresentativeQuoteString(RepQuoteStr2, QB);
-  TIntV RepQuoteIds1, RepQuoteIds2;
-  Cluster1.GetRepresentativeQuoteIds(RepQuoteIds1);
-  Cluster2.GetRepresentativeQuoteIds(RepQuoteIds2);
-  TIntV MergedRepQuoteIdV = RepQuoteStr1.Len() >= RepQuoteStr2.Len() ? RepQuoteIds1 : RepQuoteIds2;
-  MergedCluster = TCluster(MergedRepQuoteIdV, NumUniqueSources, MergedQuoteIds);
+  TStr ThisRepQuoteStr, OtherRepQuoteStr;
+  GetRepresentativeQuoteString(ThisRepQuoteStr, QB);
+  OtherCluster.GetRepresentativeQuoteString(OtherRepQuoteStr, QB);
+  if (OtherRepQuoteStr.Len() > ThisRepQuoteStr.Len()) {
+    TIntV OtherRepQuoteIds;
+    OtherCluster.GetRepresentativeQuoteIds(OtherRepQuoteIds);
+    RepresentativeQuoteIds = OtherRepQuoteIds;
+  }
 }
 
 /// Calculates the number of unique sources among the quotes in a cluster,
