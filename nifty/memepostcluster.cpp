@@ -55,6 +55,7 @@ void MergeClustersBasedOnSubstrings(TVec<TCluster>& MergedTopClusters, TVec<TClu
     }
     MergedTopClusters.Add(CurrentCluster);
   }
+  fprintf(stderr, "merged clusters\n");
 }
 
 // typical walkthrough function as covered in CS276.
@@ -153,8 +154,13 @@ int main(int argc, char *argv[]) {
   TCluster tmp = ClusterSummaries[0];
   Log.Load(ClusterFile);
 
+  // Cull the cluster listing so we are only dealing with the top few clusters.
+  TVec<TCluster> TopClusters;
+  GetTopClusters(ClusterSummaries, TopClusters);
+
+  // Merge clusters whose subquotes are encompassed by parent quotes.
   TVec<TCluster> MergedTopClusters;
-  MergeClustersBasedOnSubstrings(MergedTopClusters, ClusterSummaries, FrequencyCutoff, QB);
+  MergeClustersBasedOnSubstrings(MergedTopClusters, TopClusters, FrequencyCutoff, QB);
 
   // OUTPUT
   Log.SetupFiles(); // safe to make files now.

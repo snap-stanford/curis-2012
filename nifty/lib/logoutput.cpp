@@ -116,6 +116,9 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TClu
 
     // Write HTML
     if (FreqOfAllClusterQuotes >= FrequencyCutoff) {
+      if (i % 100 == 99) {
+        fprintf(stderr, "saved %d files so far!\n", i);
+      }
       TFreqTripleV PeakTimesV;
       TFreqTripleV FreqV;
       ClusterSummaries[i].GetPeaks(DB, QB, PeakTimesV, FreqV, 2, 1);
@@ -123,8 +126,8 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TClu
         ++Rank;
         TStr URLLink = "<a href=\"cluster/" + TInt(i).GetStr() + ".html\">" + RepQuoteStr + "</a>";
         fprintf(H, "<tr><td>%d</td><td>N/A</td><td>%d</td><td>%s</td></tr>\n", Rank, ClusterSummaries[i].GetNumQuotes().Val, URLLink.CStr());
-        TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(i).GetStr() + ".html";
-        TStr ImageFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(i).GetStr();
+        TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(Rank).GetStr() + ".html";
+        TStr ImageFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(Rank).GetStr();
         ClusterSummaries[i].GraphFreqOverTime(DB, QB, ImageFileName, 2, 1);
         FILE *C = fopen(ClusterFileName.CStr(), "w");
         fprintf(C, "<html>\n");
@@ -135,7 +138,7 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TClu
         fprintf(C, "<body>\n");
         fprintf(C, "<center>\n");
         fprintf(C, "<div class=\"page-header\"><h2>%s</h2></div>\n", RepQuoteStr.CStr());
-        fprintf(C, "<img src=\"%d.png\" /><br />\n", i);
+        fprintf(C, "<img src=\"%d.png\" /><br />\n", Rank);
         fprintf(C, "</center>\n");
         for (int j = 0; j < QuotesInCluster.Len(); j++) {
           TQuote Quote;

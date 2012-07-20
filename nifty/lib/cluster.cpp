@@ -42,13 +42,13 @@ void TCluster::GetRepresentativeQuoteString(TStr& RepStr, TQuoteBase *QB) const 
   QB->GetQuote(RepresentativeQuoteIds[0], FirstQuote);
   TStr FirstContentString;
   FirstQuote.GetContentString(FirstContentString);
-  RepStr += "\"" + FirstContentString + "\"";
+  RepStr += FirstContentString;
   for (int i = 1; i < RepresentativeQuoteIds.Len(); ++i) {
     TQuote Quote;
     QB->GetQuote(RepresentativeQuoteIds[i], Quote);
     TStr ContentString;
     Quote.GetContentString(ContentString);
-    RepStr += ", \"" + ContentString + "\"";
+    RepStr += " / " + ContentString;
   }
 }
 
@@ -133,9 +133,11 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
   if (PeakV.Len() > 0) {
     GP.AddPlot(PeakV, gpwPoints, "Peaks");
   }
-  fprintf(stderr, "saving png");
-  TStr SetXTic = TStr("set xtics 24\nset terminal png small size 1000,800");
-  GP.SavePng(Filename + ".png", 1000, 800, TStr(), SetXTic);
+  GP.AddCmd("set xtics 24");
+  GP.AddCmd("set terminal png small size 1000,800");
+  //TStr SetXTic = TStr("set xtics 24\nset terminal png small size 1000,800");
+  GP.SavePng(Filename + ".png");
+  //GP.SavePng(Filename + ".png", 1000, 800, TStr(), SetXTic);
 }
 
 /// Merges OtherCluster into this cluster
