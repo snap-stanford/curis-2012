@@ -6,30 +6,50 @@
 TCluster::TCluster() {
 }
 
-TCluster::TCluster(TInt RepresentativeQuoteId, TInt NumQuotes, const TIntV QuoteIds) {
+TCluster::TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, const TIntV QuoteIds) {
   // TODO: Check that URLs are not repeated
-  this->RepresentativeQuoteId = RepresentativeQuoteId;
+  this->RepresentativeQuoteIds = RepresentativeQuoteIds;
   this->NumQuotes = NumQuotes;
   this->QuoteIds = QuoteIds;
   this->Id = 1;
 }
 
 void TCluster::Save(TSOut& SOut) const {
-  RepresentativeQuoteId.Save(SOut);
+  RepresentativeQuoteIds.Save(SOut);
   NumQuotes.Save(SOut);
   QuoteIds.Save(SOut);
   Id.Save(SOut);
 }
 
 void TCluster::Load(TSIn& SIn) {
-  RepresentativeQuoteId.Load(SIn);
+  RepresentativeQuoteIds.Load(SIn);
   NumQuotes.Load(SIn);
   QuoteIds.Load(SIn);
   Id.Load(SIn);
 }
 
-TInt TCluster::GetRepresentativeQuoteId() const {
-  return RepresentativeQuoteId;
+TInt TCluster::GetNumRepresentativeQuoteIds() const {
+  return RepresentativeQuoteIds.Len();
+}
+
+void TCluster::GetRepresentativeQuoteIds(TIntV& RepQuoteIds) const {
+  RepQuoteIds = RepresentativeQuoteIds;
+}
+
+void TCluster::GetRepresentativeQuoteString(TStr& RepStr, TQuoteBase *QB) const {
+  if (RepresentativeQuoteIds.Len() <= 0) return;
+  TQuote FirstQuote;
+  QB->GetQuote(RepresentativeQuoteIds[0], FirstQuote);
+  TStr FirstContentString;
+  FirstQuote.GetContentString(FirstContentString);
+  RepStr += FirstContentString;
+  for (int i = 1; i < RepresentativeQuoteIds.Len(); ++i) {
+    TQuote Quote;
+    QB->GetQuote(RepresentativeQuoteIds[i], Quote);
+    TStr ContentString;
+    Quote.GetContentString(ContentString);
+    RepStr += " / " + ContentString;
+  }
 }
 
 TInt TCluster::GetNumQuotes() const {
@@ -57,8 +77,8 @@ void TCluster::AddQuote(TQuoteBase *QB,TInt QuoteId) {
   this->NumQuotes += q.GetNumSources();
 }
 
-void TCluster::SetRepresentativeQuoteId(TInt QuoteId) {
-  this->RepresentativeQuoteId = QuoteId;
+void TCluster::SetRepresentativeQuoteIds(TIntV& QuoteIds) {
+  this->RepresentativeQuoteIds = QuoteIds;
 }
 
 TInt TCluster::GetId() {
@@ -105,10 +125,7 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
   }
 
   TStr ContentStr;
-  TQuote RepQuote;
-  if (QuoteBase->GetQuote(RepresentativeQuoteId, RepQuote)) {
-    RepQuote.GetContentString(ContentStr);
-  }
+  GetRepresentativeQuoteString(ContentStr, QuoteBase);
   TGnuPlot GP(Filename, "Frequency of Cluster " + Id.GetStr() + " Over Time: " + ContentStr);
   GP.SetXLabel(TStr("Hour Offset"));
   GP.SetYLabel(TStr("Frequency of Cluster"));
@@ -116,9 +133,11 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
   if (PeakV.Len() > 0) {
     GP.AddPlot(PeakV, gpwPoints, "Peaks");
   }
-  fprintf(stderr, "saving png");
-  TStr SetXTic = TStr("set xtics 24\nset terminal png small size 1000,800");
-  GP.SavePng(Filename + ".png", 1000, 800, TStr(), SetXTic);
+  GP.AddCmd("set xtics 24");
+  GP.AddCmd("set terminal png small size 1000,800");
+  //TStr SetXTic = TStr("set xtics 24\nset terminal png small size 1000,800");
+  GP.SavePng(Filename + ".png");
+  //GP.SavePng(Filename + ".png", 1000, 800, TStr(), SetXTic);
 }
 
 /// Merges OtherCluster into this cluster
@@ -135,16 +154,13 @@ void TCluster::MergeWithCluster(TCluster& OtherCluster, TQuoteBase *QB) {
   NumQuotes = UniqueSources.Len();
 
   // The new representative quote is the quote with the longer content string
-  TInt OtherRepQuoteId = OtherCluster.GetRepresentativeQuoteId();
-  TQuote ThisRepQuote;
-  TQuote OtherRepQuote;
-  QB->GetQuote(RepresentativeQuoteId, ThisRepQuote);
-  QB->GetQuote(OtherRepQuoteId, OtherRepQuote);
-  TStr RepQuoteContentStr, OtherRepQuoteContentStr;
-  ThisRepQuote.GetContentString(RepQuoteContentStr);
-  OtherRepQuote.GetContentString(OtherRepQuoteContentStr);
-  if (OtherRepQuoteContentStr.Len() > RepQuoteContentStr.Len()) {
-    RepresentativeQuoteId = OtherRepQuoteId;
+  TStr ThisRepQuoteStr, OtherRepQuoteStr;
+  GetRepresentativeQuoteString(ThisRepQuoteStr, QB);
+  OtherCluster.GetRepresentativeQuoteString(OtherRepQuoteStr, QB);
+  if (OtherRepQuoteStr.Len() > ThisRepQuoteStr.Len()) {
+    TIntV OtherRepQuoteIds;
+    OtherCluster.GetRepresentativeQuoteIds(OtherRepQuoteIds);
+    RepresentativeQuoteIds = OtherRepQuoteIds;
   }
 }
 

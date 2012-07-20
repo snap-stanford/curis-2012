@@ -107,63 +107,63 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TClu
   int Rank = 0;
 
   for (int i = 0; i < ClusterSummaries.Len(); i++) {
-    TQuote RepQuote;
-    if (QB->GetQuote(ClusterSummaries[i].GetRepresentativeQuoteId(), RepQuote)) {
-      TStr RepQuoteStr;
-      RepQuote.GetContentString(RepQuoteStr);
-      TInt FreqOfAllClusterQuotes = ClusterSummaries[i].GetNumQuotes();
-      TIntV QuotesInCluster;
-      ClusterSummaries[i].GetQuoteIds(QuotesInCluster);
-      fprintf(F, "%d\t%d\t%s\n", FreqOfAllClusterQuotes.Val, QuotesInCluster.Len(), RepQuoteStr.CStr());
+    TStr RepQuoteStr;
+    ClusterSummaries[i].GetRepresentativeQuoteString(RepQuoteStr, QB);
+    TInt FreqOfAllClusterQuotes = ClusterSummaries[i].GetNumQuotes();
+    TIntV QuotesInCluster;
+    ClusterSummaries[i].GetQuoteIds(QuotesInCluster);
+    fprintf(F, "%d\t%d\t%s\n", FreqOfAllClusterQuotes.Val, QuotesInCluster.Len(), RepQuoteStr.CStr());
 
-      // Write HTML
-      if (FreqOfAllClusterQuotes >= FrequencyCutoff) {
-        TFreqTripleV PeakTimesV;
-        TFreqTripleV FreqV;
-        ClusterSummaries[i].GetPeaks(DB, QB, PeakTimesV, FreqV, 2, 1);
-        if (PeakTimesV.Len() <= LogOutput::PeakThreshold) {
-          ++Rank;
-          TStr URLLink = "<a href=\"cluster/" + TInt(i).GetStr() + ".html\">" + RepQuoteStr + "</a>";
-          fprintf(H, "<tr><td>%d</td><td>N/A</td><td>%d</td><td>%s</td></tr>\n", Rank, ClusterSummaries[i].GetNumQuotes().Val, URLLink.CStr());
-          TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(i).GetStr() + ".html";
-          TStr ImageFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(i).GetStr();
-          ClusterSummaries[i].GraphFreqOverTime(DB, QB, ImageFileName, 2, 1);
-          FILE *C = fopen(ClusterFileName.CStr(), "w");
-          fprintf(C, "<html>\n");
-          fprintf(C, "<head>\n");
-          fprintf(C, "<title>%s</title>\n", RepQuoteStr.CStr());
-          fprintf(C, "<link href=\"%s\" rel=\"stylesheet\">\n", TWITTER_BOOTSTRAP2);
-          fprintf(C, "</head>\n");
-          fprintf(C, "<body>\n");
-          fprintf(C, "<center>\n");
-          fprintf(C, "<div class=\"page-header\"><h2>%s</h2></div>\n", RepQuoteStr.CStr());
-          fprintf(C, "<img src=\"%d.png\" /><br />\n", i);
-          fprintf(C, "</center>\n");
-          for (int j = 0; j < QuotesInCluster.Len(); j++) {
-            TQuote Quote;
-            if (QB->GetQuote(QuotesInCluster[j], Quote)) {
-              TStr QuoteStr;
-              Quote.GetContentString(QuoteStr);
-              fprintf(C, "\t%d\t%s<br />\n", Quote.GetNumSources().Val, QuoteStr.CStr());
-            }
+    // Write HTML
+    if (FreqOfAllClusterQuotes >= FrequencyCutoff) {
+      if (i % 100 == 99) {
+        fprintf(stderr, "saved %d files so far!\n", i);
+      }
+      TFreqTripleV PeakTimesV;
+      TFreqTripleV FreqV;
+      ClusterSummaries[i].GetPeaks(DB, QB, PeakTimesV, FreqV, 2, 1);
+      if (PeakTimesV.Len() <= LogOutput::PeakThreshold) {
+        ++Rank;
+        TStr URLLink = "<a href=\"cluster/" + TInt(Rank).GetStr() + ".html\">" + RepQuoteStr + "</a>";
+        fprintf(H, "<tr><td>%d</td><td>N/A</td><td>%d</td><td>%s</td></tr>\n", Rank, ClusterSummaries[i].GetNumQuotes().Val, URLLink.CStr());
+        TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(Rank).GetStr() + ".html";
+        TStr ImageFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(Rank).GetStr();
+        ClusterSummaries[i].GraphFreqOverTime(DB, QB, ImageFileName, 2, 1);
+        FILE *C = fopen(ClusterFileName.CStr(), "w");
+        fprintf(C, "<html>\n");
+        fprintf(C, "<head>\n");
+        fprintf(C, "<title>%s</title>\n", RepQuoteStr.CStr());
+        fprintf(C, "<link href=\"%s\" rel=\"stylesheet\">\n", TWITTER_BOOTSTRAP2);
+        fprintf(C, "</head>\n");
+        fprintf(C, "<body>\n");
+        fprintf(C, "<center>\n");
+        fprintf(C, "<div class=\"page-header\"><h2>%s</h2></div>\n", RepQuoteStr.CStr());
+        fprintf(C, "<img src=\"%d.png\" /><br />\n", Rank);
+        fprintf(C, "</center>\n");
+        for (int j = 0; j < QuotesInCluster.Len(); j++) {
+          TQuote Quote;
+          if (QB->GetQuote(QuotesInCluster[j], Quote)) {
+            TStr QuoteStr;
+            Quote.GetContentString(QuoteStr);
+            fprintf(C, "\t%d\t%s<br />\n", Quote.GetNumSources().Val, QuoteStr.CStr());
           }
-          fprintf(C, "</body>\n");
-          fprintf(C, "</html>\n");
-          fclose(C);
-        } else {
-          fprintf(D, "%d\t%s\n", PeakTimesV.Len(), RepQuoteStr.CStr());
         }
-
+        fprintf(C, "</body>\n");
+        fprintf(C, "</html>\n");
+        fclose(C);
+      } else {
+        fprintf(D, "%d\t%s\n", PeakTimesV.Len(), RepQuoteStr.CStr());
       }
 
-      // Write quote information
-      for (int j = 0; j < QuotesInCluster.Len(); j++) {
-        TQuote Quote;
-        if (QB->GetQuote(QuotesInCluster[j], Quote)) {
-          TStr QuoteStr;
-          Quote.GetContentString(QuoteStr);
-          fprintf(F, "\t%d\t%s\n", Quote.GetNumSources().Val, QuoteStr.CStr());
-        }
+    }
+
+    // Write quote information
+    for (int j = 0; j < QuotesInCluster.Len(); j++) {
+      TQuote Quote;
+      if (QB->GetQuote(QuotesInCluster[j], Quote)) {
+        TStr QuoteStr;
+        Quote.GetContentString(QuoteStr);
+        fprintf(F, "\t%d\t%s\n", Quote.GetNumSources().Val, QuoteStr.CStr());
       }
     }
   }

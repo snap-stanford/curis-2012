@@ -296,17 +296,21 @@ bool TQuoteBase::IsSubstring(TInt QuoteId1, TInt QuoteId2) {
   TQuote Quote1, Quote2;
   GetQuote(QuoteId1, Quote1);
   GetQuote(QuoteId2, Quote2);
-  TInt ShortLen = TMath::Mn(Quote1.GetParsedContentNumWords(), Quote2.GetParsedContentNumWords());
+  TInt ShortLen = TMath::Mn(Quote1.GetContentNumWords(), Quote2.GetContentNumWords()); // changed from GetParsedContentNumWords
   TStrV ParsedContent1, ParsedContent2;
-  Quote1.GetParsedContent(ParsedContent1);
-  Quote2.GetParsedContent(ParsedContent2);
+  Quote1.GetContent(ParsedContent1); // Changed from GetParsedContent
+  Quote2.GetContent(ParsedContent2);
+
+  //TStr Str1, Str2;
+  //Quote1.GetContentString(Str1);
+  //Quote2.GetContentString(Str2);
+  //fprintf(stderr, "Short Len: %d - %s - %s\n", ShortLen.Val, Str1.CStr(), Str2.CStr());
 
   TInt Overlap = LongestSubSequenceOfWords(ParsedContent1, ParsedContent2);
-  bool DoMerge = false;
-  if (ShortLen <= 5 && Overlap == ShortLen) { DoMerge=true; } // full overlap, no skip
-  else if ((ShortLen == 6 && Overlap >= 5 )) { DoMerge=true; }
-  else if (Overlap/double(ShortLen+3) > 0.5 || Overlap > 10) { DoMerge=true; }
-  return DoMerge;
+  if (ShortLen <= 5 && Overlap == ShortLen) { fprintf(stderr, "reason A\n"); return true; } // full overlap, no skip
+  else if ((ShortLen == 6 && Overlap >= 5 )) { fprintf(stderr, "reason B\n"); return true; }
+  else if (Overlap/double(ShortLen+3) > 0.5 || Overlap > 10) { fprintf(stderr, "reason C\n"); return true; }
+  return false;
 }
 
 /// Finds the length of the approximate longest common subsequence of words
@@ -339,18 +343,25 @@ TInt TQuoteBase::LongestSubSequenceOfWords(const TStrV& Content1, const TStrV& C
     if (! SharedWordsH.IsKey(Word)) { continue; }
     TIntV& OccV = SharedWordsH.GetDat(Word);
     for (int o = 0; o < OccV.Len(); o++) {
+      //fprintf(stderr, "SERIES A FUNDING\n");
       int beg = OccV[o];
+      //fprintf(stderr, "SERIES B FUNDING\n");
       int cnt = 0, tmp = 0;
       while (w+cnt < V2Len && beg+cnt < V1Len && V2[w+cnt]==V1[beg+cnt]) { cnt++; tmp=0; }           // no skip
+      //fprintf(stderr, "TECHCRUNCH SPIKE\n");
       while (beg+1+cnt < V1Len && w+cnt < V2Len && V2[w+cnt]==V1[beg+cnt+1]) { cnt++; tmp=-1; }      // skip word in long
+      //fprintf(stderr, "REDDIT SUBREDDIT\n");
       while (beg+cnt+1 < V1Len && w+cnt+1 < V2Len && V2[w+cnt+1]==V1[beg+cnt+1]) {  cnt++; tmp=-2;}  // skip word in both
+      //fprintf(stderr, "PIT OF DOOM\n");
       while (beg+cnt < V1Len && w+cnt+1 < V2Len && V2[w+cnt+1]==V1[beg+cnt]) { cnt++; tmp=-3;}       // skip word in short
+      //fprintf(stderr, "ACQUIRED!\n");
       if (MaxLen < cnt) {
         MaxLen = cnt;
         SkipId=tmp;
         WordV1Start = beg;
         WordV2Start = w;
       }
+      //fprintf(stderr, "IPO!\n");
       IAssert(cnt >= 1);
     }
   }
@@ -360,4 +371,5 @@ TInt TQuoteBase::LongestSubSequenceOfWords(const TStrV& Content1, const TStrV& C
     WordV2Start = tmp;
   }
   return MaxLen;
+  //return 0;
 }

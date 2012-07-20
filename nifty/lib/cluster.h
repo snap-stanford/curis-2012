@@ -7,18 +7,20 @@
 
 class TCluster {
 private:
-  TInt RepresentativeQuoteId;
+  TIntV RepresentativeQuoteIds;
   TInt NumQuotes;
   TIntV QuoteIds;
   TInt Id;
 
 public:
   TCluster();
-  TCluster(TInt RepresentativeQuoteId, TInt NumQuotes, const TIntV QuoteIds);
-  TCluster(TSIn& SIn) : RepresentativeQuoteId(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn){ }
+  TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, const TIntV QuoteIds);
+  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn){ }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
-  TInt GetRepresentativeQuoteId() const;
+  void GetRepresentativeQuoteIds(TIntV& RepQuoteIds) const;
+  TInt GetNumRepresentativeQuoteIds() const;
+  void GetRepresentativeQuoteString(TStr& RepStr, TQuoteBase *QB) const;
   TInt GetNumQuotes() const;
   TInt GetNumUniqueQuotes() const;
   void GetQuoteIds(TIntV &QuoteIds) const;
@@ -27,7 +29,7 @@ public:
 
   void AddQuote(TQuoteBase *QB, const TIntV &QuoteIds);
   void AddQuote(TQuoteBase *QB, TInt QuoteId);
-  void SetRepresentativeQuoteId(TInt QuoteId);
+  void SetRepresentativeQuoteIds(TIntV& QuoteIds);
 
   void GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize);
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename);
