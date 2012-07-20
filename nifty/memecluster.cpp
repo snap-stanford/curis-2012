@@ -103,16 +103,10 @@ int main(int argc, char *argv[]) {
   TVec<TCluster> ClusterSummaries;
   ClusterJob.SortClustersByFreq(ClusterSummaries, Clusters, &QB);
 
-  // Setup Output Directory
-  TSecTm Tm = TSecTm::GetCurTm();
-  TStr TimeStamp = TStr::Fmt("%04d-%02d-%02d",  Tm.GetYearN(), Tm.GetMonthN(), Tm.GetDayN());
-  TimeStamp += "_" + Tm.GetTmStr();
-  TStr Command = "mkdir -p /lfs/1/tmp/curis/output/clustering/" + TimeStamp;
+  // Save to file
+  TStr Command = "mkdir -p output";
   system(Command.CStr());
-  TStr OutputDirectory = "/lfs/1/tmp/curis/output/clustering/" + TimeStamp + "/";
-    // SAVE TO FILES
-
-  TFOut FOut(OutputDirectory);
+  TFOut FOut("output/clusters.bin");
   Clusters.Save(FOut); //TODO: rewrite the method that needs this?
   ClusterSummaries.Save(FOut);
   Log.Save(FOut);
