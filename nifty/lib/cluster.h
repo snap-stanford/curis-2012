@@ -35,7 +35,7 @@ public:
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename);
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize);
 
-  void MergeWithCluster(TCluster& OtherCluster, TQuoteBase *QB);
+  void MergeWithCluster(TCluster& OtherCluster, TQuoteBase *QB, bool KeepOneRepId);
   static void GetUniqueSources(TIntV& UniqueSources, TIntV& QuoteIds, TQuoteBase *QB);
 };
 
