@@ -139,22 +139,21 @@ int main(int argc, char *argv[]) {
     Log.DisableLogging();
   }
 
-  TFIn BaseFile(BaseString + "QBDB.bin");
+  fprintf(stderr, "Loading QB and DB from file...\n");
   TQuoteBase *QB = new TQuoteBase;
   TDocBase *DB = new TDocBase;
-  QB->Load(BaseFile);
-  DB->Load(BaseFile);
+  TDataLoader::LoadQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, *QB, *DB);
+  fprintf(stderr, "Done!\n");
 
   fprintf(stderr, "loading clusters\n");
-
   TVec<TIntV> Clusters;
   TVec<TCluster> ClusterSummaries;
-  TFIn ClusterFile(BaseString + "clusters.bin");
-  fprintf(stderr, "%s%s\n", BaseString.CStr(), "clusters.bin");
+  TFIn ClusterFile("output/clusters.bin");
   Clusters.Load(ClusterFile);
   ClusterSummaries.Load(ClusterFile);
   TCluster tmp = ClusterSummaries[0];
   Log.Load(ClusterFile);
+  fprintf(stderr, "Done!\n");
 
   // Cull the cluster listing so we are only dealing with the top few clusters.
   TVec<TCluster> TopClusters;

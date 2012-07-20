@@ -103,8 +103,10 @@ int main(int argc, char *argv[]) {
   TVec<TCluster> ClusterSummaries;
   ClusterJob.SortClustersByFreq(ClusterSummaries, Clusters, &QB);
 
-  // SAVE TO FILES
-  TFOut FOut("/lfs/1/tmp/curis/clusters.bin");
+  // Save to file
+  TStr Command = "mkdir -p output";
+  system(Command.CStr());
+  TFOut FOut("output/clusters.bin");
   Clusters.Save(FOut); //TODO: rewrite the method that needs this?
   ClusterSummaries.Save(FOut);
   Log.Save(FOut);
