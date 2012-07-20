@@ -6,30 +6,50 @@
 TCluster::TCluster() {
 }
 
-TCluster::TCluster(TInt RepresentativeQuoteId, TInt NumQuotes, const TIntV QuoteIds) {
+TCluster::TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, const TIntV QuoteIds) {
   // TODO: Check that URLs are not repeated
-  this->RepresentativeQuoteId = RepresentativeQuoteId;
+  this->RepresentativeQuoteIds = RepresentativeQuoteIds;
   this->NumQuotes = NumQuotes;
   this->QuoteIds = QuoteIds;
   this->Id = 1;
 }
 
 void TCluster::Save(TSOut& SOut) const {
-  RepresentativeQuoteId.Save(SOut);
+  RepresentativeQuoteIds.Save(SOut);
   NumQuotes.Save(SOut);
   QuoteIds.Save(SOut);
   Id.Save(SOut);
 }
 
 void TCluster::Load(TSIn& SIn) {
-  RepresentativeQuoteId.Load(SIn);
+  RepresentativeQuoteIds.Load(SIn);
   NumQuotes.Load(SIn);
   QuoteIds.Load(SIn);
   Id.Load(SIn);
 }
 
-TInt TCluster::GetRepresentativeQuoteId() const {
-  return RepresentativeQuoteId;
+TInt TCluster::GetNumRepresentativeQuoteIds() const {
+  return RepresentativeQuoteIds.Len();
+}
+
+void TCluster::GetRepresentativeQuoteIds(TIntV& RepQuoteIds) const {
+  RepQuoteIds = RepresentativeQuoteIds;
+}
+
+void TCluster::GetRepresentativeQuoteString(TStr& RepStr, TQuoteBase *QB) const {
+  if (RepresentativeQuoteIds.Len() <= 0) return;
+  TQuote FirstQuote;
+  QB->GetQuote(RepresentativeQuoteIds[0], FirstQuote);
+  TStr FirstContentString;
+  FirstQuote.GetContentString(FirstContentString);
+  RepStr += "\"" + FirstContentString + "\"";
+  for (int i = 1; i < RepresentativeQuoteIds.Len(); ++i) {
+    TQuote Quote;
+    QB->GetQuote(RepresentativeQuoteIds[i], Quote);
+    TStr ContentString;
+    Quote.GetContentString(ContentString);
+    RepStr += ", \"" + ContentString + "\"";
+  }
 }
 
 TInt TCluster::GetNumQuotes() const {
@@ -57,8 +77,8 @@ void TCluster::AddQuote(TQuoteBase *QB,TInt QuoteId) {
   this->NumQuotes += q.GetNumSources();
 }
 
-void TCluster::SetRepresentativeQuoteId(TInt QuoteId) {
-  this->RepresentativeQuoteId = QuoteId;
+void TCluster::SetRepresentativeQuoteIds(TIntV& QuoteIds) {
+  this->RepresentativeQuoteIds = QuoteIds;
 }
 
 TInt TCluster::GetId() {
@@ -105,10 +125,7 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
   }
 
   TStr ContentStr;
-  TQuote RepQuote;
-  if (QuoteBase->GetQuote(RepresentativeQuoteId, RepQuote)) {
-    RepQuote.GetContentString(ContentStr);
-  }
+  GetRepresentativeQuoteString(ContentStr, QuoteBase);
   TGnuPlot GP(Filename, "Frequency of Cluster " + Id.GetStr() + " Over Time: " + ContentStr);
   GP.SetXLabel(TStr("Hour Offset"));
   GP.SetYLabel(TStr("Frequency of Cluster"));
@@ -137,17 +154,14 @@ void TCluster::MergeClusters(TCluster& MergedCluster, TCluster& Cluster1, TClust
   TInt NumUniqueSources = UniqueSources.Len();
 
   // The new representative quote is the quote with the longer content string
-  TInt RepQuoteId1 = Cluster1.GetRepresentativeQuoteId();
-  TInt RepQuoteId2 = Cluster2.GetRepresentativeQuoteId();
-  TQuote RepQuote1, RepQuote2;
-  QB->GetQuote(RepQuoteId1, RepQuote1);
-  QB->GetQuote(RepQuoteId2, RepQuote2);
-  TStr RepQuoteContentStr1, RepQuoteContentStr2;
-  RepQuote1.GetContentString(RepQuoteContentStr1);
-  RepQuote2.GetContentString(RepQuoteContentStr2);
-  TInt MergedRepQuoteId = RepQuoteContentStr1.Len() >= RepQuoteContentStr2.Len() ? RepQuoteId1 : RepQuoteId2;
-
-  MergedCluster = TCluster(MergedRepQuoteId, NumUniqueSources, MergedQuoteIds);
+  TStr RepQuoteStr1, RepQuoteStr2;
+  Cluster1.GetRepresentativeQuoteString(RepQuoteStr1, QB);
+  Cluster2.GetRepresentativeQuoteString(RepQuoteStr2, QB);
+  TIntV RepQuoteIds1, RepQuoteIds2;
+  Cluster1.GetRepresentativeQuoteIds(RepQuoteIds1);
+  Cluster2.GetRepresentativeQuoteIds(RepQuoteIds2);
+  TIntV MergedRepQuoteIdV = RepQuoteStr1.Len() >= RepQuoteStr2.Len() ? RepQuoteIds1 : RepQuoteIds2;
+  MergedCluster = TCluster(MergedRepQuoteIdV, NumUniqueSources, MergedQuoteIds);
 }
 
 /// Calculates the number of unique sources among the quotes in a cluster,
