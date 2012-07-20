@@ -313,55 +313,49 @@ bool TQuoteBase::IsSubstring(TInt QuoteId1, TInt QuoteId2) {
   return false;
 }
 
-/// Finds the length of the approximate longest common subsequence of words
+/// Finds the length of the longest common subsequence of words
 //  Based off the method TQuoteBs::LongestCmnSubSq(const TIntV& WIdV1, const TIntV& WIdV2,
 //  int& WIdV1Start, int& WIdV2Start, int& SkipId) in memes.cpp of memecluster
 TInt TQuoteBase::LongestSubSequenceOfWords(const TStrV& Content1, const TStrV& Content2) {
-  const TStrV& V1 = Content1.Len() > Content2.Len() ? Content1:Content2; // long
-  const TStrV& V2 = Content1.Len() > Content2.Len() ? Content2:Content1; // short
+  const TStrV& V1 = Content1.Len() > Content2.Len() ? Content1:Content2; // longer quote
+  const TStrV& V2 = Content1.Len() > Content2.Len() ? Content2:Content1; // shorter quote
   TInt V1Len = V1.Len();
   TInt V2Len = V2.Len();
 
-  THash<TStr, TIntV> SharedWordsH;
-  THashSet<TStr> V2WordsSet;
+  THash<TStr, TIntV> SharedWordsH;  // Maps the words in the shorter quote to their position in the longer quote
+  THashSet<TStr> V2WordsSet;  // Stores all words in shorter quote
 
   TInt WordV1Start, WordV2Start, SkipId;
   WordV1Start = WordV2Start = SkipId = 0;
-  for (int i = 0; i < V2Len; i++) { // word position index
+  for (int i = 0; i < V2Len; i++) {
     V2WordsSet.AddKey(V2[i]);
   }
-  for (int i = 0; i < V1Len; i++) { // word position index
+  for (int i = 0; i < V1Len; i++) {
     if (V2WordsSet.IsKey(V1[i])) {
       SharedWordsH.AddDat(V1[i]).Add(i);
     }
   }
 
-  // Counts the sequence length
+  // Counts the length of each subsequence and finds the longest
   int MaxLen = 0;
   for (int w = 0; w < V2Len; w++) {
     TStr Word = V2[w];
-    if (! SharedWordsH.IsKey(Word)) { continue; }
-    TIntV& OccV = SharedWordsH.GetDat(Word);
+    if (! SharedWordsH.IsKey(Word)) { continue; }  // Skip words in shorter quote but not in longer quote
+    TIntV& OccV = SharedWordsH.GetDat(Word);  // Occurrences of this word in the longer quote
     for (int o = 0; o < OccV.Len(); o++) {
-      //fprintf(stderr, "SERIES A FUNDING\n");
       int beg = OccV[o];
-      //fprintf(stderr, "SERIES B FUNDING\n");
-      int cnt = 0, tmp = 0;
+      int cnt = 0;  // Stores the number of words in the subsequency
+      int tmp = 0;
       while (w+cnt < V2Len && beg+cnt < V1Len && V2[w+cnt]==V1[beg+cnt]) { cnt++; tmp=0; }           // no skip
-      //fprintf(stderr, "TECHCRUNCH SPIKE\n");
-      while (beg+1+cnt < V1Len && w+cnt < V2Len && V2[w+cnt]==V1[beg+cnt+1]) { cnt++; tmp=-1; }      // skip word in long
-      //fprintf(stderr, "REDDIT SUBREDDIT\n");
-      while (beg+cnt+1 < V1Len && w+cnt+1 < V2Len && V2[w+cnt+1]==V1[beg+cnt+1]) {  cnt++; tmp=-2;}  // skip word in both
-      //fprintf(stderr, "PIT OF DOOM\n");
-      while (beg+cnt < V1Len && w+cnt+1 < V2Len && V2[w+cnt+1]==V1[beg+cnt]) { cnt++; tmp=-3;}       // skip word in short
-      //fprintf(stderr, "ACQUIRED!\n");
+      //while (beg+1+cnt < V1Len && w+cnt < V2Len && V2[w+cnt]==V1[beg+cnt+1]) { cnt++; tmp=-1; }      // skip word in long
+      //while (beg+cnt+1 < V1Len && w+cnt+1 < V2Len && V2[w+cnt+1]==V1[beg+cnt+1]) {  cnt++; tmp=-2;}  // skip word in both
+      //while (beg+cnt < V1Len && w+cnt+1 < V2Len && V2[w+cnt+1]==V1[beg+cnt]) { cnt++; tmp=-3;}       // skip word in short
       if (MaxLen < cnt) {
         MaxLen = cnt;
         SkipId=tmp;
         WordV1Start = beg;
         WordV2Start = w;
       }
-      //fprintf(stderr, "IPO!\n");
       IAssert(cnt >= 1);
     }
   }
@@ -371,5 +365,4 @@ TInt TQuoteBase::LongestSubSequenceOfWords(const TStrV& Content1, const TStrV& C
     WordV2Start = tmp;
   }
   return MaxLen;
-  //return 0;
 }
