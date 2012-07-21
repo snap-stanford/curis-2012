@@ -131,7 +131,7 @@ void Clustering::SortClustersByFreq(TVec<TCluster>& ClusterSummaries, TVec<TIntV
     }
     TIntV RepV;
     RepV.Add(RepQuoteId);
-    TCluster ClusterSummary(RepV, NumQuotes, Cluster);
+    TCluster ClusterSummary(RepV, NumQuotes, Cluster, QuoteBase);
     ClusterSummaries.Add(ClusterSummary);
   }
 

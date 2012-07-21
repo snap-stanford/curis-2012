@@ -2,14 +2,14 @@
 #include <stdio.h>
 
 const int FrequencyCutoff = 300;
-const double ClusterSourceOverlapThreshold = 0.9;
+const double ClusterSourceOverlapThreshold = 0.3;
 
 /// Compare all pairs of clusters with frequency cutoff above the threshold
 //  FrequencyCutoff, and merges the pair of clusters if any quote of one is
 //  a substring of a quote of the other cluster's
 //  (Assumes ClusterSummaries contains clusters sorted by decreasing frequency)
-void MergeClustersBasedOnSubstrings(TVec<TCluster>& MergedTopClusters, TVec<TCluster>& ClusterSummaries,
-                                    TInt FrequencyCutoff, TQuoteBase *QB) {
+void MergeClustersBasedOnSubstrings(TQuoteBase *QB, TVec<TCluster>& MergedTopClusters,
+                                    TVec<TCluster>& ClusterSummaries, TInt FrequencyCutoff) {
   fprintf(stderr, "Merging clusters\n");
   TVec<TInt> ToSkip;  // Contains ids of clusters that have already been merged into another
   TInt NumClusters = ClusterSummaries.Len();
@@ -43,7 +43,7 @@ void MergeClustersBasedOnSubstrings(TVec<TCluster>& MergedTopClusters, TVec<TClu
       }
 
       if (DoMerge) {
-        CurrentCluster.MergeWithCluster(ClusterSummaries[j], QB);
+        CurrentCluster.MergeWithCluster(ClusterSummaries[j], QB, true);
         
         ToSkip.Add(ClusterSummaries[j].GetId());
 
@@ -65,7 +65,7 @@ double ComputeClusterSourceOverlap(TIntV& Larger, TIntV& Smaller) {
   int Li = 0;
   int Si = 0;
   int count = 0;
-  while (Li < Larger.Len() && Si < Larger.Len()) {
+  while (Li < Larger.Len() && Si < Smaller.Len()) {
     if (Larger[Li] == Smaller[Si]) {
       ++count;
       ++Li;
@@ -81,6 +81,7 @@ double ComputeClusterSourceOverlap(TIntV& Larger, TIntV& Smaller) {
 
 void MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>& TopClusters) {
   int NumClusters = TopClusters.Len();
+  TVec<TInt> ToSkip;
   for (int i = 1; i < NumClusters; ++i) {
     TIntV QuoteIds;
     TopClusters[i].GetQuoteIds(QuoteIds);
@@ -89,15 +90,30 @@ void MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>& TopClusters)
     TCluster::GetUniqueSources(UniqueSources, QuoteIds, QB);
     for (int j = 0; j < i; ++j) {
       TIntV MoreQuoteIds;
-      TopClusters[i].GetQuoteIds(MoreQuoteIds);
+      TopClusters[j].GetQuoteIds(MoreQuoteIds);
       TIntV MoreUniqueSources;
       TCluster::GetUniqueSources(MoreUniqueSources, MoreQuoteIds, QB);
       MoreUniqueSources.Sort(true);
       double Overlap = ComputeClusterSourceOverlap(MoreUniqueSources, UniqueSources);
       if (Overlap > ClusterSourceOverlapThreshold) {
-        // TODO: merging!
+        TStr RepQuoteStr1, RepQuoteStr2;
+        TopClusters[i].GetRepresentativeQuoteString(RepQuoteStr1, QB);
+        TopClusters[j].GetRepresentativeQuoteString(RepQuoteStr2, QB);
+        fprintf(stderr, "CLUSTER1: %s\nCLUSTER2: %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
+
+        TopClusters[j].MergeWithCluster(TopClusters[i], QB, false);
+        ToSkip.Add(i);
+        break; // we really only want to merge once.
       }
     }
+  }
+
+  // delete merged clusters
+  ToSkip.Sort(true);
+  for (int i = 0; i < ToSkip.Len(); ++i) {
+    TStr RepQuoteStr;
+    TopClusters[ToSkip[i] - i].GetRepresentativeQuoteString(RepQuoteStr, QB);
+    TopClusters.Del(ToSkip[i] - i); // -i in order to keep track of deleted count changes.
   }
 }
 
@@ -161,7 +177,11 @@ int main(int argc, char *argv[]) {
 
   // Merge clusters whose subquotes are encompassed by parent quotes.
   TVec<TCluster> MergedTopClusters;
-  MergeClustersBasedOnSubstrings(MergedTopClusters, TopClusters, FrequencyCutoff, QB);
+  MergeClustersBasedOnSubstrings(QB, MergedTopClusters, TopClusters, FrequencyCutoff);
+  // Merge clusters who share many similar sources.
+  MergeClustersWithCommonSources(QB, MergedTopClusters);
+
+  MergedTopClusters.SortCmp(TCmpTClusterByNumQuotes(false));
 
   // OUTPUT
   Log.SetupFiles(); // safe to make files now.
