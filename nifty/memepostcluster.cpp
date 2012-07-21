@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include <stdio.h>
 
-const int FrequencyCutoff = 350;
+const int FrequencyCutoff = 300;
 const double ClusterSourceOverlapThreshold = 0.3;
 
 /// Compare all pairs of clusters with frequency cutoff above the threshold
@@ -180,6 +180,8 @@ int main(int argc, char *argv[]) {
   MergeClustersBasedOnSubstrings(QB, MergedTopClusters, TopClusters, FrequencyCutoff);
   // Merge clusters who share many similar sources.
   MergeClustersWithCommonSources(QB, MergedTopClusters);
+
+  MergedTopClusters.SortCmp(TCmpTClusterByNumQuotes(false));
 
   // OUTPUT
   Log.SetupFiles(); // safe to make files now.

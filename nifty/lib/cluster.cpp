@@ -6,12 +6,18 @@
 TCluster::TCluster() {
 }
 
-TCluster::TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, const TIntV QuoteIds) {
+TCluster::TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB) {
   // TODO: Check that URLs are not repeated
   this->RepresentativeQuoteIds = RepresentativeQuoteIds;
-  this->NumQuotes = NumQuotes;
+  TIntV UniqueSources;
+  TCluster::GetUniqueSources(UniqueSources, QuoteIds, QB);
+  this->NumQuotes = UniqueSources.Len();
   this->QuoteIds = QuoteIds;
   this->Id = 1;
+  /*this->RepresentativeQuoteIds = RepresentativeQuoteIds;
+  this->NumQuotes = NumQuotes;
+  this->QuoteIds = QuoteIds;
+  this->Id = 1;*/
 }
 
 void TCluster::Save(TSOut& SOut) const {
@@ -143,9 +149,6 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
 /// Merges OtherCluster into this cluster
 void TCluster::MergeWithCluster(TCluster& OtherCluster, TQuoteBase *QB, bool KeepOneRepId) {
   // Put the quote ids of the two clusters together into one vector
-  s;
-    GetUniqueSources(UniqueSources, QuoteIds, QB);
-    NumQuotes = UniqueSources.Len();
   TIntV OtherQuoteIds;
   OtherCluster.GetQuoteIds(OtherQuoteIds);
   QuoteIds.AddV(OtherQuoteIds);
