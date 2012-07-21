@@ -185,6 +185,18 @@ void TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize
   GP.SavePng("./plots/" + Filename + ".png", 1000, 800, TStr(), SetXTic);
 }
 
+/// Removes all punctuation (i.e. non-alphanumeric/whitespace characters) from the string
+void TQuote::RemovePunctuation(const TStr& OrigString, TStr& NewString) {
+  TChA OrigChA(OrigString);
+  TChA NewChA;
+  for (int i = 0; i < OrigChA.Len(); i++) {
+    if (TCh::IsAlNum(OrigChA[i]) || TCh::IsWs(OrigChA[i])) {
+      NewChA.AddCh(OrigChA[i]);
+    }
+  }
+  NewString = TStr(NewChA);
+}
+
 TQuoteBase::TQuoteBase() {
   QuoteIdCounter = 0;
 }
@@ -297,17 +309,20 @@ bool TQuoteBase::IsSubstring(TInt QuoteId1, TInt QuoteId2) {
   GetQuote(QuoteId1, Quote1);
   GetQuote(QuoteId2, Quote2);
   TInt ShortLen = TMath::Mn(Quote1.GetContentNumWords(), Quote2.GetContentNumWords()); // changed from GetParsedContentNumWords
-  TStrV ParsedContent1, ParsedContent2;
-  Quote1.GetContent(ParsedContent1); // Changed from GetParsedContent
-  Quote2.GetContent(ParsedContent2);
+  if (ShortLen <= 3) return false;  // Skip short quotes
+  // Get content of quote, with punctuation removed
+  TStr ContentStr1, ContentStr2, ContentStrNoPunc1, ContentStrNoPunc2;
+  Quote1.GetContentString(ContentStr1);
+  Quote2.GetContentString(ContentStr2);
+  TQuote::RemovePunctuation(ContentStr1, ContentStrNoPunc1);
+  TQuote::RemovePunctuation(ContentStr2, ContentStrNoPunc2);
 
-  //TStr Str1, Str2;
-  //Quote1.GetContentString(Str1);
-  //Quote2.GetContentString(Str2);
-  //fprintf(stderr, "Short Len: %d - %s - %s\n", ShortLen.Val, Str1.CStr(), Str2.CStr());
+  TStrV Content1V, Content2V;
+  ContentStrNoPunc1.SplitOnWs(Content1V);
+  ContentStrNoPunc2.SplitOnWs(Content2V);
 
-  TInt Overlap = LongestSubSequenceOfWords(ParsedContent1, ParsedContent2);
-  if (ShortLen <= 5 && Overlap == ShortLen) { fprintf(stderr, "reason A\n"); return true; } // full overlap, no skip
+  TInt Overlap = LongestSubSequenceOfWords(Content1V, Content2V);
+  if ((ShortLen == 4 || ShortLen == 5) && Overlap == ShortLen) { fprintf(stderr, "reason A\n"); return true; } // full overlap, no skip
   else if ((ShortLen == 6 && Overlap >= 5 )) { fprintf(stderr, "reason B\n"); return true; }
   else if (Overlap/double(ShortLen+3) > 0.5 || Overlap > 10) { fprintf(stderr, "reason C\n"); return true; }
   return false;

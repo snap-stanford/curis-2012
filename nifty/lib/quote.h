@@ -38,9 +38,10 @@ public:
   void GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize);
 
   static PSwSet StopWordSet;
-  static void ParseContentString(const TStr &ContentString, TStrV &ParsedString);
-  static void FilterSpacesAndSetLowercase(TStr &QtStr);
-  static void StemAndStopWordsContentString(const TStrV &ContentV, TStrV &NewContent);
+  static void ParseContentString(const TStr& ContentString, TStrV& ParsedString);
+  static void FilterSpacesAndSetLowercase(TStr& QtStr);
+  static void StemAndStopWordsContentString(const TStrV &ContentV, TStrV& NewContent);
+  static void RemovePunctuation(const TStr& OrigString, TStr& NewString);
 };
 
 class TQuoteBase {
