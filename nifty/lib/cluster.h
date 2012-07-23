@@ -11,13 +11,14 @@ private:
   TInt NumQuotes;
   TIntV QuoteIds;
   TInt Id;
+  TFlt Popularity;
   TFreqTripleV PeakTimesV;
   TFreqTripleV FreqV;
 
 public:
   TCluster();
   TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB);
-  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), PeakTimesV(SIn), TFreqTripleV(SIn){ }
+  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), Popularity(SIn), PeakTimesV(SIn), FreqV(SIn){ }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   void GetRepresentativeQuoteIds(TIntV& RepQuoteIds) const;
@@ -27,14 +28,16 @@ public:
   TInt GetNumUniqueQuotes() const;
   void GetQuoteIds(TIntV &QuoteIds) const;
   TInt GetId();
+  TFlt GetPopularity() const;
+  void CalculatePopularity(TQuoteBase *QuoteBase, TDocBase *DocBase, TSecTm CurrentTime);
   void SetId(TInt Id);
 
   void AddQuote(TQuoteBase *QB, const TIntV &QuoteIds);
   void AddQuote(TQuoteBase *QB, TInt QuoteId);
   void SetRepresentativeQuoteIds(TIntV& QuoteIds);
 
-  void GetTopPeak(TDocBase *DocBase, TQuoteBase *QuoteBase, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, bool reset = false);
-  void GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, bool reset = false);
+  //void GetTopPeak(TDocBase *DocBase, TQuoteBase *QuoteBase, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, bool reset = false);
+  void GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, bool reset = false);
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TSecTm PresentTime);
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
 
@@ -74,6 +77,21 @@ public:
       return P1.GetNumQuotes() < P2.GetNumQuotes();
     } else {
       return P2.GetNumQuotes() < P1.GetNumQuotes();
+    }
+  }
+};
+
+// Compares TClusters by sum of quote frequencies
+class TCmpTClusterByPopularity {
+private:
+  bool IsAsc;
+public:
+  TCmpTClusterByPopularity(const bool& AscSort=true) : IsAsc(AscSort) { }
+  bool operator () (const TCluster& P1, const TCluster& P2) const {
+    if (IsAsc) {
+      return P1.GetPopularity() < P2.GetPopularity();
+    } else {
+      return P2.GetPopularity() < P1.GetPopularity();
     }
   }
 };

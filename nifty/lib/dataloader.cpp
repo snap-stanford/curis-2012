@@ -109,10 +109,11 @@ bool TDataLoader::LoadNextEntry() {
 	return true;
 }
 
-void TDataLoader::LoadQBDB(const TStr &Prefix, const TStr &InFileName, TQuoteBase &QB, TDocBase &DB) {
+TSecTm TDataLoader::LoadQBDB(const TStr &Prefix, const TStr &InFileName, TQuoteBase &QB, TDocBase &DB) {
   THashSet<TMd5Sig> SeenUrlSet(Mega(100), true);
   PSIn InFileNameF = TFIn::New(InFileName);
   TStr Date;
+  TStr CurrentDate;
   while (!InFileNameF->Eof() && InFileNameF->GetNextLn(Date)) {
     TStr CurFileName = "QBDB" + Date + ".bin";
     TFIn CurFile(Prefix + CurFileName);
@@ -157,5 +158,7 @@ void TDataLoader::LoadQBDB(const TStr &Prefix, const TStr &InFileName, TQuoteBas
         }
       }
     }
+    CurrentDate = Date;
   }
+  return TSecTm::GetDtTmFromYmdHmsStr(CurrentDate + " 23:00:00");
 }
