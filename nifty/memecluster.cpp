@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
   TQuoteBase QB;
   TDocBase DB;
   fprintf(stderr, "Loading QB and DB from file...\n");
-  TDataLoader::LoadQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, QB, DB);
+  TSecTm PresentTime = TDataLoader::LoadQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, QB, DB);
   fprintf(stderr, "Done!\n");
 
   //PlotQuoteFreq(QB, DB, 1, 6, PresentTime);

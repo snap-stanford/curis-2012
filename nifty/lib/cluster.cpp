@@ -25,6 +25,9 @@ void TCluster::Save(TSOut& SOut) const {
   NumQuotes.Save(SOut);
   QuoteIds.Save(SOut);
   Id.Save(SOut);
+  Popularity.Save(SOut);
+  PeakTimesV.Save(SOut);
+  FreqV.Save(SOut);
 }
 
 void TCluster::Load(TSIn& SIn) {
@@ -32,6 +35,9 @@ void TCluster::Load(TSIn& SIn) {
   NumQuotes.Load(SIn);
   QuoteIds.Load(SIn);
   Id.Load(SIn);
+  Popularity.Load(SIn);
+  PeakTimesV.Load(SIn);
+  FreqV.Load(SIn);
 }
 
 TInt TCluster::GetNumRepresentativeQuoteIds() const {
@@ -91,22 +97,40 @@ TInt TCluster::GetId() {
   return Id;
 }
 
+TFlt TCluster::GetPopularity() const {
+  return Popularity;
+}
+
+void TCluster::CalculatePopularity(TQuoteBase *QuoteBase, TDocBase *DocBase, TSecTm CurrentTime) {
+  TIntV UniqueSources;
+  GetUniqueSources(UniqueSources, QuoteIds, QuoteBase);
+  TFreqTripleV FreqV;
+  Peaks::GetFrequencyVector(DocBase, UniqueSources, FreqV, 2, 1, CurrentTime);
+  for (int i = 0; i < FreqV.Len(); i++) {
+    Popularity += FreqV[i].Val2 * exp(FreqV[i].Val1 / 48);
+  }
+}
+
 void TCluster::SetId(TInt Id) {
   this->Id = Id;
 }
 
-void TCluster::GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime) {
-  TIntV Sources;
-  for (int i = 0; i < QuoteIds.Len(); i++) {
-    TQuote Quote;
-    if (QuoteBase->GetQuote(QuoteIds[i], Quote)) {
-      TIntV CurSources;
-      Quote.GetSources(CurSources);
-      Sources.AddV(CurSources);
+void TCluster::GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, bool reset) {
+  if (!reset && this->PeakTimesV.Len() > 0 && this->FreqV.Len() > 0) {
+    PeakTimesV = this->PeakTimesV;
+    FreqV = this->FreqV;
+  } else {
+    TIntV Sources;
+    for (int i = 0; i < QuoteIds.Len(); i++) {
+      TQuote Quote;
+      if (QuoteBase->GetQuote(QuoteIds[i], Quote)) {
+        TIntV CurSources;
+        Quote.GetSources(CurSources);
+        Sources.AddV(CurSources);
+      }
     }
+    Peaks::GetPeaks(DocBase, Sources, PeakTimesV, FreqV, BucketSize, SlidingWindowSize, PresentTime);
   }
-
-  Peaks::GetPeaks(DocBase, Sources, PeakTimesV, FreqV, BucketSize, SlidingWindowSize, PresentTime);
 }
 
 void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TSecTm PresentTime) {

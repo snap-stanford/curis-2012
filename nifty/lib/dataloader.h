@@ -24,7 +24,7 @@ public:
   bool LoadNextEntry();
 
   static TSecTm GetFileTime(const TStr&);
-  static void LoadQBDB(const TStr &, const TStr&, TQuoteBase&, TDocBase&);
+  static TSecTm LoadQBDB(const TStr &, const TStr&, TQuoteBase&, TDocBase&);
 };
 
 #endif
