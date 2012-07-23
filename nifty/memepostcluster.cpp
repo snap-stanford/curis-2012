@@ -171,6 +171,9 @@ int main(int argc, char *argv[]) {
   Log.Load(ClusterFile);
   fprintf(stderr, "Done!\n");
 
+  // TODO: Pong will make it so that this is retrieved from the QBDB file
+  TSecTm PresentTime = TSecTm(2012, 7, 8);
+
   // Cull the cluster listing so we are only dealing with the top few clusters.
   TVec<TCluster> TopClusters;
   GetTopClusters(ClusterSummaries, TopClusters);
@@ -185,7 +188,7 @@ int main(int argc, char *argv[]) {
 
   // OUTPUT
   Log.SetupFiles(); // safe to make files now.
-  Log.OutputClusterInformation(DB, QB, MergedTopClusters);
+  Log.OutputClusterInformation(DB, QB, MergedTopClusters, PresentTime);
   Log.WriteClusteringOutputToFile();
 
   // plot output

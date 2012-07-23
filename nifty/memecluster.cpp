@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include <stdio.h>
 
-void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB, TInt BucketSize, TInt SlidingWindowSize) {
+void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime) {
   fprintf(stderr, "Testing graph quote\n");
   TIntV AllQuotes;
   QB->GetAllQuoteIds(AllQuotes);
@@ -14,7 +14,7 @@ void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB, TInt BucketSize, TInt SlidingWi
     TQuote Q;
     QB->GetQuote(AllQuotes[i], Q);
     TStr Filename = TStr(Q.GetNumSources().GetStr() + "Quote" + Q.GetId().GetStr());
-    Q.GraphFreqOverTime(DB, Filename, BucketSize, SlidingWindowSize);
+    Q.GraphFreqOverTime(DB, Filename, BucketSize, SlidingWindowSize, PresentTime);
   }
 }
 
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
   TDataLoader::LoadQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, QB, DB);
   fprintf(stderr, "Done!\n");
 
-  //PlotQuoteFreq(QB, DB, 1, 6);
+  //PlotQuoteFreq(QB, DB, 1, 6, PresentTime);
   //PrintQuoteURLs(QB, DB);
 
   fprintf(stderr, "Creating clusters\n");
