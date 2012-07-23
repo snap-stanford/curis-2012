@@ -97,7 +97,7 @@ TInt TCluster::GetId() {
   return Id;
 }
 
-TFlt TCluster::GetPopularity() {
+TFlt TCluster::GetPopularity() const {
   return Popularity;
 }
 
@@ -115,7 +115,7 @@ void TCluster::SetId(TInt Id) {
   this->Id = Id;
 }
 
-void TCluster::GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, bool reset = false) {
+void TCluster::GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, bool reset) {
   if (!reset && this->PeakTimesV.Len() > 0 && this->FreqV.Len() > 0) {
     PeakTimesV = this->PeakTimesV;
     FreqV = this->FreqV;

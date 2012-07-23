@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
   fprintf(stderr, "Loading QB and DB from file...\n");
   TQuoteBase *QB = new TQuoteBase;
   TDocBase *DB = new TDocBase;
-  TSecTm CurrentTime = TDataLoader::LoadQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, *QB, *DB);
+  TSecTm PresentTime = TDataLoader::LoadQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, *QB, *DB);
   fprintf(stderr, "Done!\n");
 
   fprintf(stderr, "loading clusters\n");
@@ -196,9 +196,6 @@ int main(int argc, char *argv[]) {
   TCluster tmp = ClusterSummaries[0];
   Log.Load(ClusterFile);
   fprintf(stderr, "Done!\n");
-
-  // TODO: Pong will make it so that this is retrieved from the QBDB file
-  TSecTm PresentTime = TSecTm(2012, 7, 8);
 
   // Cull the cluster listing so we are only dealing with the top few clusters.
   TVec<TCluster> TopClusters;
@@ -216,7 +213,7 @@ int main(int argc, char *argv[]) {
 
   // Sort remaining clusters by popularity
   for (int i = 0; i < MergedTopClusters.Len(); i++) {
-    MergedTopClusters[i].CalculatePopularity(QB, DB, CurrentTime);
+    MergedTopClusters[i].CalculatePopularity(QB, DB, PresentTime);
   }
   MergedTopClusters.SortCmp(TCmpTClusterByPopularity(false));
 

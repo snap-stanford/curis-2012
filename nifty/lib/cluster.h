@@ -18,7 +18,7 @@ private:
 public:
   TCluster();
   TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB);
-  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), Popularity(SIn), PeakTimesV(SIn), TFreqTripleV(SIn){ }
+  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), Popularity(SIn), PeakTimesV(SIn), FreqV(SIn){ }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   void GetRepresentativeQuoteIds(TIntV& RepQuoteIds) const;
