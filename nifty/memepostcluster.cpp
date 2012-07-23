@@ -217,8 +217,10 @@ int main(int argc, char *argv[]) {
   }
   MergedTopClusters.SortCmp(TCmpTClusterByPopularity(false));
 
+  // TODO: consider if quote is dead?
+
   // OUTPUT
-  Log.SetupFiles(); // safe to make files now.
+  //Log.SetupFiles(); // safe to make files now.
   Log.OutputClusterInformation(DB, QB, MergedTopClusters, PresentTime);
   Log.WriteClusteringOutputToFile();
 
