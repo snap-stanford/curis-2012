@@ -77,7 +77,7 @@ void LogOutput::WriteClusteringOutputToFile() {
   fclose(F);
 }
 
-void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TCluster>& ClusterSummaries) {
+void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TCluster>& ClusterSummaries, TSecTm PresentTime) {
   fprintf(stderr, "printing stuff\n");
   if (!ShouldLog) return;
   TStr FileName = WebDirectory + TimeStamp + "/top_clusters.txt";
@@ -117,18 +117,18 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TClu
       if (i % 100 == 99) {
         fprintf(stderr, "saved %d files so far!\n", i);
       }
-
       ++Rank;
       TStr URLLink = "<a href=\"cluster/" + TInt(Rank).GetStr() + ".html\">" + RepQuoteStr + "</a>";
       fprintf(H, "<tr><td>%d</td><td>N/A</td><td>%d</td><td>%s</td></tr>\n", Rank, ClusterSummaries[i].GetNumQuotes().Val, URLLink.CStr());
       TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(Rank).GetStr() + ".html";
       TStr ImageFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(Rank).GetStr();
-      ClusterSummaries[i].GraphFreqOverTime(DB, QB, ImageFileName, 2, 1);
+      ClusterSummaries[i].GraphFreqOverTime(DB, QB, ImageFileName, 2, 1, PresentTime);
       FILE *C = fopen(ClusterFileName.CStr(), "w");
       fprintf(C, "<html>\n");
       fprintf(C, "<head>\n");
       fprintf(C, "<title>%s</title>\n", RepQuoteStr.CStr());
       fprintf(C, "<link href=\"%s\" rel=\"stylesheet\">\n", TWITTER_BOOTSTRAP2);
+      fprintf(C, "<script src=\"%s\"></script>\n", TWITTER_BOOTSTRAP_JS);
       fprintf(C, "</head>\n");
       fprintf(C, "<body>\n");
       fprintf(C, "<center>\n");
@@ -142,7 +142,18 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TClu
         if (QB->GetQuote(QuotesInCluster[j], Quote)) {
           TStr QuoteStr;
           Quote.GetContentString(QuoteStr);
-          fprintf(C, "<tr><td>%d</td><td>%s</td></tr>\n", Quote.GetNumSources().Val, QuoteStr.CStr());
+          fprintf(C, "<tr><td>%d</td><td data-toggle=\"collapse\" data-target=\"#quoteUrls%d\">%s</td></tr>\n", Quote.GetNumSources().Val, Quote.GetId().Val, QuoteStr.CStr());
+          fprintf(C, "<div id=\"quoteUrls%d\" class=\"collapse\">", Quote.GetId().Val);
+          TIntV QuoteSources;
+          Quote.GetSources(QuoteSources);
+          for (int k = 0; k < QuoteSources.Len(); k++) {
+            TDoc Doc;
+            DB->GetDoc(QuoteSources[k], Doc);
+            TStr DocUrl;
+            Doc.GetUrl(DocUrl);
+            fprintf(C, "<tr><td></td><td>%s</td></tr>\n", DocUrl.CStr());
+          }
+          fprintf(C, "</div>");
         }
       }
       fprintf(C, "</table>\n");

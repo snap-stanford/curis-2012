@@ -33,9 +33,9 @@ public:
   TInt GetNumDomains(TDocBase &DocBase);
   TInt GetNumSources();
   void GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV);
-  void GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize);
-  void GraphFreqOverTime(TDocBase *DocBase, TStr Filename);
-  void GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize);
+  void GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
+  void GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TSecTm PresentTime);
+  void GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
 
   static PSwSet StopWordSet;
   static void ParseContentString(const TStr& ContentString, TStrV& ParsedString);
