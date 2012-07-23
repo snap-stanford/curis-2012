@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
   fprintf(stderr, "Loading QB and DB from file...\n");
   TQuoteBase *QB = new TQuoteBase;
   TDocBase *DB = new TDocBase;
-  TDataLoader::LoadQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, *QB, *DB);
+  TSecTm CurrentTime = TDataLoader::LoadQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, *QB, *DB);
   fprintf(stderr, "Done!\n");
 
   fprintf(stderr, "loading clusters\n");
@@ -181,7 +181,11 @@ int main(int argc, char *argv[]) {
   // Merge clusters who share many similar sources.
   MergeClustersWithCommonSources(QB, MergedTopClusters);
 
-  MergedTopClusters.SortCmp(TCmpTClusterByNumQuotes(false));
+  for (int i = 0; i < MergedTopClusters.Len(); i++) {
+    MergedTopClusters[i].CalculatePopularity(QB, DB, CurrentTime);
+  }
+  MergedTopClusters.SortCmp(TCmpTClusterByPopularity(false));
+  //MergedTopClusters.SortCmp(TCmpTClusterByNumQuotes(false));
 
   // OUTPUT
   Log.SetupFiles(); // safe to make files now.

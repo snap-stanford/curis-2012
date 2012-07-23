@@ -25,6 +25,7 @@ void TCluster::Save(TSOut& SOut) const {
   NumQuotes.Save(SOut);
   QuoteIds.Save(SOut);
   Id.Save(SOut);
+  Popularity.Save(SOut);
 }
 
 void TCluster::Load(TSIn& SIn) {
@@ -32,6 +33,7 @@ void TCluster::Load(TSIn& SIn) {
   NumQuotes.Load(SIn);
   QuoteIds.Load(SIn);
   Id.Load(SIn);
+  Popularity.Load(SIn);
 }
 
 TInt TCluster::GetNumRepresentativeQuoteIds() const {
@@ -89,6 +91,20 @@ void TCluster::SetRepresentativeQuoteIds(TIntV& QuoteIds) {
 
 TInt TCluster::GetId() {
   return Id;
+}
+
+TFlt TCluster::GetPopularity() {
+  return Popularity;
+}
+
+void TCluster::CalculatePopularity(TQuoteBase *QuoteBase, TDocBase *DocBase, TSecTm CurrentTime) {
+  TIntV UniqueSources;
+  GetUniqueSources(UniqueSources, QuoteIds, QuoteBase);
+  TFreqTripleV FreqV;
+  Peaks::GetFrequencyVector(DocBase, UniqueSources, FreqV, 2, 1, CurrentTime);
+  for (int i = 0; i < FreqV.Len(); i++) {
+    Popularity += FreqV[i].Val2 * exp(FreqV[i].Val1 / 48);
+  }
 }
 
 void TCluster::SetId(TInt Id) {
