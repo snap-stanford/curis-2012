@@ -77,17 +77,15 @@ void LogOutput::WriteClusteringOutputToFile() {
   fclose(F);
 }
 
-void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TCluster>& ClusterSummaries) {
+void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TCluster>& ClusterSummaries, TSecTm PresentTime) {
   fprintf(stderr, "printing stuff\n");
   if (!ShouldLog) return;
   TStr FileName = WebDirectory + TimeStamp + "/top_clusters.txt";
   TStr HTMLFileName = WebDirectory + TimeStamp + "/clusters.html";
   TStr Command = "mkdir -p " + WebDirectory + TimeStamp + "/cluster";
-  TStr DiscardedFileName = WebDirectory + TimeStamp + "/discarded_clusters.txt";
   system(Command.CStr());
   FILE *F = fopen(FileName.CStr(), "w");
   FILE *H = fopen(HTMLFileName.CStr(), "w");
-  FILE *D = fopen(DiscardedFileName.CStr(), "w");
 
   // HTML setup
   fprintf(H, "<html>\n");
@@ -119,45 +117,49 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TClu
       if (i % 100 == 99) {
         fprintf(stderr, "saved %d files so far!\n", i);
       }
-      TFreqTripleV PeakTimesV;
-      TFreqTripleV FreqV;
-      ClusterSummaries[i].GetPeaks(DB, QB, PeakTimesV, FreqV, 2, 1);
-      if (PeakTimesV.Len() <= LogOutput::PeakThreshold) {
-        ++Rank;
-        TStr URLLink = "<a href=\"cluster/" + TInt(Rank).GetStr() + ".html\">" + RepQuoteStr + "</a>";
-        fprintf(H, "<tr><td>%d</td><td>N/A</td><td>%d</td><td>%s</td></tr>\n", Rank, ClusterSummaries[i].GetNumQuotes().Val, URLLink.CStr());
-        TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(Rank).GetStr() + ".html";
-        TStr ImageFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(Rank).GetStr();
-        ClusterSummaries[i].GraphFreqOverTime(DB, QB, ImageFileName, 2, 1);
-        FILE *C = fopen(ClusterFileName.CStr(), "w");
-        fprintf(C, "<html>\n");
-        fprintf(C, "<head>\n");
-        fprintf(C, "<title>%s</title>\n", RepQuoteStr.CStr());
-        fprintf(C, "<link href=\"%s\" rel=\"stylesheet\">\n", TWITTER_BOOTSTRAP2);
-        fprintf(C, "</head>\n");
-        fprintf(C, "<body>\n");
-        fprintf(C, "<center>\n");
-        fprintf(C, "<div class=\"page-header\"><h2>%s</h2></div>\n", RepQuoteStr.CStr());
-        fprintf(C, "<img src=\"%d.png\" /><br />\n", Rank);
-        fprintf(C, "</center>\n");
-        fprintf(C, "<table border=\"1\" width=\"75%%\" class=\"table table-condensed table-striped\">\n");
-        fprintf(C, "<b><tr><td>Frequency</td><td>Quote</td></tr></b>\n");
-        for (int j = 0; j < QuotesInCluster.Len(); j++) {
-          TQuote Quote;
-          if (QB->GetQuote(QuotesInCluster[j], Quote)) {
-            TStr QuoteStr;
-            Quote.GetContentString(QuoteStr);
-            fprintf(C, "<tr><td>%d</td><td>%s</td></tr>\n", Quote.GetNumSources().Val, QuoteStr.CStr());
+      ++Rank;
+      TStr URLLink = "<a href=\"cluster/" + TInt(Rank).GetStr() + ".html\">" + RepQuoteStr + "</a>";
+      fprintf(H, "<tr><td>%d</td><td>N/A</td><td>%d</td><td>%s</td></tr>\n", Rank, ClusterSummaries[i].GetNumQuotes().Val, URLLink.CStr());
+      TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(Rank).GetStr() + ".html";
+      TStr ImageFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(Rank).GetStr();
+      ClusterSummaries[i].GraphFreqOverTime(DB, QB, ImageFileName, 2, 1, PresentTime);
+      FILE *C = fopen(ClusterFileName.CStr(), "w");
+      fprintf(C, "<html>\n");
+      fprintf(C, "<head>\n");
+      fprintf(C, "<title>%s</title>\n", RepQuoteStr.CStr());
+      fprintf(C, "<link href=\"%s\" rel=\"stylesheet\">\n", TWITTER_BOOTSTRAP2);
+      fprintf(C, "<script src=\"%s\"></script>\n", TWITTER_BOOTSTRAP_JS);
+      fprintf(C, "</head>\n");
+      fprintf(C, "<body>\n");
+      fprintf(C, "<center>\n");
+      fprintf(C, "<div class=\"page-header\"><h2>%s</h2></div>\n", RepQuoteStr.CStr());
+      fprintf(C, "<img src=\"%d.png\" /><br />\n", Rank);
+      fprintf(C, "</center>\n");
+      fprintf(C, "<table border=\"1\" width=\"75%%\" class=\"table table-condensed table-striped\">\n");
+      fprintf(C, "<b><tr><td>Frequency</td><td>Quote</td></tr></b>\n");
+      for (int j = 0; j < QuotesInCluster.Len(); j++) {
+        TQuote Quote;
+        if (QB->GetQuote(QuotesInCluster[j], Quote)) {
+          TStr QuoteStr;
+          Quote.GetContentString(QuoteStr);
+          fprintf(C, "<tr><td>%d</td><td data-toggle=\"collapse\" data-target=\"#quoteUrls%d\">%s</td></tr>\n", Quote.GetNumSources().Val, Quote.GetId().Val, QuoteStr.CStr());
+          fprintf(C, "<div id=\"quoteUrls%d\" class=\"collapse\">", Quote.GetId().Val);
+          TIntV QuoteSources;
+          Quote.GetSources(QuoteSources);
+          for (int k = 0; k < QuoteSources.Len(); k++) {
+            TDoc Doc;
+            DB->GetDoc(QuoteSources[k], Doc);
+            TStr DocUrl;
+            Doc.GetUrl(DocUrl);
+            fprintf(C, "<tr><td></td><td>%s</td></tr>\n", DocUrl.CStr());
           }
+          fprintf(C, "</div>");
         }
-        fprintf(C, "</table>\n");
-        fprintf(C, "</body>\n");
-        fprintf(C, "</html>\n");
-        fclose(C);
-      } else {
-        fprintf(D, "%d\t%s\n", PeakTimesV.Len(), RepQuoteStr.CStr());
       }
-
+      fprintf(C, "</table>\n");
+      fprintf(C, "</body>\n");
+      fprintf(C, "</html>\n");
+      fclose(C);
     }
 
     // Write quote information
@@ -179,4 +181,17 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TClu
   //Close files
   fclose(F);
   fclose(H);
+}
+
+void LogOutput::OutputDiscardedClusters(TQuoteBase *QB, TVec<TCluster>& DiscardedClusters) {
+  TStr DiscardedFileName = WebDirectory + TimeStamp + "/discarded_clusters.txt";
+  FILE *D = fopen(DiscardedFileName.CStr(), "w");
+
+  for (int i = 0; i < DiscardedClusters.Len(); ++i) {
+    TStr RepQuoteStr;
+    DiscardedClusters[i].GetRepresentativeQuoteString(RepQuoteStr, QB);
+    fprintf(D, "%d\t%s\n", 0, RepQuoteStr.CStr()); // TODO: Add num clusters somehow
+  }
+
+  fclose(D);
 }

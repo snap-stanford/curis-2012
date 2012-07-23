@@ -6,6 +6,7 @@
 
 #define TWITTER_BOOTSTRAP "../../../bootstrap/css/bootstrap.css"
 #define TWITTER_BOOTSTRAP2 "../../../../bootstrap/css/bootstrap.css"
+#define TWITTER_BOOTSTRAP_JS "../../../../bootstrap/js/bootstrap.js"
 
 #define WEEK_DIRECTORY "resources/Spinn3rWeekFile.txt";
 #define TWOWEEK_DIRECTORY "resources/Spinn3rNewTwoWeekFile.txt";

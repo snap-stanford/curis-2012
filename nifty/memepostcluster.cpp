@@ -3,6 +3,32 @@
 
 const int FrequencyCutoff = 300;
 const double ClusterSourceOverlapThreshold = 0.3;
+const int BucketSize = 2;
+const int SlidingWindowSize = 1;
+const int PeakThreshold = 5;
+
+void FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& TopClusters) {
+  TIntV DiscardedClusterIds;
+  TVec<TCluster> DiscardedClusters;
+  for (int i = 0; i < TopClusters.Len(); ++i) {
+    TFreqTripleV PeakTimesV;
+    TFreqTripleV FreqV;
+    TopClusters[i].GetPeaks(DB, QB, PeakTimesV, FreqV, BucketSize, SlidingWindowSize, TSecTm(0));
+    // Add clusters with too many peaks to the discard list.
+    if (PeakTimesV.Len() > PeakThreshold) {
+      DiscardedClusterIds.Add(i);
+      DiscardedClusters.Add(TopClusters[i]);
+    }
+  }
+
+  // delete the discarded clusters from the top clusters list.
+  for (int i = 0; i < DiscardedClusterIds.Len(); ++i) {
+    TopClusters.Del(DiscardedClusterIds[i] - i); // -i in order to keep track of deleted count changes.
+  }
+
+  // log the discarded clusters in a log file.
+  Log.OutputDiscardedClusters(QB, DiscardedClusters);
+}
 
 /// Compare all pairs of clusters with frequency cutoff above the threshold
 //  FrequencyCutoff, and merges the pair of clusters if any quote of one is
@@ -171,6 +197,9 @@ int main(int argc, char *argv[]) {
   Log.Load(ClusterFile);
   fprintf(stderr, "Done!\n");
 
+  // TODO: Pong will make it so that this is retrieved from the QBDB file
+  TSecTm PresentTime = TSecTm(2012, 7, 8);
+
   // Cull the cluster listing so we are only dealing with the top few clusters.
   TVec<TCluster> TopClusters;
   GetTopClusters(ClusterSummaries, TopClusters);
@@ -181,15 +210,19 @@ int main(int argc, char *argv[]) {
   // Merge clusters who share many similar sources.
   MergeClustersWithCommonSources(QB, MergedTopClusters);
 
+  // Calculate and cache cluster peaks and frequency
+  Log.SetupFiles(); // safe to make files now.
+  FilterAndCacheClusterPeaks(DB, QB, Log, MergedTopClusters);
+
+  // Sort remaining clusters by popularity
   for (int i = 0; i < MergedTopClusters.Len(); i++) {
     MergedTopClusters[i].CalculatePopularity(QB, DB, CurrentTime);
   }
   MergedTopClusters.SortCmp(TCmpTClusterByPopularity(false));
-  //MergedTopClusters.SortCmp(TCmpTClusterByNumQuotes(false));
 
   // OUTPUT
   Log.SetupFiles(); // safe to make files now.
-  Log.OutputClusterInformation(DB, QB, MergedTopClusters);
+  Log.OutputClusterInformation(DB, QB, MergedTopClusters, PresentTime);
   Log.WriteClusteringOutputToFile();
 
   // plot output

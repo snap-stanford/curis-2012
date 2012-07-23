@@ -111,7 +111,7 @@ void TCluster::SetId(TInt Id) {
   this->Id = Id;
 }
 
-void TCluster::GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize) {
+void TCluster::GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime) {
   TIntV Sources;
   for (int i = 0; i < QuoteIds.Len(); i++) {
     TQuote Quote;
@@ -122,19 +122,19 @@ void TCluster::GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& 
     }
   }
 
-  Peaks::GetPeaks(DocBase, Sources, PeakTimesV, FreqV, BucketSize, SlidingWindowSize);
+  Peaks::GetPeaks(DocBase, Sources, PeakTimesV, FreqV, BucketSize, SlidingWindowSize, PresentTime);
 }
 
-void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename) {
-  GraphFreqOverTime(DocBase, QuoteBase, Filename, TInt(1), TInt(1));
+void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TSecTm PresentTime) {
+  GraphFreqOverTime(DocBase, QuoteBase, Filename, TInt(1), TInt(1), PresentTime);
 }
 
 /// If BucketSize is > 1, a sliding window average will not be calculated
 //  Otherwise, if BucketSize = 1, a sliding window average of size SlidingWindowSize will be calculated
-void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize) {
+void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime) {
   TFreqTripleV PeakTimesV;
   TFreqTripleV FreqTripleV;
-  GetPeaks(DocBase, QuoteBase, PeakTimesV, FreqTripleV, BucketSize, SlidingWindowSize);
+  GetPeaks(DocBase, QuoteBase, PeakTimesV, FreqTripleV, BucketSize, SlidingWindowSize, PresentTime);
 
   TVec<TIntFltPr> PeakV;
   for (int i = 0; i < PeakTimesV.Len(); ++i) {
@@ -149,7 +149,7 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
   TStr ContentStr;
   GetRepresentativeQuoteString(ContentStr, QuoteBase);
   TGnuPlot GP(Filename, "Frequency of Cluster " + Id.GetStr() + " Over Time: " + ContentStr);
-  GP.SetXLabel(TStr("Hour Offset"));
+  GP.SetXLabel(TStr("Hour Offset From Present Time"));
   GP.SetYLabel(TStr("Frequency of Cluster"));
   GP.AddPlot(FreqV, gpwLinesPoints, "Frequency");
   if (PeakV.Len() > 0) {

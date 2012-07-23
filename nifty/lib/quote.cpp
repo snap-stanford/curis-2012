@@ -140,27 +140,27 @@ void TQuote::StemAndStopWordsContentString(const TStrV &ContentV, TStrV &NewCont
 }
 
 void TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV) {
-  GetPeaks(DocBase, PeakTimesV, TInt(1), TInt(1));
+  GetPeaks(DocBase, PeakTimesV, TInt(1), TInt(1), TSecTm(0));
 }
 
-void TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize) {
+void TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime) {
   TFreqTripleV PeakV;
-  Peaks::GetPeaks(DocBase, Sources, PeakV, BucketSize, SlidingWindowSize);
+  Peaks::GetPeaks(DocBase, Sources, PeakV, BucketSize, SlidingWindowSize, PresentTime);
   for (int i = 0; i < PeakV.Len(); ++i) {
     PeakTimesV.Add(PeakV[i].Val3);
   }
 }
 
-void TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename) {
-  GraphFreqOverTime(DocBase, Filename, TInt(1), TInt(1));
+void TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TSecTm PresentTime) {
+  GraphFreqOverTime(DocBase, Filename, TInt(1), TInt(1), PresentTime);
 }
 
 /// If BucketSize is > 1, a sliding window average will not be calculated
 //  Otherwise, if BucketSize = 1, a sliding window average of size SlidingWindowSize will be calculated
-void TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize) {
+void TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime) {
   TFreqTripleV PeakTimesV;
   TFreqTripleV FreqTripleV;
-  Peaks::GetPeaks(DocBase, Sources, PeakTimesV, FreqTripleV, BucketSize, SlidingWindowSize);
+  Peaks::GetPeaks(DocBase, Sources, PeakTimesV, FreqTripleV, BucketSize, SlidingWindowSize, PresentTime);
 
   TVec<TIntFltPr> PeakV;
   for (int i = 0; i < PeakTimesV.Len(); ++i) {

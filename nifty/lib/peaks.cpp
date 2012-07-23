@@ -8,15 +8,15 @@ const uint Peaks::NumSecondsInHour = 3600;
 const uint Peaks::NumSecondsInDay = 86400;
 const uint Peaks::NumSecondsInWeek = 604800;
 
-void Peaks::GetPeaks(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize) {
+void Peaks::GetPeaks(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime) {
   TFreqTripleV FreqV;
-  Peaks::GetPeaks(DocBase, Sources, PeakTimesV, FreqV, BucketSize, SlidingWindowSize);
+  Peaks::GetPeaks(DocBase, Sources, PeakTimesV, FreqV, BucketSize, SlidingWindowSize, PresentTime);
 }
 
-void Peaks::GetPeaks(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize) {
+void Peaks::GetPeaks(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime) {
   if (Sources.Len() == 0) return;
 
-  Peaks::GetFrequencyVector(DocBase, Sources, FreqV, BucketSize, SlidingWindowSize);
+  Peaks::GetFrequencyVector(DocBase, Sources, FreqV, BucketSize, SlidingWindowSize, PresentTime);
 
   TFltV FreqFltV;
   Peaks::GetPeaksEquationFunction(FreqV, FreqFltV);
@@ -84,7 +84,7 @@ void Peaks::GetPeaksEquationFunction(TFreqTripleV& FreqV, TFltV& FreqFltV) {
  * BucketSize = number of hours that will be lumped together
  * SlidingWindowSize = number of hours that a sliding window will occur.
  */
-void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize) {
+void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime) {
   // Sort the given document sources by time (ascending).
   TIntV SourcesSorted(Sources);
   SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
@@ -95,8 +95,15 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
 
   // Start time at 12am
   TUInt StartTime = TUInt(StartDoc.GetDate().GetAbsSecs());
-  StartTime = (StartTime / NumSecondsInDay) * NumSecondsInDay;
+  StartTime = (StartTime / NumSecondsInDay) * NumSecondsInDay;  // round to previous 12am
 
+  TInt HourStart = 0;
+  if (PresentTime.GetAbsSecs() > 0) {
+    TUInt PresentTimeI = TUInt(PresentTime.GetAbsSecs());
+    PresentTimeI = ceil(PresentTime / NumSecondsInDay) * NumSecondsInDay;  // round to next 12am 
+
+    HourStart = TInt((StartTime - PresentTime) / NumSecondsInHour);  // will be a negative hour offset
+  }
   TInt Frequency = 1;
   TInt HourNum = 0;
   uint BucketSizeSecs = NumSecondsInHour * BucketSize.Val;
@@ -110,14 +117,14 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
         Frequency++;
       } else {
         RawFrequencyCounts.Add(Frequency);
-        FreqV.Add(TFreqTriple(HourNum * BucketSize, CalcWindowAvg(RawFrequencyCounts, SlidingWindowSize), TSecTm(StartTime)));
+        FreqV.Add(TFreqTriple(HourStart + HourNum * BucketSize, CalcWindowAvg(RawFrequencyCounts, SlidingWindowSize), TSecTm(StartTime)));
         TInt NumHoursAhead = (CurTime - StartTime) / BucketSizeSecs;
         //printf("PrevDoc Date: %s, CurrDoc Date: %s, NumHoursAhead: %d\n", PrevDoc.GetDate().GetYmdTmStr().GetCStr(), CurrDoc.GetDate().GetYmdTmStr().GetCStr(), NumHoursAhead.Val);
         // Add frequencies of 0 if there are hours in between the two occurrences
         for (int j = 1; j < NumHoursAhead; ++j) {
           TUInt NewStartTime = StartTime + j * BucketSizeSecs;
           RawFrequencyCounts.Add(TInt(0));
-          FreqV.Add(TFreqTriple((HourNum + j) * BucketSize, CalcWindowAvg(RawFrequencyCounts, SlidingWindowSize), TSecTm(NewStartTime)));
+          FreqV.Add(TFreqTriple(HourStart + (HourNum + j) * BucketSize, CalcWindowAvg(RawFrequencyCounts, SlidingWindowSize), TSecTm(NewStartTime)));
         }
         HourNum += NumHoursAhead;
         Frequency = 1;
@@ -127,7 +134,7 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
   }
 
   RawFrequencyCounts.Add(TInt(0));
-  FreqV.Add(TFreqTriple(HourNum * BucketSize, CalcWindowAvg(RawFrequencyCounts, SlidingWindowSize), TSecTm(StartTime)));
+  FreqV.Add(TFreqTriple(HourStart + HourNum * BucketSize, CalcWindowAvg(RawFrequencyCounts, SlidingWindowSize), TSecTm(StartTime)));
 }
 
 TFlt Peaks::CalcWindowAvg(TIntV& FreqV, TInt SlidingWindowSize) {
