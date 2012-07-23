@@ -31,6 +31,7 @@ public:
   void LogValue(const TStr Key, TFlt Value);
   void WriteClusteringOutputToFile();
   void OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TCluster>& ClusterSummaries);
+  void OutputDiscardedClusters(TQuoteBase *QB, TVec<TCluster>& DiscardedClusters);
 };
 
 #endif
