@@ -128,7 +128,6 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TClu
       fprintf(C, "<head>\n");
       fprintf(C, "<title>%s</title>\n", RepQuoteStr.CStr());
       fprintf(C, "<link href=\"%s\" rel=\"stylesheet\">\n", TWITTER_BOOTSTRAP2);
-      fprintf(C, "<script src=\"%s\"></script>\n", TWITTER_BOOTSTRAP_JS);
       fprintf(C, "</head>\n");
       fprintf(C, "<body>\n");
       fprintf(C, "<center>\n");
@@ -142,21 +141,24 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TClu
         if (QB->GetQuote(QuotesInCluster[j], Quote)) {
           TStr QuoteStr;
           Quote.GetContentString(QuoteStr);
-          fprintf(C, "<tr><td>%d</td><td data-toggle=\"collapse\" data-target=\"#quoteUrls%d\">%s</td></tr>\n", Quote.GetNumSources().Val, Quote.GetId().Val, QuoteStr.CStr());
-          fprintf(C, "<div id=\"quoteUrls%d\" class=\"collapse\">", Quote.GetId().Val);
+          fprintf(C, "<tr><td>%d</td><td><a class=\"quote\" data-toggle=\"collapse\" href=\"#quoteUrls%d\">%s</a><br />\n", Quote.GetNumSources().Val, Quote.GetId().Val, QuoteStr.CStr());
           TIntV QuoteSources;
           Quote.GetSources(QuoteSources);
+          fprintf(C, "<div id=\"quoteUrls%d\" class=\"collapse\">", Quote.GetId().Val);
           for (int k = 0; k < QuoteSources.Len(); k++) {
             TDoc Doc;
             DB->GetDoc(QuoteSources[k], Doc);
             TStr DocUrl;
             Doc.GetUrl(DocUrl);
-            fprintf(C, "<tr><td></td><td>%s</td></tr>\n", DocUrl.CStr());
+            fprintf(C, "%s<br />\n", DocUrl.CStr());
           }
-          fprintf(C, "</div>");
+          fprintf(C, "</div></td></tr>\n");
         }
       }
       fprintf(C, "</table>\n");
+      fprintf(C, "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js\"></script>");
+      fprintf(C, "<script src=\"%s\"></script>\n", TWITTER_BOOTSTRAP_JS);
+      fprintf(C, "<script type=\"text/javascript\" charset=\"utf-8\"> $(\".collapse\").collapse({toggle: false}); </script>\n");
       fprintf(C, "</body>\n");
       fprintf(C, "</html>\n");
       fclose(C);
