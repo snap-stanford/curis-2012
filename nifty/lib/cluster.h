@@ -11,11 +11,13 @@ private:
   TInt NumQuotes;
   TIntV QuoteIds;
   TInt Id;
+  TFreqTripleV PeakTimesV;
+  TFreqTripleV FreqV;
 
 public:
   TCluster();
   TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB);
-  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn){ }
+  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), PeakTimesV(SIn), TFreqTripleV(SIn){ }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   void GetRepresentativeQuoteIds(TIntV& RepQuoteIds) const;
@@ -31,12 +33,16 @@ public:
   void AddQuote(TQuoteBase *QB, TInt QuoteId);
   void SetRepresentativeQuoteIds(TIntV& QuoteIds);
 
-  void GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize);
+  void GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, bool reset = false);
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename);
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize);
 
   void MergeWithCluster(TCluster& OtherCluster, TQuoteBase *QB, bool KeepOneRepId);
   static void GetUniqueSources(TIntV& UniqueSources, TIntV& QuoteIds, TQuoteBase *QB);
+
+  //void GetFreqTimes(TFreqTripleV& FreqV, bool reset = false);
+  //void GetPeakTimes(TFreqTripleV& PeakTimesV, bool reset = false);
+  //void GetPeakAndFreqTimes(TFreqTripleV& PeakTimesV, TFreqTripleV FreqV, bool reset = false);
 };
 
 class TClusterBase {
