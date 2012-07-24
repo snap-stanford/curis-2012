@@ -36,6 +36,7 @@ public:
   void GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
   void GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TSecTm PresentTime);
   void GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
+  void GetRepresentativeUrl(TDocBase *DocBase, TStr& RepUrl);
 
   static PSwSet StopWordSet;
   static void ParseContentString(const TStr& ContentString, TStrV& ParsedString);

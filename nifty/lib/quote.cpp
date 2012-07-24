@@ -110,6 +110,31 @@ void TQuote::GetSources(TIntV &RefS) {
   RefS = Sources;
 }
 
+/// Picks the first url within the time period of the first peak
+void TQuote::GetRepresentativeUrl(TDocBase *DocBase, TStr& RepUrl) {
+  TVec<TSecTm> PeakTimesV;
+  GetPeaks(DocBase, PeakTimesV, 2, 1, TSecTm(0));
+
+  // Sort the sources by time (ascending)
+  TIntV SourcesSorted(Sources);
+  SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
+
+  // If there are no peaks, return the first document
+  if (PeakTimesV.Len() == 0) {
+    TDoc Doc;
+    DocBase->GetDoc(SourcesSorted[0], Doc);
+    Doc.GetUrl(RepUrl);
+    return;
+  }
+
+  TDoc Doc;
+  for(int i = 0; i < SourcesSorted.Len(); i++) {
+    DocBase->GetDoc(SourcesSorted[i], Doc);
+    if (PeakTimesV[0] <= Doc.GetDate()) { break; }
+  }
+  Doc.GetUrl(RepUrl);
+}
+
 void TQuote::ParseContentString(const TStr &ContentString, TStrV &ParsedString) {
   ContentString.SplitOnAllAnyCh(" ", ParsedString);
 }
