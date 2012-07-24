@@ -139,12 +139,14 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase* QB, TVec<TClu
       for (int j = 0; j < QuotesInCluster.Len(); j++) {
         TQuote Quote;
         if (QB->GetQuote(QuotesInCluster[j], Quote)) {
-          TStr QuoteStr;
+          TStr QuoteStr, QuoteRepUrl;
           Quote.GetContentString(QuoteStr);
-          fprintf(C, "<tr><td>%d</td><td><a class=\"quote\" data-toggle=\"collapse\" href=\"#quoteUrls%d\">%s</a><br />\n", Quote.GetNumSources().Val, Quote.GetId().Val, QuoteStr.CStr());
+          Quote.GetRepresentativeUrl(DB, QuoteRepUrl);
+          fprintf(C, "<tr><td>%d</td><td><a href=\"%s\">%s</a><br />\n", Quote.GetNumSources().Val, QuoteRepUrl.CStr(), QuoteStr.CStr());
+          fprintf(C, "<a data-toggle=\"collapse\" href=\"#quoteUrls%d\">Urls</a><br />\n", Quote.GetId().Val);
           TIntV QuoteSources;
           Quote.GetSources(QuoteSources);
-          fprintf(C, "<div id=\"quoteUrls%d\" class=\"collapse\">", Quote.GetId().Val);
+          fprintf(C, "<div style=\"padding-left: 10px;\" id=\"quoteUrls%d\" class=\"collapse\">", Quote.GetId().Val);
           for (int k = 0; k < QuoteSources.Len(); k++) {
             TDoc Doc;
             DB->GetDoc(QuoteSources[k], Doc);
