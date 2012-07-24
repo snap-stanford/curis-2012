@@ -99,7 +99,10 @@ TInt TQuote::GetNumSources() {
 }
 
 void TQuote::AddSource(TInt SourceId) {
-  Sources.Add(SourceId); // TODO: check to see if adding duplicate source?
+  // Only add source if it is not a duplicate
+  if (Sources.SearchForw(SourceId) < 0) {
+    Sources.Add(SourceId);
+  }
   //printf("Source added. Source ID: %d. Num sources: %d", SourceId, Sources.Len().Val());
 }
 
