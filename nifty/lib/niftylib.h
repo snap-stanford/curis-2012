@@ -5,6 +5,9 @@
 
 #include "../stdafx.h"
 
+// general
+#include "argumentparser.h"
+
 // data structures
 #include "doc.h"
 #include "quote.h"

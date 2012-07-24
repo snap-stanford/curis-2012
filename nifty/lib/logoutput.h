@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "quote.h"
+#include "cluster.h"
 
 class LogOutput {
 private:

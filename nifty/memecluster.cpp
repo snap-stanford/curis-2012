@@ -14,7 +14,7 @@ void PlotQuoteFreq(TQuoteBase *QB, TDocBase *DB, TInt BucketSize, TInt SlidingWi
     TQuote Q;
     QB->GetQuote(AllQuotes[i], Q);
     TStr Filename = TStr(Q.GetNumSources().GetStr() + "Quote" + Q.GetId().GetStr());
-    Q.GraphFreqOverTime(DB, Filename, BucketSize, SlidingWindowSize, PresentTime);
+    Q.GraphFreqOverTime(DB, Filename, BucketSize, SlidingWindowSize, PresentTime); //TODO FIX
   }
 }
 
@@ -56,35 +56,18 @@ void PrintQuoteURLs(TQuoteBase *QB, TDocBase *DB) {
 int main(int argc, char *argv[]) {
   LogOutput Log;
   THash<TStr, TStr> Arguments;
-  for (int i = 1; i < argc; i++) {
-    if (strlen(argv[i]) >= 2 && argv[i][0] == '-' && i + 1 < argc) {
-      Arguments.AddDat(TStr(argv[i] + 1), TStr(argv[i + 1]));
-      Log.LogValue(TStr(argv[i] + 1), TStr(argv[i + 1]));
-      i++;
-    } else {
-      printf("Error: incorrect format. Usage: ./memetracker [-paramName parameter]");
-      exit(1);
-    }
-  }
-  // load QB and DB. Custom variables can be added later.
-  TStr BaseString = TWOWEEK_DIRECTORY;
-  if (Arguments.IsKey("qbdb")) {
-    TStr BaseArg = Arguments.GetDat("qbdb");
-    if (BaseArg == "week") {
-      BaseString = WEEK_DIRECTORY;
-    } else if (BaseArg == "day"){
-      BaseString = DAY_DIRECTORY;
-    }
-  }
-  if (Arguments.IsKey("nolog")) {
-    Log.DisableLogging();
-  }
+  TStr BaseString;
+  ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
 
   TQuoteBase QB;
   TDocBase DB;
   fprintf(stderr, "Loading QB and DB from file...\n");
   TSecTm PresentTime = TDataLoader::LoadQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, QB, DB);
   fprintf(stderr, "Done!\n");
+
+  //TFOut FOut3("QBDB.bin");
+  //QB.Save(FOut3);
+  //DB.Save(FOut3);
 
   //PlotQuoteFreq(QB, DB, 1, 6, PresentTime);
   //PrintQuoteURLs(QB, DB);

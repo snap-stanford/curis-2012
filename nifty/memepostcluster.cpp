@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 const int FrequencyCutoff = 300;
-const double ClusterSourceOverlapThreshold = 0.3;
+const double ClusterSourceOverlapThreshold = 0.8;
 const int BucketSize = 2;
 const int SlidingWindowSize = 1;
 const int PeakThreshold = 5;
@@ -156,37 +156,8 @@ void GetTopClusters(TVec<TCluster>& SortedClusters, TVec<TCluster>& TopClusters)
 
 int main(int argc, char *argv[]) {
   LogOutput Log;
-  THash<TStr, TStr> Arguments;
-  for (int i = 1; i < argc; i++) {
-    if (strlen(argv[i]) >= 2 && argv[i][0] == '-' && i + 1 < argc) {
-      Arguments.AddDat(TStr(argv[i] + 1), TStr(argv[i + 1]));
-      Log.LogValue(TStr(argv[i] + 1), TStr(argv[i + 1]));
-      i++;
-    } else {
-      printf("Error: incorrect format. Usage: ./memepostfilter [-paramName parameter]");
-      exit(1);
-    }
-  }
-  // load QB and DB. Custom variables can be added later.
-  TStr BaseString = TWOWEEK_DIRECTORY;
-  if (Arguments.IsKey("qbdb")) {
-    TStr BaseArg = Arguments.GetDat("qbdb");
-    if (BaseArg == "week") {
-      BaseString = WEEK_DIRECTORY;
-    } else if (BaseArg == "day"){
-      BaseString = DAY_DIRECTORY;
-    }
-  }
-  if (Arguments.IsKey("nolog")) {
-    Log.DisableLogging();
-  }
 
-  fprintf(stderr, "Loading QB and DB from file...\n");
-  TQuoteBase *QB = new TQuoteBase;
-  TDocBase *DB = new TDocBase;
-  TSecTm PresentTime = TDataLoader::LoadQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, *QB, *DB);
-  fprintf(stderr, "Done!\n");
-
+  // LOAD CLUSTERS AND LOG FILE
   fprintf(stderr, "loading clusters\n");
   TVec<TIntV> Clusters;
   TVec<TCluster> ClusterSummaries;
@@ -195,7 +166,19 @@ int main(int argc, char *argv[]) {
   ClusterSummaries.Load(ClusterFile);
   TCluster tmp = ClusterSummaries[0];
   Log.Load(ClusterFile);
+  fprintf(stderr, "Clusters loaded!\n");
+
+  THash<TStr, TStr> Arguments;
+  TStr BaseString;
+  ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
+
+  fprintf(stderr, "Loading QB and DB from file...\n");
+  TQuoteBase *QB = new TQuoteBase;
+  TDocBase *DB = new TDocBase;
+  TSecTm PresentTime = TDataLoader::LoadQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, *QB, *DB);
   fprintf(stderr, "Done!\n");
+
+
 
   // Cull the cluster listing so we are only dealing with the top few clusters.
   TVec<TCluster> TopClusters;
