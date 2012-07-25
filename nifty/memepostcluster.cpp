@@ -175,7 +175,7 @@ int main(int argc, char *argv[]) {
   fprintf(stderr, "Loading QB and DB from file...\n");
   TQuoteBase *QB = new TQuoteBase;
   TDocBase *DB = new TDocBase;
-  TSecTm PresentTime = TDataLoader::LoadQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, *QB, *DB);
+  TSecTm PresentTime = TDataLoader::LoadBulkQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, *QB, *DB);
   fprintf(stderr, "Done!\n");
 
 

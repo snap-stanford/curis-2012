@@ -301,7 +301,7 @@ TInt TQuoteBase::GetQuoteId(const TStrV &Content) {
   }
 }
 
-bool TQuoteBase::GetQuote(TInt QuoteId, TQuote &RefQ) {
+bool TQuoteBase::GetQuote(TInt QuoteId, TQuote &RefQ) const {
   if (IdToTQuotes.IsKey(QuoteId)) {
     RefQ = IdToTQuotes.GetDat(QuoteId);
     return true;
@@ -309,11 +309,11 @@ bool TQuoteBase::GetQuote(TInt QuoteId, TQuote &RefQ) {
   return false;
 }
 
-int TQuoteBase::Len() {
+int TQuoteBase::Len() const {
   return IdToTQuotes.Len();
 }
 
-void TQuoteBase::GetAllQuoteIds(TIntV &KeyV) {
+void TQuoteBase::GetAllQuoteIds(TIntV &KeyV) const {
   IdToTQuotes.GetKeyV(KeyV);
 }
 

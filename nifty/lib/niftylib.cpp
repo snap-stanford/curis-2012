@@ -3,6 +3,9 @@
 #include "../stdafx.h"
 #include "niftylib.h"
 
+// general
+#include "argumentparser.cpp"
+
 // data structures
 #include "doc.cpp"
 #include "quote.cpp"
