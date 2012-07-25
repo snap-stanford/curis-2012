@@ -112,25 +112,26 @@ TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB) {
 
 /// Sorts clusters in decreasing order, and finds representative quote for each cluster
 //  RepQuotesAndFreq is a vector of cluster results, represented by TClusters
+//  TODO: Pick representative quote to be the most frequent? (rather than the longest)
 void Clustering::SortClustersByFreq(TVec<TCluster>& ClusterSummaries, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase) {
   fprintf(stderr, "Sorting clusters by frequency\n");
   for (int i = 0; i < Clusters.Len(); i++) {
     TIntV Cluster = Clusters[i];
     Cluster.SortCmp(TCmpQuoteByFreq(false, QuoteBase)); // sort by descending frequency
-    TInt RepQuoteId = 0;
     TInt NumQuotes = 0;
+    TQuote RepQuote;
+    QuoteBase->GetQuote(Cluster[0], RepQuote);  // Initialize RepQuote
     for (int j = 0; j < Cluster.Len(); j++) {
       TInt QId = Cluster[j];
       TQuote Q;
       QuoteBase->GetQuote(QId, Q);
-      NumQuotes += Q.GetNumSources();
-      TNGraph::TNode Node = QGraph->GetNodeC(Q.GetId());
-      if (Node.GetOutDeg() == 0) {
-        RepQuoteId = QId;
+      if (!QuoteGraph::EdgeShouldBeFromOneToTwo(Q, RepQuote)) {
+        RepQuote = Q;
       }
+      NumQuotes += Q.GetNumSources();
     }
     TIntV RepV;
-    RepV.Add(RepQuoteId);
+    RepV.Add(RepQuote.GetId());
     TCluster ClusterSummary(RepV, NumQuotes, Cluster, QuoteBase);
     ClusterSummaries.Add(ClusterSummary);
   }
