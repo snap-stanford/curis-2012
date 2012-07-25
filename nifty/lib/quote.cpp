@@ -230,22 +230,22 @@ TQuoteBase::TQuoteBase() {
 }
 
 /// Adds quote string to quote base; returns quote's quote id
-TQuote TQuoteBase::AddQuote(const TStr &ContentString) {
+TInt TQuoteBase::AddQuote(const TStr &ContentString) {
   TStrV ContentVectorString;
   TQuote::ParseContentString(ContentString, ContentVectorString);
   TInt QuoteId = GetNewQuoteId(ContentVectorString);
   if (IdToTQuotes.IsKey(QuoteId)) {
-    return IdToTQuotes.GetDat(QuoteId); // nothing to do here; quote is already in database
+    return QuoteId; // nothing to do here; quote is already in database
   } else {
     // otherwise, create the new TQuote and proceed.
     //printf("%d: %s\n", QuoteId.Val, ContentString.CStr());
     TQuote NewQuote(QuoteId, ContentVectorString);
     IdToTQuotes.AddDat(QuoteId, NewQuote);
-    return NewQuote;
+    return NewQuote.GetId();
   }
 }
 
-TQuote TQuoteBase::AddQuote(const TStr &ContentString, TInt SourceId) {
+TInt TQuoteBase::AddQuote(const TStr &ContentString, TInt SourceId) {
   //TQuote NewQuote = AddQuote(ContentString);
   //NewQuote.AddSource(SourceId);
   //return NewQuote;
@@ -257,14 +257,14 @@ TQuote TQuoteBase::AddQuote(const TStr &ContentString, TInt SourceId) {
     TQuote CurQuote =  IdToTQuotes.GetDat(QuoteId); // nothing to do here; quote is already in database
     CurQuote.AddSource(SourceId);
     IdToTQuotes.AddDat(QuoteId, CurQuote);
-    return CurQuote;
+    return CurQuote.GetId();
   } else {
     // otherwise, create the new TQuote and proceed.
     //printf("%d: %s\n", QuoteId.Val, ContentString.CStr());
     TQuote NewQuote(QuoteId, ContentVectorString);
     NewQuote.AddSource(SourceId);
     IdToTQuotes.AddDat(QuoteId, NewQuote);
-    return NewQuote;
+    return NewQuote.GetId();
   }
 }
 

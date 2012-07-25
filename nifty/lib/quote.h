@@ -56,8 +56,8 @@ public:
   // returns true if new TQuote created, false otherwise.
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
-  TQuote AddQuote(const TStr &ContentString);
-  TQuote AddQuote(const TStr &ContentString, TInt SourceId);
+  TInt AddQuote(const TStr &ContentString);
+  TInt AddQuote(const TStr &ContentString, TInt SourceId);
   void RemoveQuote(TInt QuoteId);
   TInt GetQuoteId(const TStrV &Content);
   TInt GetNewQuoteId(const TStrV &Content);
