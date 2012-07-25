@@ -54,20 +54,17 @@ void PrintQuoteURLs(TQuoteBase *QB, TDocBase *DB) {
 }
 
 int main(int argc, char *argv[]) {
+  bool DoIncrementalClustering;
   LogOutput Log;
   THash<TStr, TStr> Arguments;
   TStr BaseString;
-  ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
+  ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString, DoIncrementalClustering);
 
   TQuoteBase QB;
   TDocBase DB;
   fprintf(stderr, "Loading QB and DB from file...\n");
   TSecTm PresentTime = TDataLoader::LoadBulkQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, QB, DB);
   fprintf(stderr, "Done!\n");
-
-  //TFOut FOut3("QBDB.bin");
-  //QB.Save(FOut3);
-  //DB.Save(FOut3);
 
   //PlotQuoteFreq(QB, DB, 1, 6, PresentTime);
   //PrintQuoteURLs(QB, DB);
@@ -87,12 +84,21 @@ int main(int argc, char *argv[]) {
   ClusterJob.SortClustersByFreq(ClusterSummaries, Clusters, &QB);
 
   // Save to file
-  TStr Command = "mkdir -p output";
-  system(Command.CStr());
-  TFOut FOut("output/clusters.bin");
-  Clusters.Save(FOut); //TODO: rewrite the method that needs this?
-  ClusterSummaries.Save(FOut);
-  Log.Save(FOut);
+  if (!DoIncrementalClustering) {
+    TStr Command = "mkdir -p output";
+    system(Command.CStr());
+    TFOut FOut("output/clusters.bin");
+    Clusters.Save(FOut); //TODO: rewrite the method that needs this?
+    ClusterSummaries.Save(FOut);
+    Log.Save(FOut);
+  } else {
+    TStr OutputDir = "/lfs/1/tmp/curis/QBDBC/";
+    TStr FileName = "QBDBC" + PresentTime.GetDtYmdStr() + ".bin";
+    TFOut FOut(OutputDir + FileName);
+    QB.Save(FOut);
+    DB.Save(FOut);
+    Clusters.Save(FOut);
+  }
 
   /*
   // OUTPUT
