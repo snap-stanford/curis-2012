@@ -12,13 +12,15 @@ int main(int argc, char *argv[]) {
   if (!Arguments.IsKey("newday")) {
     fprintf(stderr, "Must input date of the new day to be added, in the format YYYY-MM-DD (-newday)");
   }
-  TStr NewDayDate = Arguments.GetDat("newday");
+  //TStr NewDayDate = Arguments.GetDat("newday");
+  TStr OldDayDate = "2012-07-01";
+  TStr NewDayDate = "2012-07-02";
 
   TQuoteBase QB;
   TDocBase DB;
   TVec<TCluster> ClusterSummaries;
   fprintf(stderr, "Loading cumulative QB, DB, and clusters from file...\n");
-  TDataLoader::LoadQBDBAndClusters("/lfs/1/tmp/curis/QBDBC/", NewDayDate, QB, DB, ClusterSummaries);
+  TDataLoader::LoadQBDBAndClusters("/lfs/1/tmp/curis/QBDBC/", OldDayDate, QB, DB, ClusterSummaries);
   fprintf(stderr, "Done!\n");
 
   TQuoteBase NewDayQB;
