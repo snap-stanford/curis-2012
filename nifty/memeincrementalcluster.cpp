@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
   ClusterJob.BuildClusters(MergedClusters, ClusterSummaries, QB, DB, NewDayQB, NewDayDB);
   TDataLoader::MergeQBDB(QB, DB, NewDayQB, NewDayDB);
   TVec<TCluster> MergedClusterSummaries;
-  ClusterJob.SortClustersByFreq(MergedClusterSummaries, MergedClusters, QB);
+  Clustering::SortClustersByFreq(MergedClusterSummaries, MergedClusters, QB);
 
   // Save to file
   TStr Command = "mkdir -p output";
