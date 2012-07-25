@@ -17,8 +17,8 @@ private:
   void CreateNodes();
   void CreateEdges();
   void AddEdgeIfSimilar(TInt Id1 , TInt Id2);
-  bool EdgeShouldBeCreated(TQuote& Quote1, TQuote& Quote2);
-  TInt LevenshteinDistance(TStr& Content1, TStr& Content2);
+  static bool EdgeShouldBeCreated(TQuote& Quote1, TQuote& Quote2);
+  static TInt LevenshteinDistance(TStr& Content1, TStr& Content2);
 };
 
 #endif

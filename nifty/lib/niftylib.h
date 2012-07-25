@@ -24,6 +24,8 @@
 #include "logoutput.h"
 #include "peaks.h"
 
+#include "postcluster.h"
+
 // incremental clustering
 #include "incrementalclustering.h"
 
