@@ -146,6 +146,14 @@ void TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &QB
   }
 }
 
+void TDataLoader::LoadCumulative(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB, TVec<TCluster> &C) {
+  TStr CurFileName = "CQBDB" + Date + ".bin";
+  TFIn CurFile(Prefix + CurFileName);
+  C.Load(CurFile);
+  QB.Load(CurFile);
+  DB.Load(CurFile);
+}
+
 void TDataLoader::LoadQBDB(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB) {
   TStr CurFileName = "QBDB" + Date + ".bin";
   TFIn CurFile(Prefix + CurFileName);
