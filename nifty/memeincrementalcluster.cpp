@@ -13,7 +13,9 @@ int main(int argc, char *argv[]) {
   if (!Arguments.IsKey("newday")) {
     fprintf(stderr, "Must input date of the new day to be added, in the format YYYY-MM-DD (-newday)");
   }
-  TStr NewDayDate = Arguments.GetDat("newday");
+  //TStr NewDayDate = Arguments.GetDat("newday");
+  TStr OldDayDate = "2012-07-01";
+  TStr NewDayDate = "2012-07-02";
 
   TQuoteBase QB;
   TDocBase DB;

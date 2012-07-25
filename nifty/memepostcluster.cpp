@@ -1,12 +1,6 @@
 #include "stdafx.h"
 #include <stdio.h>
 
-const int FrequencyCutoff = 300;
-const double ClusterSourceOverlapThreshold = 0.8;
-const int BucketSize = 2;
-const int SlidingWindowSize = 1;
-const int PeakThreshold = 5;
-
 int main(int argc, char *argv[]) {
   LogOutput Log;
 
@@ -32,33 +26,15 @@ int main(int argc, char *argv[]) {
   TSecTm PresentTime = TDataLoader::LoadBulkQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, *QB, *DB);
   fprintf(stderr, "Done!\n");
 
-
-
-  // Cull the cluster listing so we are only dealing with the top few clusters.
-  TVec<TCluster> TopClusters;
-  GetTopClusters(ClusterSummaries, TopClusters);
-
-  // Merge clusters whose subquotes are encompassed by parent quotes.
-  TVec<TCluster> MergedTopClusters;
-  MergeClustersBasedOnSubstrings(QB, MergedTopClusters, TopClusters, FrequencyCutoff);
-  // Merge clusters who share many similar sources.
-  MergeClustersWithCommonSources(QB, MergedTopClusters);
-
-  // Calculate and cache cluster peaks and frequency
   Log.SetupFiles(); // safe to make files now.
-  FilterAndCacheClusterPeaks(DB, QB, Log, MergedTopClusters);
-
-  // Sort remaining clusters by popularity
-  for (int i = 0; i < MergedTopClusters.Len(); i++) {
-    MergedTopClusters[i].CalculatePopularity(QB, DB, PresentTime);
-  }
-  MergedTopClusters.SortCmp(TCmpTClusterByPopularity(false));
+  TVec<TCluster> TopFilteredClusters;
+  PostCluster::GetTopFilteredClusters(DB, QB, Log, ClusterSummaries, TopFilteredClusters, PresentTime);
 
   // TODO: consider if quote is dead?
 
   // OUTPUT
   //Log.SetupFiles(); // safe to make files now.
-  Log.OutputClusterInformation(DB, QB, MergedTopClusters, PresentTime);
+  Log.OutputClusterInformation(DB, QB, TopFilteredClusters, PresentTime);
   Log.WriteClusteringOutputToFile();
 
   // plot output

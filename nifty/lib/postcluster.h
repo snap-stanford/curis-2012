@@ -8,13 +8,19 @@
 
 class PostCluster {
 private:
-  double ComputeClusterSourceOverlap(TIntV& Larger, TIntV& Smaller);
+  static double ComputeClusterSourceOverlap(TIntV& Larger, TIntV& Smaller);
 
 public:
-  void GetTopClusters(TVec<TCluster>& SortedClusters, TVec<TCluster>& TopClusters);
-  void MergeClustersBasedOnSubstrings(TQuoteBase *QB, TVec<TCluster>& MergedTopClusters,
-                                      TVec<TCluster>& ClusterSummaries, TInt FrequencyCutoff);
-  void MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>& TopClusters);
+  static const int FrequencyCutoff;
+  static const double ClusterSourceOverlapThreshold;
+  static const int BucketSize;
+  static const int SlidingWindowSize;
+  static const int PeakThreshold;
+
+  static void GetTopFilteredClusters(TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& SortedClusters, TVec<TCluster>& TopFilteredClusters, TSecTm PresentTime);
+  static void GetTopClusters(TVec<TCluster>& SortedClusters, TVec<TCluster>& TopClusters);
+  static void MergeClustersBasedOnSubstrings(TQuoteBase *QB, TVec<TCluster>& TopClusters);
+  static void MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>& TopClusters);
   static void FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& TopClusters);
 
 };

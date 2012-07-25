@@ -8,7 +8,7 @@ class TIncrementalClustering {
 private:
 
 public:
-  void BuildClusters(TVec<TIntV>& MergedClusters, TVec<TCluster>& ClusterSummaries,
+  static void BuildClusters(TVec<TIntV>& MergedClusters, TVec<TCluster>& ClusterSummaries,
                      TQuoteBase& QB, TDocBase& DB, TIntV& NewQuotes);
   static void RemoveOldClusters(TVec<TIntV>& MergedClusters, TQuoteBase& QB, TDocBase& DB);
 
