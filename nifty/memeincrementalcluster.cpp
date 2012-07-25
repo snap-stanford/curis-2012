@@ -18,21 +18,21 @@ int main(int argc, char *argv[]) {
   TDocBase DB;
   TVec<TCluster> ClusterSummaries;
   fprintf(stderr, "Loading cumulative QB, DB, and clusters from file...\n");
-  TSecTm PresentTime = TDataLoader::LoadQBDBAndClusters("/lfs/1/tmp/curis/cumulativeresults/",
-                                                        NewDayDate, QB, DB, ClusterSummaries);
+  TDataLoader::LoadQBDBAndClusters("/lfs/1/tmp/curis/QBDBC/", NewDayDate, QB, DB, ClusterSummaries);
   fprintf(stderr, "Done!\n");
 
   TQuoteBase NewDayQB;
   TDocBase NewDayDB;
   fprintf(stderr, "Loading New Day QB and DB from file...\n");
-  PresentTime = TDataLoader::LoadQBDB("/lfs/1/tmp/curis/QBDB/", NewDayDate, NewDayQB, NewDayDB);
+  TDataLoader::LoadQBDB("/lfs/1/tmp/curis/QBDB/", NewDayDate, NewDayQB, NewDayDB);
   fprintf(stderr, "Done!\n");
 
   fprintf(stderr, "Adding new quotes to clusters and creating new ones\n");
   IncrementalClustering ClusterJob;
+  // NewQuotes stores the indices (in the new QB) of the quotes that are in NewDayQB but not in QB
+  TIntV NewQuotes = TDataLoader::MergeQBDB(QB, DB, NewDayQB, NewDayDB);
   TVec<TIntV> MergedClusters;
-  ClusterJob.BuildClusters(MergedClusters, ClusterSummaries, QB, DB, NewDayQB, NewDayDB);
-  TDataLoader::MergeQBDB(QB, DB, NewDayQB, NewDayDB);
+  ClusterJob.BuildClusters(MergedClusters, ClusterSummaries, QB, DB, NewQuotes);
   TVec<TCluster> MergedClusterSummaries;
   Clustering::SortClustersByFreq(MergedClusterSummaries, MergedClusters, QB);
 
