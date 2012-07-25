@@ -8,7 +8,7 @@
 
 class PostCluster {
 private:
-  double ComputeClusterSourceOverlap(TIntV& Larger, TIntV& Smaller);
+  static double ComputeClusterSourceOverlap(TIntV& Larger, TIntV& Smaller);
 
 public:
   static const int FrequencyCutoff;
@@ -17,10 +17,10 @@ public:
   static const int SlidingWindowSize;
   static const int PeakThreshold;
 
-  void GetTopFilteredClusters(TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& SortedClusters, TVec<TCluster>& TopFilteredClusters);
-  void GetTopClusters(TVec<TCluster>& SortedClusters, TVec<TCluster>& TopClusters);
-  void MergeClustersBasedOnSubstrings(TQuoteBase *QB, TVec<TCluster>& TopClusters);
-  void MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>& TopClusters);
+  static void GetTopFilteredClusters(TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& SortedClusters, TVec<TCluster>& TopFilteredClusters, TSecTm PresentTime);
+  static void GetTopClusters(TVec<TCluster>& SortedClusters, TVec<TCluster>& TopClusters);
+  static void MergeClustersBasedOnSubstrings(TQuoteBase *QB, TVec<TCluster>& TopClusters);
+  static void MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>& TopClusters);
   static void FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& TopClusters);
 
 };

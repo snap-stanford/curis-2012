@@ -4,14 +4,18 @@ const int PostCluster::BucketSize = 2;
 const int PostCluster::SlidingWindowSize = 1;
 const int PostCluster::PeakThreshold = 5;
 
-void PostCluster::GetTopFilteredClusters(TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& SortedClusters, TVec<TCluster>& TopFilteredClusters) {
-  TVec<TCluster> TopClusters;
-  void GetTopFilteredClusters(TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& SortedClusters, TVec<TCluster>& TopFilteredClusters);
-    void GetTopClusters(TVec<TCluster>& SortedClusters, TVec<TCluster>& TopClusters);
-    void MergeClustersBasedOnSubstrings(TQuoteBase *QB, TVec<TCluster>& MergedTopClusters,
-                                        TVec<TCluster>& TopClusters, TInt FrequencyCutoff);
-    void MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>& TopClusters);
-    static void FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& TopClusters);
+void PostCluster::GetTopFilteredClusters(TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& SortedClusters, TVec<TCluster>& TopFilteredClusters, TSecTm PresentTime) {
+  GetTopClusters(SortedClusters, TopFilteredClusters);
+  MergeClustersBasedOnSubstrings(QB, TopFilteredClusters);
+  MergeClustersWithCommonSources(QB, TopFilteredClusters);
+  FilterAndCacheClusterPeaks(DB, QB, Log, TopFilteredClusters);
+
+  // sort by popularity
+  // Sort remaining clusters by popularity
+  for (int i = 0; i < TopFilteredClusters.Len(); i++) {
+    TopFilteredClusters[i].CalculatePopularity(QB, DB, PresentTime);
+  }
+  TopFilteredClusters.SortCmp(TCmpTClusterByPopularity(false));
 }
 
 void PostCluster::GetTopClusters(TVec<TCluster>& SortedClusters, TVec<TCluster>& TopClusters) {
