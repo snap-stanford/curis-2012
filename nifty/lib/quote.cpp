@@ -98,10 +98,12 @@ TInt TQuote::GetNumSources() {
   return Sources.Len();
 }
 
-void TQuote::AddSource(TInt SourceId) {
+void TQuote::AddSource(TDoc& SourceDoc) {
   // Only add source if it is not a duplicate
+  TInt SourceId = SourceDoc.GetId();
   if (Sources.SearchForw(SourceId) < 0) {
     Sources.Add(SourceId);
+    SourceDoc.IncNumQuotes();
   }
   //printf("Source added. Source ID: %d. Num sources: %d", SourceId, Sources.Len().Val());
 }
@@ -245,9 +247,9 @@ TInt TQuoteBase::AddQuote(const TStr &ContentString) {
   }
 }
 
-TInt TQuoteBase::AddQuote(const TStr &ContentString, TInt SourceId) {
+TInt TQuoteBase::AddQuote(const TStr &ContentString, TDoc& SourceDoc) {
   //TQuote NewQuote = AddQuote(ContentString);
-  //NewQuote.AddSource(SourceId);
+  //NewQuote.AddSource(SourceDoc);
   //return NewQuote;
 
   TStrV ContentVectorString;
@@ -255,29 +257,39 @@ TInt TQuoteBase::AddQuote(const TStr &ContentString, TInt SourceId) {
   TInt QuoteId = GetNewQuoteId(ContentVectorString);
   if (IdToTQuotes.IsKey(QuoteId)) {
     TQuote CurQuote =  IdToTQuotes.GetDat(QuoteId); // nothing to do here; quote is already in database
-    CurQuote.AddSource(SourceId);
+    CurQuote.AddSource(SourceDoc);
     IdToTQuotes.AddDat(QuoteId, CurQuote);
     return CurQuote.GetId();
   } else {
     // otherwise, create the new TQuote and proceed.
     //printf("%d: %s\n", QuoteId.Val, ContentString.CStr());
     TQuote NewQuote(QuoteId, ContentVectorString);
-    NewQuote.AddSource(SourceId);
+    NewQuote.AddSource(SourceDoc);
     IdToTQuotes.AddDat(QuoteId, NewQuote);
     return NewQuote.GetId();
   }
 }
 
-void TQuoteBase::RemoveQuote(TInt QuoteId) {
+void TQuoteBase::RemoveQuoteAndSources(TDocBase *DB, TInt QuoteId) {
   // TODO: memory management
   if (IdToTQuotes.IsKey(QuoteId)) {
     TQuote CurQuote = IdToTQuotes.GetDat(QuoteId);
+    TIntV CurSources;
+    CurQuote.GetSources(CurSources);
     TStrV CurContent;
     CurQuote.GetContent(CurContent);
     if (QuoteToId.IsKey(CurContent)) {
       QuoteToId.DelKey(CurContent);
     }
     IdToTQuotes.DelKey(QuoteId);
+    for (int i = 0; i < CurSources.Len(); i++) {
+      TDoc Doc;
+      DB->GetDoc(CurSources[i], Doc);
+      Doc.DecNumSources();
+      if (Doc.GetNumSources() <= 0) {
+        DB->RemoveDoc(Doc.GetId());
+      }
+    }
   }
 }
 
