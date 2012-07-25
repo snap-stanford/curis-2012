@@ -22,3 +22,5 @@
 #include "logoutput.cpp"
 #include "peaks.cpp"
 
+// incremental clustering
+#include "incrementalclustering.cpp"
