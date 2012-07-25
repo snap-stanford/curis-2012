@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
     TFOut FOut(OutputDir + FileName);
     QB.Save(FOut);
     DB.Save(FOut);
-    Clusters.Save(FOut);
+    ClusterSummaries.Save(FOut);
   }
 
   /*
