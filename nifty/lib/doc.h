@@ -6,6 +6,8 @@
 class TDoc {
 private:
   TInt Id;
+  // Number of quotes in the QuoteBase that have this document as a source
+  TInt NumQuotes;
   TStr Url;
   TSecTm Date;
   TStr Content;
@@ -18,12 +20,16 @@ public:
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   TInt GetId() const;
+  TInt GetNumQuotes() const;
   void GetUrl(TStr &Ref);
   TSecTm GetDate() const;
   void GetContent(TStr &Ref);
   void GetLinks(TStrV &RefL);
 
   void SetId(TInt Id);
+  void IncNumQuotes();
+  void DecNumQuotes();
+  void SetNumQuotes(TInt NumQuotes);
   void SetUrl(const TStr &Url);
   void SetDate(TSecTm Date);
   void SetContent(const TStr &Content);

@@ -30,3 +30,8 @@ void TIncrementalClustering::BuildClusters(TVec<TIntV>& MergedClusters, TVec<TCl
   }
   return;
 }
+
+/// Remove clusters whose quotes have fewer than five sources (total) per day for the last three days
+void TIncrementalClustering::RemoveOldClusters(TVec<TIntV>& MergedClusters, TQuoteBase& QB, TDocBase& DB) {
+  return;
+}
