@@ -109,8 +109,9 @@ bool TDataLoader::LoadNextEntry() {
 	return true;
 }
 
-// Merge QBDB2 into QBDB1
-void TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &QB2, const TDocBase &DB2) {
+/// Merge QBDB2 into QBDB1; returns the indices (in the new QB1) of the quotes in QB2
+//  that are not in QB1
+TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &QB2, const TDocBase &DB2) {
   THashSet<TInt> SeenDocSet;
 
   TIntV DocIds2;
@@ -125,6 +126,7 @@ void TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &QB
     }
   }
 
+  TIntV NewQuoteIds;
   TIntV QuoteIds2;
   QB2.GetAllQuoteIds(QuoteIds2);
   for (int i = 0; i < QuoteIds2.Len(); i++) {
@@ -135,6 +137,13 @@ void TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &QB
     TIntV Sources;
     Q.GetSources(Sources);
 
+    TStrV QContentVectorString;
+    TQuote::ParseContentString(QContentString, QContentVectorString);
+    // Make note if the quote does not exist in QB1
+    if (QB1.GetQuoteId(QContentVectorString) < 0) {
+      TInt QId = QB1.AddQuote(QContentString);
+      NewQuoteIds.Add(QId);
+    }
     for (int j = 0; j < Sources.Len(); j++) {
       if (!SeenDocSet.IsKey(Sources[j])) {
         TDoc D;
@@ -144,6 +153,8 @@ void TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &QB
       }
     }
   }
+
+  return NewQuoteIds;
 }
 
 void TDataLoader::LoadCumulative(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB, TVec<TCluster> &C) {

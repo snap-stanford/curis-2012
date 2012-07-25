@@ -26,4 +26,7 @@
 
 #include "postcluster.h"
 
+// incremental clustering
+#include "incrementalclustering.h"
+
 #endif
