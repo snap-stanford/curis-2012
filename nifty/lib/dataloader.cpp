@@ -109,55 +109,67 @@ bool TDataLoader::LoadNextEntry() {
 	return true;
 }
 
-TSecTm TDataLoader::LoadQBDB(const TStr &Prefix, const TStr &InFileName, TQuoteBase &QB, TDocBase &DB) {
-  THashSet<TMd5Sig> SeenUrlSet(Mega(100), true);
+// Merge QBDB2 into QBDB1
+void TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &QB2, const TDocBase &DB2) {
+  THashSet<TInt> SeenDocSet;
+
+  TIntV DocIds2;
+  DB2.GetAllDocIds(DocIds2);
+  for (int i = 0; i < DocIds2.Len(); i++) {
+    TDoc D;
+    DB2.GetDoc(DocIds2[i], D);
+    TStr DUrl;
+    D.GetUrl(DUrl);
+    if (DB1.GetDocId(DUrl) != -1) {
+      SeenDocSet.AddKey(DocIds2[i]);
+    }
+  }
+
+  TIntV QuoteIds2;
+  QB2.GetAllQuoteIds(QuoteIds2);
+  for (int i = 0; i < QuoteIds2.Len(); i++) {
+    TQuote Q;
+    QB2.GetQuote(QuoteIds2[i], Q);
+    TStr QContentString;
+    Q.GetContentString(QContentString);
+    TIntV Sources;
+    Q.GetSources(Sources);
+
+    for (int j = 0; j < Sources.Len(); j++) {
+      if (!SeenDocSet.IsKey(Sources[j])) {
+        TDoc D;
+        DB2.GetDoc(Sources[j], D);
+        TInt NewSourceId = DB1.AddDoc(D);
+        QB1.AddQuote(QContentString, NewSourceId);
+      }
+    }
+  }
+}
+
+void TDataLoader::LoadCumulative(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB, TVec<TCluster> &C) {
+  TStr CurFileName = "CQBDB" + Date + ".bin";
+  TFIn CurFile(Prefix + CurFileName);
+  C.Load(CurFile);
+  QB.Load(CurFile);
+  DB.Load(CurFile);
+}
+
+void TDataLoader::LoadQBDB(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB) {
+  TStr CurFileName = "QBDB" + Date + ".bin";
+  TFIn CurFile(Prefix + CurFileName);
+  QB.Load(CurFile);
+  DB.Load(CurFile);
+}
+
+TSecTm TDataLoader::LoadBulkQBDB(const TStr &Prefix, const TStr &InFileName, TQuoteBase &QB, TDocBase &DB) {
   PSIn InFileNameF = TFIn::New(InFileName);
   TStr Date;
   TStr CurrentDate;
   while (!InFileNameF->Eof() && InFileNameF->GetNextLn(Date)) {
-    TStr CurFileName = "QBDB" + Date + ".bin";
-    TFIn CurFile(Prefix + CurFileName);
-    THashSet<TInt> SeenDocSet;
-
     TQuoteBase TmpQB;
     TDocBase TmpDB;
-    TmpQB.Load(CurFile);
-    TmpDB.Load(CurFile);
-
-    TIntV DocIds;
-    TmpDB.GetAllDocIds(DocIds);
-    for (int i = 0; i < DocIds.Len(); i++) {
-      TDoc D;
-      TmpDB.GetDoc(DocIds[i], D);
-      TStr DUrl;
-      D.GetUrl(DUrl);
-      TMd5Sig UrlSig = TMd5Sig(DUrl);
-      if (SeenUrlSet.IsKey(UrlSig)) {
-        SeenDocSet.AddKey(DocIds[i]);
-        continue;
-      }
-      SeenUrlSet.AddKey(UrlSig);
-    }
-
-    TIntV QuoteIds;
-    TmpQB.GetAllQuoteIds(QuoteIds);
-    for (int i = 0; i < QuoteIds.Len(); i++) {
-      TQuote Q;
-      TmpQB.GetQuote(QuoteIds[i], Q);
-      TStr QContentString;
-      Q.GetContentString(QContentString);
-      TIntV Sources;
-      Q.GetSources(Sources);
-
-      for (int j = 0; j < Sources.Len(); j++) {
-        if (!SeenDocSet.IsKey(Sources[j])) {
-          TDoc D;
-          TmpDB.GetDoc(Sources[j], D);
-          TInt NewSourceId = DB.AddDoc(D);
-          QB.AddQuote(QContentString, NewSourceId);
-        }
-      }
-    }
+    LoadQBDB(Prefix, Date, TmpQB, TmpDB);
+    MergeQBDB(QB, DB, TmpQB, TmpDB);
     CurrentDate = Date;
   }
   return TSecTm::GetDtTmFromYmdHmsStr(CurrentDate + " 23:00:00");

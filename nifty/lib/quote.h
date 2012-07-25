@@ -61,9 +61,9 @@ public:
   void RemoveQuote(TInt QuoteId);
   TInt GetQuoteId(const TStrV &Content);
   TInt GetNewQuoteId(const TStrV &Content);
-  bool GetQuote(TInt QuoteId, TQuote &RefQ);
-  void GetAllQuoteIds(TIntV &KeyV);
-  int Len();
+  bool GetQuote(TInt QuoteId, TQuote &RefQ) const;
+  void GetAllQuoteIds(TIntV &KeyV) const;
+  int Len() const;
   bool IsSubstring(TInt QuoteId1, TInt QuoteId2);
 };
 
