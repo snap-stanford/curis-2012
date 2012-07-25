@@ -1,12 +1,6 @@
 #include "stdafx.h"
 #include <stdio.h>
 
-const int FrequencyCutoff = 300;
-const double ClusterSourceOverlapThreshold = 0.8;
-const int BucketSize = 2;
-const int SlidingWindowSize = 1;
-const int PeakThreshold = 5;
-
 int main(int argc, char *argv[]) {
   LogOutput Log;
 
@@ -31,8 +25,6 @@ int main(int argc, char *argv[]) {
   TDocBase *DB = new TDocBase;
   TSecTm PresentTime = TDataLoader::LoadBulkQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, *QB, *DB);
   fprintf(stderr, "Done!\n");
-
-
 
   // Cull the cluster listing so we are only dealing with the top few clusters.
   TVec<TCluster> TopClusters;
