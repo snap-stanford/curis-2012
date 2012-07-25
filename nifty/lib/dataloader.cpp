@@ -146,19 +146,21 @@ void TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &QB
   }
 }
 
+void TDataLoader::LoadQBDB(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB) {
+  TStr CurFileName = "QBDB" + Date + ".bin";
+  TFIn CurFile(Prefix + CurFileName);
+  QB.Load(CurFile);
+  DB.Load(CurFile);
+}
+
 TSecTm TDataLoader::LoadBulkQBDB(const TStr &Prefix, const TStr &InFileName, TQuoteBase &QB, TDocBase &DB) {
   PSIn InFileNameF = TFIn::New(InFileName);
   TStr Date;
   TStr CurrentDate;
   while (!InFileNameF->Eof() && InFileNameF->GetNextLn(Date)) {
-    TStr CurFileName = "QBDB" + Date + ".bin";
-    TFIn CurFile(Prefix + CurFileName);
-
     TQuoteBase TmpQB;
     TDocBase TmpDB;
-    TmpQB.Load(CurFile);
-    TmpDB.Load(CurFile);
-
+    LoadQBDB(Prefix, Date, TmpQB, TmpDB);
     MergeQBDB(QB, DB, TmpQB, TmpDB);
     CurrentDate = Date;
   }
