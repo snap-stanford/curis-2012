@@ -24,4 +24,6 @@
 #include "logoutput.h"
 #include "peaks.h"
 
+#include "postcluster.h"
+
 #endif

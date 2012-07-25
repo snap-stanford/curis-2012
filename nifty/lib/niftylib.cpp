@@ -21,3 +21,5 @@
 #include "clusterplot.cpp"
 #include "logoutput.cpp"
 #include "peaks.cpp"
+
+#include "postcluster.cpp"
