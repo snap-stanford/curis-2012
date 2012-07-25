@@ -9,6 +9,7 @@ public:
   void CreateGraph(PNGraph& QGraph);
   static TInt WordLevenshteinDistance(TStrV& Content1, TStrV& Content2);
   static bool EdgeShouldBeFromOneToTwo(TQuote& Quote1, TQuote& Quote2);
+  static bool EdgeShouldBeCreated(TQuote& Quote1, TQuote& Quote2);
 
 private:
   TInt EdgeCount;
@@ -17,7 +18,6 @@ private:
   void CreateNodes();
   void CreateEdges();
   void AddEdgeIfSimilar(TInt Id1 , TInt Id2);
-  static bool EdgeShouldBeCreated(TQuote& Quote1, TQuote& Quote2);
   static TInt LevenshteinDistance(TStr& Content1, TStr& Content2);
 };
 
