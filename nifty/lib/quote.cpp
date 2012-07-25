@@ -285,8 +285,8 @@ void TQuoteBase::RemoveQuoteAndSources(TDocBase *DB, TInt QuoteId) {
     for (int i = 0; i < CurSources.Len(); i++) {
       TDoc Doc;
       DB->GetDoc(CurSources[i], Doc);
-      Doc.DecNumSources();
-      if (Doc.GetNumSources() <= 0) {
+      Doc.DecNumQuotes();
+      if (Doc.GetNumQuotes() <= 0) {
         DB->RemoveDoc(Doc.GetId());
       }
     }
