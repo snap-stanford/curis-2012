@@ -6,6 +6,7 @@ TDoc::TDoc() {
 
 TDoc::TDoc(TInt Id, const TChA &Url, TSecTm Date, const TChA &Content, const TVec<TChA> &Links) {
   // TODO: Check that URLs are not repeated
+  this->NumQuotes = TInt(0);
   this->Url = TStr(Url);
   this->Date = Date;
   this->Content = TStr(Content);
@@ -36,6 +37,10 @@ TInt TDoc::GetId() const {
   return Id;
 }
 
+TInt TDoc::GetNumQuotes() const {
+  return NumQuotes;
+}
+
 void TDoc::GetUrl(TStr &Ref) {
   Ref = Url;
 }
@@ -54,6 +59,18 @@ void TDoc::GetLinks(TStrV &RefL) {
 
 void TDoc::SetId(TInt Id) {
   this->Id = Id;
+}
+
+void TDoc::IncNumQuotes() {
+  this->NumQuotes += 1;
+}
+
+void TDoc::DecNumQuotes() {
+  this->NumQuotes -= 1;
+}
+
+void TDoc::SetNumQuotes(TInt NumQuotes) {
+  this->NumQuotes = NumQuotes;
 }
 
 void TDoc::SetUrl(const TStr &Url) {
@@ -135,6 +152,7 @@ TInt TDocBase::AddDoc(TDoc &Doc) {
     NextId += 1;
     NumDocs += 1;
     Doc.SetId(NextId);
+    Doc.SetNumQuotes(0);
     IdToDoc.AddDat(DocId, Doc);
     DocUrlToId.AddDat(DocUrl, DocId);
     return DocId;

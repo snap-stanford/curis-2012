@@ -18,6 +18,8 @@ int main(int argc, char *argv[]) {
   TStr OldDayDate = "2012-07-01";
   TStr NewDayDate = "2012-07-02";
 
+  TSecTm PresentTime = TSecTm::GetDtTmFromYmdHmsStr(NewDayDate + " 23:59:59");
+
   TQuoteBase QB;
   TDocBase DB;
   TVec<TCluster> ClusterSummaries;
@@ -32,20 +34,25 @@ int main(int argc, char *argv[]) {
   fprintf(stderr, "Done!\n");
 
   fprintf(stderr, "Adding new quotes to clusters and creating new ones\n");
-  TIncrementalClustering ClusterJob;
   // NewQuotes stores the indices (in the new QB) of the quotes that are in NewDayQB but not in QB
   TIntV NewQuotes = TDataLoader::MergeQBDB(QB, DB, NewDayQB, NewDayDB);
+
+  TVec<TIntV> TempMergedClusters;
+  TIncrementalClustering::BuildClusters(TempMergedClusters, ClusterSummaries, QB, DB, NewQuotes);
   TVec<TIntV> MergedClusters;
-  ClusterJob.BuildClusters(MergedClusters, ClusterSummaries, QB, DB, NewQuotes);
+  TIncrementalClustering::RemoveOldClusters(MergedClusters, TempMergedClusters, QB, DB, PresentTime);
   TVec<TCluster> MergedClusterSummaries;
   Clustering::SortClustersByFreq(MergedClusterSummaries, MergedClusters, &QB);
 
   // Save to file
-  TStr Command = "mkdir -p output";
-  system(Command.CStr());
-  TFOut FOut("output/cumulativeclusters" + NewDayDate + ".bin");
+  //TStr Command = "mkdir -p output";
+  //system(Command.CStr());
+  //TFOut FOut("output/cumulativeclusters" + NewDayDate + ".bin");
+  fprintf(stderr, "Saving new cumulative QB, DB, and clusters from file...\n");
+  TFOut FOut("/lfs/1/tmp/curis/QBDBC/QBDBC" + NewDayDate + ".bin");
+  QB.Save(FOut);
+  DB.Save(FOut);
   MergedClusterSummaries.Save(FOut);
-
   printf("Done!\n");
   return 0;
 }

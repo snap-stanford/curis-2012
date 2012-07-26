@@ -1,5 +1,8 @@
 #include "stdafx.h"
-#include "dataloader.h"
+#include "incrementalclustering.h"
+
+const TInt TIncrementalClustering::DayThreshold = 3;
+const TInt TIncrementalClustering::QuoteThreshold = 20;
 
 void TIncrementalClustering::BuildClusters(TVec<TIntV>& MergedClusters, TVec<TCluster>& ClusterSummaries,
                                            TQuoteBase& QB, TDocBase& DB, TIntV& NewQuotes) {
@@ -35,6 +38,38 @@ void TIncrementalClustering::BuildClusters(TVec<TIntV>& MergedClusters, TVec<TCl
       }
     }
     fprintf(stderr, "%d out of %d new quotes processed\n\n\n", i + 1, NewQuotes.Len());
+  }
+
+  return;
+}
+
+/// Remove clusters whose quotes have fewer than QuoteThreshold sources (total) for the last three days
+void TIncrementalClustering::RemoveOldClusters(TVec<TIntV>& NewMergedClusters, TVec<TIntV>& MergedClusters,
+                                               TQuoteBase& QB, TDocBase& DB, TSecTm PresentTime) {
+  for (int i = 0; i < MergedClusters.Len(); i++) {
+    TIntV ClusterQuotes = MergedClusters[i];
+    TInt NumRecentSources = 0;
+    TIntSet AllSources;
+    for (int j = 0; j < ClusterQuotes.Len(); j++) {
+      TQuote Q;
+      QB.GetQuote(ClusterQuotes[j], Q);
+      TIntV QSources;
+      Q.GetSources(QSources);
+      AllSources.AddKeyV(QSources);
+    }
+
+    TUInt ThresholdTime = PresentTime.GetAbsSecs() - DayThreshold * Peaks::NumSecondsInDay;
+    for (TIntSet::TIter SourceId = AllSources.BegI(); SourceId < AllSources.EndI(); SourceId++) {
+      TDoc Doc;
+      DB.GetDoc(*SourceId, Doc);
+      if (Doc.GetDate().GetAbsSecs() >= ThresholdTime) {
+        NumRecentSources += 1;
+      }
+    }
+
+    if (NumRecentSources >= QuoteThreshold) {
+      NewMergedClusters.Add(ClusterQuotes);
+    }
   }
   return;
 }
