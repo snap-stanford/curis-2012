@@ -11,6 +11,9 @@ void TIncrementalClustering::BuildClusters(TVec<TIntV>& MergedClusters, TVec<TCl
   for (int i = 0; i < NewQuotes.Len(); i++) {
     TQuote NewQ;
     QB.GetQuote(NewQuotes[i], NewQ);
+    TStr NewStr;
+    NewQ.GetContentString(NewStr);
+    fprintf(stderr, "1: %s\n", NewStr.CStr());
     for (int j = 0; j < ClusterSummaries.Len(); j++) {
       TIntV QuoteIds;
       ClusterSummaries[j].GetQuoteIds(QuoteIds);
@@ -22,11 +25,16 @@ void TIncrementalClustering::BuildClusters(TVec<TIntV>& MergedClusters, TVec<TCl
           NumSimilar++;
         }
       }
-      if (5 * NumSimilar >= 4 * QuoteIds.Len()) {
+      // if (5 * NumSimilar >= 4 * QuoteIds.Len()) {
+      if (NumSimilar > 0) {
         MergedClusters[j].Add(NewQuotes[i]);
+        TStr RepStr;
+        ClusterSummaries[j].GetRepresentativeQuoteString(RepStr, &QB);
+        fprintf(stderr, "2: %s\n", RepStr.CStr());
         break;
       }
     }
+    fprintf(stderr, "%d out of %d new quotes processed\n\n\n", i + 1, NewQuotes.Len());
   }
   return;
 }
