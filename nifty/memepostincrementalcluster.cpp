@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
   ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString, DoIncrementalClustering);
 
   if (!Arguments.IsKey("newday")) {
-    fprintf(stderr, "Must input date of the new day to be added, in the format YYYY-MM-DD (-newday)");
+    fprintf(stderr, "Must input date of the new day to be added, in the format YYYY-MM-DD (-newday)\n");
   }
   TStr NewDayDate = Arguments.GetDat("newday");
   TSecTm PresentTime = TSecTm::GetDtTmFromYmdHmsStr(NewDayDate + " 23:59:59");

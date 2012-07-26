@@ -32,7 +32,7 @@ void TIncrementalClustering::BuildClusters(TVec<TIntV>& MergedClusters, TVec<TCl
       if (NumSimilar > 0) {
         MergedClusters[j].Add(NewQuotes[i]);
         TStr RepStr;
-        ClusterSummaries[j].GetRepresentativeQuoteString(RepStr, &QB);
+        MergedClusters[j].GetRepresentativeQuoteString(RepStr, &QB);
         fprintf(stderr, "2: %s\n", RepStr.CStr());
         break;
       }
