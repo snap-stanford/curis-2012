@@ -31,9 +31,11 @@ void TIncrementalClustering::BuildClusters(TVec<TIntV>& MergedClusters, TVec<TCl
       // if (5 * NumSimilar >= 4 * QuoteIds.Len()) {
       if (NumSimilar > 0) {
         MergedClusters[j].Add(NewQuotes[i]);
-        TStr RepStr;
-        MergedClusters[j].GetRepresentativeQuoteString(RepStr, &QB);
-        fprintf(stderr, "2: %s\n", RepStr.CStr());
+        TQuote RepQuote;
+        Clustering::CalcRepresentativeQuote(RepQuote, MergedClusters[j], &QB);
+        TStr RepQuoteStr;
+        RepQuote.GetContentString(RepQuoteStr);
+        fprintf(stderr, "2: %s\n", RepQuoteStr.CStr());
         break;
       }
     }
