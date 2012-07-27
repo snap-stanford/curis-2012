@@ -158,12 +158,13 @@ TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &Q
   return NewQuoteIds;
 }
 
-void TDataLoader::LoadCumulative(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB, TVec<TCluster> &C) {
+void TDataLoader::LoadCumulative(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB, TVec<TCluster> &C, PNGraph& P) {
   TStr CurFileName = "QBDBC" + Date + ".bin";
   TFIn CurFile(Prefix + CurFileName);
   QB.Load(CurFile);
   DB.Load(CurFile);
   C.Load(CurFile);
+  P = TNGraph::Load(CurFile);
 }
 
 void TDataLoader::LoadQBDB(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB) {

@@ -65,6 +65,8 @@ public:
   void GetAllQuoteIds(TIntV &KeyV) const;
   int Len() const;
   bool IsSubstring(TInt QuoteId1, TInt QuoteId2);
+  bool Exists(TInt QuoteId1);
+  TInt GetCurCounterValue();
 };
 
 // Compares two quotes by their frequency

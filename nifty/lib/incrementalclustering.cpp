@@ -45,7 +45,7 @@ void TIncrementalClustering::BuildClusters(TVec<TIntV>& MergedClusters, TVec<TCl
       }
     }
   }
-    printf("Edge creation complete! %d edges created.\n", EdgeCount.Val);
+
   for (int i = 0; i < ClusterSummaries.Len(); i++) {
     TIntV QuoteIds;
     ClusterSummaries[i].GetQuoteIds(QuoteIds);
@@ -57,9 +57,8 @@ void TIncrementalClustering::BuildClusters(TVec<TIntV>& MergedClusters, TVec<TCl
     TStr NewStr;
     NewQ.GetContentString(NewStr);
     fprintf(stderr, "1: %s\n", NewStr.CStr());
-    for (int j = 0; j < ClusterSummaries.Len(); j++) {
-      TIntV QuoteIds;
-      ClusterSummaries[j].GetQuoteIds(QuoteIds);
+    for (int j = 0; j < MergedClusters.Len(); j++) {
+      TIntV QuoteIds = MergedClusters[j];
       int NumSimilar = 0;
       for (int k = 0; k < QuoteIds.Len(); k++) {
         TQuote Q;
@@ -71,12 +70,18 @@ void TIncrementalClustering::BuildClusters(TVec<TIntV>& MergedClusters, TVec<TCl
       // if (5 * NumSimilar >= 4 * QuoteIds.Len()) {
       if (NumSimilar > 0) {
         MergedClusters[j].Add(NewQuotes[i]);
-        TStr RepStr;
-        ClusterSummaries[j].GetRepresentativeQuoteString(RepStr, &QB);
-        fprintf(stderr, "2: %s\n", RepStr.CStr());
+        TQuote RepQuote;
+        Clustering::CalcRepresentativeQuote(RepQuote, MergedClusters[j], &QB);
+        TStr RepQuoteStr;
+        RepQuote.GetContentString(RepQuoteStr);
+        fprintf(stderr, "2: %s\n", RepQuoteStr.CStr());
         break;
       }
     }
+    // Add new cluster if this new quote does not match to any of the previous clusters
+    TIntV NewCluster;
+    NewCluster.Add(NewQuotes[i]);
+    MergedClusters.Add(NewCluster);
     fprintf(stderr, "%d out of %d new quotes processed\n\n\n", i + 1, NewQuotes.Len());
   }
 

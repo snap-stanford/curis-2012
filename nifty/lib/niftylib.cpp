@@ -26,3 +26,5 @@
 
 // incremental clustering
 #include "incrementalclustering.cpp"
+#include "incrementalquotegraph.cpp"
+#include "incrementalclustering2.cpp"

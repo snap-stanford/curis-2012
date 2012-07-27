@@ -7,11 +7,11 @@
 #include "logoutput.h"
 
 class Clustering {
-private:
+protected:
   PNGraph QGraph;
   LogOutput log;
   static TFlt ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB);
-  static void KeepAtMostOneChildPerNode(PNGraph& G, TIntSet& RootNodes, TQuoteBase *QB, TDocBase *DB);
+  virtual void KeepAtMostOneChildPerNode(PNGraph& G, TIntSet& RootNodes, TQuoteBase *QB, TDocBase *DB);
   static void GetAllWCCs(PNGraph& G, TVec<TIntV>& Clusters);
 
 public:
@@ -19,7 +19,8 @@ public:
   void Load(TSIn& SIn);
   void SetGraph(PNGraph QGraph);
   void GetRootNodes(TIntSet& RootNodes);
-  void BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase *QB, TDocBase *DB, LogOutput& log);
+  virtual void BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase *QB, TDocBase *DB, LogOutput& log);
+  static TInt CalcRepresentativeQuote(TQuote& RepQuote, TIntV& Cluster, TQuoteBase *QuoteBase);
   static void SortClustersByFreq(TVec<TCluster>& ClusterSummaries, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase);
 };
 
