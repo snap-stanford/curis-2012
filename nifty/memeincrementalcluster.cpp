@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
   TVec<TCluster> ClusterSummaries;
   PNGraph OldQGraph;
   fprintf(stderr, "Loading cumulative QB, DB, and clusters from file...\n");
-  TDataLoader::LoadCumulative("/lfs/1/tmp/curis/QBDBC/", OldDayDate, QB, DB, ClusterSummaries, OldQGraph);
+  TDataLoader::LoadCumulative(TStr("/lfs/1/tmp/curis/QBDBC/"), OldDayDate, QB, DB, ClusterSummaries, OldQGraph);
   fprintf(stderr, "Done!\n");
 
   TQuoteBase NewDayQB;
