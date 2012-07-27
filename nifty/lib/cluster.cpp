@@ -173,12 +173,15 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
   //GP.SavePng(Filename + ".png", 1000, 800, TStr(), SetXTic);
 }
 
-/// Merges OtherCluster into this cluster
+/// Merges OtherCluster into this cluster; **For the quotes in OtherCluster, updates the
+//  quote id to cluster id mappings to point to this cluster
 void TCluster::MergeWithCluster(TCluster& OtherCluster, TQuoteBase *QB, bool KeepOneRepId) {
   // Put the quote ids of the two clusters together into one vector
   TIntV OtherQuoteIds;
   OtherCluster.GetQuoteIds(OtherQuoteIds);
   QuoteIds.AddV(OtherQuoteIds);
+
+  // Update the mappings in ClusterBase for the new quote ids
 
   // Only count the unique sources for the new frequency of the cluster
   TIntV UniqueSources;
@@ -254,6 +257,16 @@ bool TClusterBase::AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterI
     return true;
   } else {
     return false;
+  }
+}
+
+/// Just removes the cluster from the IdToTCluster table;
+//  doesn't update the quote id to cluster id mappings
+void TClusterBase::RemoveCluster(TInt ClusterId) {
+  if (IdToTCluster.IsKey(ClusterId)) {
+    TCluster C;
+    GetCluster(ClusterId, C);
+    IdToTCluster.DelKey(C.GetId());
   }
 }
 

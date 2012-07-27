@@ -61,6 +61,7 @@ public:
   void Load(TSIn& SIn);
   TInt AddCluster(const TCluster& Cluster);
   bool AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterId);
+  void RemoveCluster(TInt ClusterId);
 
   bool GetCluster(TInt ClusterId, TCluster &RefC);
   TInt GetClusterIdFromQuoteId(TInt QuoteId);
