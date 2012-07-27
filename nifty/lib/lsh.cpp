@@ -67,7 +67,7 @@ void LSH::GetHashedShinglesOfCluster(TQuoteBase *QuoteBase, TCluster& C, TInt Sh
 }
 
 /// Shingles by words
-void LSH::HashShinglesOfClusters(TQuoteBase *QuoteBase, TClusterBase *ClusterBase, TInt ShingleLen, THash<TMd5Sig, TIntSet>& ShingleToClusterIds) {
+void LSH::HashShinglesOfClusters(TQuoteBase *QuoteBase, TClusterBase *ClusterBase, TInt ShingleLen, THash<TMd5Sig, TIntV>& ShingleToClusterIds) {
   fprintf(stderr, "Hashing shingles of clusters...\n");
   TIntV ClusterIds;
   ClusterBase->GetAllClusterIds(ClusterIds);
@@ -82,11 +82,11 @@ void LSH::HashShinglesOfClusters(TQuoteBase *QuoteBase, TClusterBase *ClusterBas
     THashSet<TMd5Sig> CHashedShingles;
     GetHashedShinglesOfCluster(QuoteBase, C, ShingleLen, CHashedShingles);
     for (THashSet<TMd5Sig>::TIter Hash = CHashedShingles.BegI(); Hash < CHashedShingles.EndI(); Hash++) {
-      TIntSet ShingleClusterIds;
+      TIntV ShingleClusterIds;
       if (ShingleToClusterIds.IsKey(*Hash)) {
         ShingleClusterIds = ShingleToClusterIds.GetDat(*Hash);
       }
-      ShingleClusterIds.AddKey(C.GetId());
+      ShingleClusterIds.Add(C.GetId());
       ShingleToClusterIds.AddDat(*Hash, ShingleClusterIds);
     }
   }
