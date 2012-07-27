@@ -65,7 +65,7 @@ public:
   bool GetCluster(TInt ClusterId, TCluster &RefC);
   TInt GetClusterIdFromQuoteId(TInt QuoteId);
   void GetAllClusterIds(TIntV &ClusterIds);
-
+  void GetAllClusterIdsSortByFreq(TIntV &ClusterIds);
   void Clr();
   int Len();
 };
@@ -81,6 +81,27 @@ public:
       return P1.GetNumQuotes() < P2.GetNumQuotes();
     } else {
       return P2.GetNumQuotes() < P1.GetNumQuotes();
+    }
+  }
+};
+
+// Compares TCluster Ids by sum of quote frequencies
+class TCmpTClusterIdByNumQuotes {
+private:
+  bool IsAsc;
+  TClusterBase *ClusterBase;
+public:
+  TCmpTClusterIdByNumQuotes(const bool& AscSort=true, TClusterBase *CB = NULL) : IsAsc(AscSort) {
+    ClusterBase = CB;
+  }
+  bool operator() (const TInt C1, const TInt C2) const {
+    TCluster Cluster1, Cluster2;
+    ClusterBase->GetCluster(C1, Cluster1);
+    ClusterBase->GetCluster(C2, Cluster2);
+    if (IsAsc) {
+      return Cluster1.GetNumQuotes() < Cluster2.GetNumQuotes();
+    } else {
+      return Cluster2.GetNumQuotes() < Cluster1.GetNumQuotes();
     }
   }
 };

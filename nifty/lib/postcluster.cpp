@@ -34,6 +34,18 @@ void PostCluster::GetTopClusters(TVec<TCluster>& SortedClusters, TVec<TCluster>&
   }
 }
 
+/// Merges pairs of clusters if any quote of one is a substring of a quote
+//  of the other cluster's
+void PostCluster::MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TClusterBase *CB) {
+
+  // Hash cluster-ids into buckets based on the word-shingles of the quotes in the cluster
+  THash<TMd5Sig, TIntSet> Shingles;
+  LSH::HashShinglesOfClusters(&QB, &CB, LSH::ShingleWordLen, Shingles, false);
+  
+
+
+}
+
 /// Compare all pairs of clusters with frequency cutoff above the threshold
 //  FrequencyCutoff, and merges the pair of clusters if any quote of one is
 //  a substring of a quote of the other cluster's

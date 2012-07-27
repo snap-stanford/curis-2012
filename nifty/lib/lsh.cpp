@@ -3,17 +3,15 @@
 
 const int LSH::BandSize = 3;
 const int LSH::NumBands = 20;
-const int LSH::ShingleLen = 4;
+const int LSH::ShingleLen = 4;  // In characters
+const int LSH::ShingleWordLen = 2;
 
-// For every quote, add it to corresponding bucket for each hashed x-character shingle of the quote
+/// For every quote, add it to corresponding bucket for each hashed x-character shingle of the quote
+// (Shingles by characters)
 void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TIntSet>& ShingleToQuoteIds) {
   fprintf(stderr, "Hashing shingles...\n");
   TIntV QuoteIds;
-  fprintf(stderr, "Hashing shingles...\n");
-  fprintf(stderr, "Merged Quote Counter: %d\n", QuoteBase->GetCurCounterValue().Val);
   QuoteBase->GetAllQuoteIds(QuoteIds);
-  fprintf(stderr, "Shingles gotten!\n");
-  fprintf(stderr, "Quote Ids Gotteh: %d quotes\n", QuoteIds.Len());
   for (int qt = 0; qt < QuoteIds.Len(); qt++) {
     if (qt % 1000 == 0) {
       fprintf(stderr, "%d out of %d completed\n", qt, QuoteIds.Len());
@@ -21,7 +19,7 @@ void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TI
     TQuote Q;
     QuoteBase->GetQuote(QuoteIds[qt], Q);
 
-    // Put x-character shingles into hash table; x is specified by ShingleLen parameter
+    // Put x-character (or x-word) shingles into hash table; x is specified by ShingleLen parameter
     TStr QContentStr;
     Q.GetParsedContentString(QContentStr);
     TChA QContentChA = TChA(QContentStr);
@@ -39,6 +37,57 @@ void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TI
       }
       ShingleQuoteIds.AddKey(QuoteIds[qt]);
       ShingleToQuoteIds.AddDat(ShingleMd5, ShingleQuoteIds);
+    }
+  }
+  fprintf(stderr, "Done hashing!\n");
+}
+
+void LSH::GetHashedShinglesOfCluster(TQuoteBase *QuoteBase, TCluster& C, TInt ShingleLen, THashSet<TMd5Sig>& HashedShingles) {
+  TIntV QuoteIds;
+  C.GetQuoteIds(QuoteIds);
+  for (int qt = 0; qt < QuoteIds.Len(); qt++) {
+    TQuote Q;
+    QuoteBase->GetQuote(QuoteIds[qt], Q);
+    TStr QContentStr;
+    Q.GetContentString(QContentStr);
+    TStr QContentStrNoPunc;
+    TQuote::RemovePunctuation(QContentStr, QContentStrNoPunc);
+    TStrV QContentV;
+    QContentStrNoPunc.SplitOnWs(QContentV);
+    for (int i = 0; i < QContentV.Len()-ShingleLen+1; i++) {
+      TStr Shingle;
+      for (int j = 0; j < ShingleLen; j++) {
+        if (j > 0) { Shingle.InsStr(Shingle.Len(), " "); }
+        Shingle.InsStr(Shingle.Len(), QContentV[i]);
+      }
+      TMd5Sig ShingleMd5(Shingle);
+      HashedShingles.AddKey(ShingleMd5);
+    }
+  }
+}
+
+/// Shingles by words
+void LSH::HashShinglesOfClusters(TQuoteBase *QuoteBase, TClusterBase *ClusterBase, TInt ShingleLen, THash<TMd5Sig, TIntSet>& ShingleToClusterIds) {
+  fprintf(stderr, "Hashing shingles of clusters...\n");
+  TIntV ClusterIds;
+  ClusterBase->GetAllClusterIds(ClusterIds);
+  for (int i = 0; i < ClusterIds.Len(); i++) {
+    if (i % 1000 == 0) {
+      fprintf(stderr, "%d out of %d completed\n", i, ClusterIds.Len());
+    }
+    TCluster C;
+    ClusterBase->GetCluster(ClusterIds[i], C);
+
+    // Put x-word shingles into hash table; x is specified by ShingleLen parameter
+    THashSet<TMd5Sig> CHashedShingles;
+    GetHashedShinglesOfCluster(QuoteBase, C, ShingleLen, CHashedShingles);
+    for (THashSet<TMd5Sig>::TIter Hash = CHashedShingles.BegI(); Hash < CHashedShingles.EndI(); Hash++) {
+      TIntSet ShingleClusterIds;
+      if (ShingleToClusterIds.IsKey(*Hash)) {
+        ShingleClusterIds = ShingleToClusterIds.GetDat(*Hash);
+      }
+      ShingleClusterIds.AddKey(C.GetId());
+      ShingleToClusterIds.AddDat(*Hash, ShingleClusterIds);
     }
   }
   fprintf(stderr, "Done hashing!\n");

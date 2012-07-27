@@ -140,7 +140,7 @@ TInt Clustering::CalcRepresentativeQuote(TQuote& RepQuote, TIntV& Cluster, TQuot
 /// Sorts clusters in decreasing order, and finds representative quote for each cluster
 //  RepQuotesAndFreq is a vector of cluster results, represented by TClusters
 //  TODO: Pick representative quote to be the most frequent? (rather than the longest)
-void Clustering::SortClustersByFreq(TVec<TCluster>& ClusterSummaries, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase) {
+/*void Clustering::SortClustersByFreq(TVec<TCluster>& ClusterSummaries, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase) {
   fprintf(stderr, "Sorting clusters by frequency\n");
   for (int i = 0; i < Clusters.Len(); i++) {
     TIntV Cluster = Clusters[i];
@@ -155,7 +155,7 @@ void Clustering::SortClustersByFreq(TVec<TCluster>& ClusterSummaries, TVec<TIntV
 
   ClusterSummaries.SortCmp(TCmpTClusterByNumQuotes(false));
   fprintf(stderr, "Sorted: %d\n", ClusterSummaries.Len());
-}
+}*/
 
 void Clustering::KeepAtMostOneChildPerNode(PNGraph& G, TIntSet& RootNodes, TQuoteBase *QB, TDocBase *DB) {
   TNGraph::TNodeI EndNode = G->EndNI();
