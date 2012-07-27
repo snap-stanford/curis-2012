@@ -28,8 +28,63 @@ void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteB
 //  of the other cluster's
 void PostCluster::MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TClusterBase *CB) {
   // Hash cluster-ids into buckets based on the word-shingles of the quotes in the cluster
-  THash<TMd5Sig, TIntSet> Shingles;
-  LSH::HashShinglesOfClusters(&QB, &CB, LSH::ShingleWordLen, Shingles, false);
+  THash<TMd5Sig, TIntV> Shingles;
+  LSH::HashShinglesOfClusters(QB, CB, LSH::ShingleWordLen, Shingles);
+
+  // Check all clusters in the same bucket for substring merge
+  // Keep track of compared clusters, so we don't compare the same pair of clusters more than once
+  THashSet<TIntPr> ComparedClusters;  // in each pair of cluster ids, the first must be smaller
+  THashSet<TInt> ToSkip;  // Contains ids of clusters have have already been merged into another
+
+  for (THash<TMd5Sig, TIntV>::TIter Shingle = Shingles.BegI(); Shingle < Shingles.EndI(); Shingle++) {
+    TIntV ClusterIds = Shingle.GetDat();
+    ClusterIds.Sort(true);
+    for (int i = 0; i < ClusterIds.Len(); i++) {
+      if (ToSkip.IsKey(ClusterIds[i])) { continue; }
+
+      for (int j = i + 1; j < ClusterIds.Len(); j++) {
+        if (ToSkip.IsKey(ClusterIds[j])) { continue; }
+        if (ComparedClusters.IsKey(TIntPr(ClusterIds[i], ClusterIds[j]))) { continue; }
+        ComparedClusters.AddKey(TIntPr(ClusterIds[i], ClusterIds[j]));
+        TCluster Cluster1, Cluster2;
+        CB->GetCluster(ClusterIds[i], Cluster1);
+        CB->GetCluster(ClusterIds[j], Cluster2);
+        if (ShouldMergeClusters(QB, Cluster1, Cluster2)) {
+          Cluster1.MergeWithCluster(Cluster2, QB, true);
+          ToSkip.AddKey(ClusterIds[j]);
+
+          // For testing, print out which two clusters were merged:
+          TStr RepQuoteStr1, RepQuoteStr2;
+          Cluster1.GetRepresentativeQuoteString(RepQuoteStr1, QB);
+          Cluster2.GetRepresentativeQuoteString(RepQuoteStr2, QB);
+          fprintf(stderr, "Merged cluster %s into %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
+        }
+      }
+    }
+  }
+
+  // Remove from the ClusterBase those clusters that were merged into another
+  for (THashSet<TInt>::TIter Id = ToSkip.BegI(); Id < ToSkip.EndI(); Id++) {
+    CB->RemoveCluster(*Id);
+  }
+}
+
+/// Compares all quotes of the two clusters to check if one is a substring of another;
+//  returns true if that is the case, false otherwise.
+bool PostCluster::ShouldMergeClusters(TQuoteBase *QB, TCluster& Cluster1, TCluster& Cluster2) {
+  TIntV QuoteIds1;
+  TIntV QuoteIds2;
+  Cluster1.GetQuoteIds(QuoteIds1);
+  Cluster2.GetQuoteIds(QuoteIds2);
+
+  for (int q1 = 0; q1 < QuoteIds1.Len(); q1++) {
+    for (int q2 = 0; q2 < QuoteIds2.Len(); q2++) {
+      if (QB->IsSubstring(QuoteIds1[q1], QuoteIds2[q2])) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 /// Compare all pairs of clusters with frequency cutoff above the threshold
@@ -45,27 +100,8 @@ void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TVec<TCluster>&
   // Assumption: the requirements for merging two clusters are transitive
     if (ToSkip.SearchForw(i) >= 0) continue;
     for (int j = i + 1; j < NumClusters; j++) {
-      // Compare all the quotes of the two clusters to check if one is
-      // a substring of another
-      TIntV QuoteIds1;
-      TIntV QuoteIds2;
-      TopClusters[i].GetQuoteIds(QuoteIds1);
-      TopClusters[j].GetQuoteIds(QuoteIds2);
-
-      bool DoMerge = false;
-      for (int q1 = 0; q1 < QuoteIds1.Len(); q1++) {
-        for (int q2 = 0; q2 < QuoteIds2.Len(); q2++) {
-          if (QB->IsSubstring(QuoteIds1[q1], QuoteIds2[q2])) {
-            DoMerge = true;
-            break;
-          }
-        }
-        if (DoMerge) { break; }
-      }
-
-      if (DoMerge) {
+      if (ShouldMergeClusters(QB, TopClusters[i], TopClusters[j])) {
         TopClusters[i].MergeWithCluster(TopClusters[j], QB, true);
-
         ToSkip.Add(j);
 
         // For testing, print out which two clusters were merged:

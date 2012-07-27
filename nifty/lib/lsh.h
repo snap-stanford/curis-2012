@@ -18,7 +18,7 @@ public:
   static void HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig,
                            TIntSet>& ShingleToQuoteIds);
   static void HashShinglesOfClusters(TQuoteBase *QuoteBase, TClusterBase *ClusterBase,
-                           TInt ShingleLen, THash<TMd5Sig, TIntSet>& ShingleToClusterIds);
+                           TInt ShingleLen, THash<TMd5Sig, TIntV>& ShingleToClusterIds);
   static void MinHash(THash<TMd5Sig, TIntSet>& ShingleToQuoteIds, TVec<THash<TIntV, TIntSet> >& SignatureBandBuckets);
 };
 
