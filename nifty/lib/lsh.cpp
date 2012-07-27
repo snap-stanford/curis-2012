@@ -8,7 +8,7 @@ const int LSH::ShingleWordLen = 2;
 
 /// For every quote, add it to corresponding bucket for each hashed x-character shingle of the quote
 // (Shingles by characters)
-void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TIntSet>& ShingleToQuoteIds, bool ByChar = true) {
+void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TIntSet>& ShingleToQuoteIds) {
   fprintf(stderr, "Hashing shingles...\n");
   TIntV QuoteIds;
   QuoteBase->GetAllQuoteIds(QuoteIds);
@@ -42,7 +42,7 @@ void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TI
   fprintf(stderr, "Done hashing!\n");
 }
 
-void LSH::GetHashedShinglesOfCluster(TCluster& C, TInt ShingleLen, THashSet<TMd5Sig>& HashedShingles) {
+void LSH::GetHashedShinglesOfCluster(TQuoteBase *QuoteBase, TCluster& C, TInt ShingleLen, THashSet<TMd5Sig>& HashedShingles) {
   TIntV QuoteIds;
   C.GetQuoteIds(QuoteIds);
   for (int qt = 0; qt < QuoteIds.Len(); qt++) {
@@ -61,7 +61,7 @@ void LSH::GetHashedShinglesOfCluster(TCluster& C, TInt ShingleLen, THashSet<TMd5
         Shingle.InsStr(Shingle.Len(), QContentV[i]);
       }
       TMd5Sig ShingleMd5(Shingle);
-      HashedShingles.Add(ShingleMd5);
+      HashedShingles.AddKey(ShingleMd5);
     }
   }
 }
@@ -72,18 +72,25 @@ void LSH::HashShinglesOfClusters(TQuoteBase *QuoteBase, TClusterBase *ClusterBas
   TIntV ClusterIds;
   ClusterBase->GetAllClusterIds(ClusterIds);
   for (int i = 0; i < ClusterIds.Len(); i++) {
-    if (qt % 1000 == 0) {
+    if (i % 1000 == 0) {
       fprintf(stderr, "%d out of %d completed\n", i, ClusterIds.Len());
     }
     TCluster C;
-    ClusterBase->GetCluster(ClusterIds[c], C);
+    ClusterBase->GetCluster(ClusterIds[i], C);
 
     // Put x-word shingles into hash table; x is specified by ShingleLen parameter
     THashSet<TMd5Sig> CHashedShingles;
-    GetHashedShinglesOfCluster(C, ShingleLen, CHashedShingles);
-
+    GetHashedShinglesOfCluster(QuoteBase, C, ShingleLen, CHashedShingles);
+    for (THashSet<TMd5Sig>::TIter Hash = CHashedShingles.BegI(); Hash < CHashedShingles.EndI(); Hash++) {
+      TIntSet ShingleClusterIds;
+      if (ShingleToClusterIds.IsKey(*Hash)) {
+        ShingleClusterIds = ShingleToClusterIds.GetDat(*Hash);
+      }
+      ShingleClusterIds.AddKey(C.GetId());
+      ShingleToClusterIds.AddDat(*Hash, ShingleClusterIds);
+    }
   }
-
+  fprintf(stderr, "Done hashing!\n");
 }
 
 void  LSH::MinHash(THash<TMd5Sig, TIntSet>& ShingleToQuoteIds, TVec<THash<TIntV, TIntSet> >& SignatureBandBuckets) {

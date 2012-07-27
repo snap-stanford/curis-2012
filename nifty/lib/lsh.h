@@ -6,7 +6,8 @@
 
 class LSH {
 private:
-  static void GetHashedShinglesOfCluster(TCluster& C, TInt ShingleLen, THashSet<TMd5Sig>& HashedShingles);
+  static void GetHashedShinglesOfCluster(TQuoteBase *QuoteBase, TCluster& C, TInt ShingleLen,
+                                         THashSet<TMd5Sig>& HashedShingles);
 
 public:
   static const int BandSize;
