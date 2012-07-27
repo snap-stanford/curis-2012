@@ -82,11 +82,11 @@ void TCluster::AddQuote(TQuoteBase *QB, const TIntV &QuoteIds) {
   }
 }
 
-void TCluster::AddQuote(TQuoteBase *QB,TInt QuoteId) {
+void TCluster::AddQuote(TQuoteBase *QB, TInt QuoteId) {
   this->QuoteIds.Add(QuoteId);
-  TQuote q;
-  QB->GetQuote(QuoteId, q);
-  this->NumQuotes += q.GetNumSources();
+  TQuote Q;
+  QB->GetQuote(QuoteId, Q);
+  this->NumQuotes += Q.GetNumSources();
 }
 
 void TCluster::SetRepresentativeQuoteIds(TIntV& QuoteIds) {
@@ -259,7 +259,7 @@ bool TClusterBase::GetCluster(TInt ClusterId, TCluster& RefC) {
 }
 
 // Returns -1 if QuoteId is not found
-TInt TClusterBase::GetClusterFromQuoteId(TInt QuoteId) {
+TInt TClusterBase::GetClusterIdFromQuoteId(TInt QuoteId) {
   TInt ClusterId;
   if (QuoteIdToClusterId.IsKeyGetDat(QuoteId, ClusterId)) {
     return ClusterId;
@@ -270,6 +270,12 @@ TInt TClusterBase::GetClusterFromQuoteId(TInt QuoteId) {
 
 void TClusterBase::GetAllClusterIds(TIntV &ClusterIds) {
   IdToTCluster.GetKeyV(ClusterIds);
+}
+
+void TClusterBase::Clr() {
+  IdToTCluster.Clr();
+  QuoteIdToClusterId.Clr();
+  ClusterIdCounter = 0;
 }
 
 int TClusterBase::Len() {

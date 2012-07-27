@@ -65,6 +65,8 @@ public:
   bool GetCluster(TInt ClusterId, TCluster &RefC);
   TInt GetClusterIdFromQuoteId(TInt QuoteId);
   void GetAllClusterIds(TIntV &ClusterIds);
+
+  void Clr();
   int Len();
 };
 
