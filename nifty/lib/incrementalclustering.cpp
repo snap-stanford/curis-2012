@@ -6,7 +6,7 @@ const TInt TIncrementalClustering::QuoteThreshold = 20;
 
 void TIncrementalClustering::BuildClusters(TVec<TIntV>& MergedClusters, TVec<TCluster>& ClusterSummaries,
                                            TQuoteBase& QB, TDocBase& DB, TIntV& NewQuotes) {
-  THashSet<Int> NewQuotesSet;
+  THashSet<TInt> NewQuotesSet;
   for (int i = 0; i < NewQuotes.Len(); i++) {
     NewQuotesSet.AddKey(NewQuotes[i]);
   }
@@ -23,7 +23,7 @@ void TIncrementalClustering::BuildClusters(TVec<TIntV>& MergedClusters, TVec<TCl
     TVec<TIntV>::TIter BucketEnd = Buckets.EndI();
     for (TVec<TIntV>::TIter BucketSig = Buckets.BegI(); BucketSig < BucketEnd; BucketSig++) {
       TIntSet Bucket  = BucketsVector[i].GetDat(*BucketSig);
-      TVec<TQuote> NQuotes, OQuotes;
+      TIntV NQuotes, OQuotes;
       for (TIntSet::TIter Quote = Bucket.BegI(); Quote < Bucket.EndI(); Quote++) {
         TInt QuoteId = Quote.GetKey();
         if (NewQuotesSet.IsKey(QuoteId)) {
