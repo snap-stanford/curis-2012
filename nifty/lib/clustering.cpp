@@ -110,6 +110,23 @@ TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB) {
   return NumSources * 2 * 3600.0 /(EditDistance + 1.0)/(PeakDistanceInSecs + 1);
 }
 
+/// Calculates the representative quote and returns it in RepQuote; returns the
+//  total number of sources for the quotes in the cluster
+TInt Clustering::CalcRepresentativeQuote(TQuote& RepQuote, TIntV& Cluster, TQuoteBase *QuoteBase) {
+  TInt NumQuotes = 0;
+  QuoteBase->GetQuote(Cluster[0], RepQuote);  // Initialize RepQuote
+  for (int j = 0; j < Cluster.Len(); j++) {
+    TInt QId = Cluster[j];
+    TQuote Q;
+    QuoteBase->GetQuote(QId, Q);
+    if (!QuoteGraph::EdgeShouldBeFromOneToTwo(Q, RepQuote)) {
+      RepQuote = Q;
+    }
+    NumQuotes += Q.GetNumSources();
+  }
+  return NumQuotes;
+}
+
 /// Sorts clusters in decreasing order, and finds representative quote for each cluster
 //  RepQuotesAndFreq is a vector of cluster results, represented by TClusters
 //  TODO: Pick representative quote to be the most frequent? (rather than the longest)
@@ -118,18 +135,8 @@ void Clustering::SortClustersByFreq(TVec<TCluster>& ClusterSummaries, TVec<TIntV
   for (int i = 0; i < Clusters.Len(); i++) {
     TIntV Cluster = Clusters[i];
     Cluster.SortCmp(TCmpQuoteByFreq(false, QuoteBase)); // sort by descending frequency
-    TInt NumQuotes = 0;
     TQuote RepQuote;
-    QuoteBase->GetQuote(Cluster[0], RepQuote);  // Initialize RepQuote
-    for (int j = 0; j < Cluster.Len(); j++) {
-      TInt QId = Cluster[j];
-      TQuote Q;
-      QuoteBase->GetQuote(QId, Q);
-      if (!QuoteGraph::EdgeShouldBeFromOneToTwo(Q, RepQuote)) {
-        RepQuote = Q;
-      }
-      NumQuotes += Q.GetNumSources();
-    }
+    TInt NumQuotes = CalcRepresentativeQuote(RepQuote, Cluster, QuoteBase);
     TIntV RepV;
     RepV.Add(RepQuote.GetId());
     TCluster ClusterSummary(RepV, NumQuotes, Cluster, QuoteBase);
