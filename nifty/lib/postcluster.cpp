@@ -1,3 +1,5 @@
+#include "postcluster.h"
+
 const int PostCluster::FrequencyCutoff = 300;
 const double PostCluster::ClusterSourceOverlapThreshold = 0.8;
 const int PostCluster::BucketSize = 2;

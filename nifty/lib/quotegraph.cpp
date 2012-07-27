@@ -3,6 +3,10 @@
 #include "quote.h"
 #include "lsh.h"
 
+QuoteGraph::QuoteGraph() {
+
+}
+
 QuoteGraph::QuoteGraph(TQuoteBase *QB) {
   this->QB = QB;
   EdgeCount = 0;

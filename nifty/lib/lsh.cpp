@@ -7,12 +7,16 @@ const int LSH::ShingleLen = 4;
 
 // For every quote, add it to corresponding bucket for each hashed x-character shingle of the quote
 void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TIntSet>& ShingleToQuoteIds) {
-  printf("Hashing shingles...\n");
+  fprintf(stderr, "Hashing shingles...\n");
   TIntV QuoteIds;
+  fprintf(stderr, "Hashing shingles...\n");
+  fprintf(stderr, "Merged Quote Counter: %d\n", QuoteBase->GetCurCounterValue().Val);
   QuoteBase->GetAllQuoteIds(QuoteIds);
+  fprintf(stderr, "Shingles gotten!\n");
+  fprintf(stderr, "Quote Ids Gotteh: %d quotes\n", QuoteIds.Len());
   for (int qt = 0; qt < QuoteIds.Len(); qt++) {
     if (qt % 1000 == 0) {
-      printf("%d out of %d completed\n", qt, QuoteIds.Len());
+      fprintf(stderr, "%d out of %d completed\n", qt, QuoteIds.Len());
     }
     TQuote Q;
     QuoteBase->GetQuote(QuoteIds[qt], Q);
@@ -37,6 +41,7 @@ void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TI
       ShingleToQuoteIds.AddDat(ShingleMd5, ShingleQuoteIds);
     }
   }
+  fprintf(stderr, "Done hashing!\n");
 }
 
 void  LSH::MinHash(THash<TMd5Sig, TIntSet>& ShingleToQuoteIds, TVec<THash<TIntV, TIntSet> >& SignatureBandBuckets) {

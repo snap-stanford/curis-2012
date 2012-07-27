@@ -326,7 +326,9 @@ int TQuoteBase::Len() const {
 }
 
 void TQuoteBase::GetAllQuoteIds(TIntV &KeyV) const {
+  fprintf(stderr, "before\n");
   IdToTQuotes.GetKeyV(KeyV);
+  fprintf(stderr, "after\n");
 }
 
 void TQuoteBase::Save(TSOut &SOut) const {
@@ -420,4 +422,12 @@ TInt TQuoteBase::LongestSubSequenceOfWords(const TStrV& Content1, const TStrV& C
     WordV2Start = tmp;
   }
   return MaxLen;
+}
+
+bool TQuoteBase::Exists(TInt QuoteId) {
+  return IdToTQuotes.IsKey(QuoteId);
+}
+
+TInt TQuoteBase::GetCurCounterValue() {
+  return QuoteIdCounter;
 }

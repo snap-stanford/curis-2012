@@ -83,8 +83,10 @@ int main(int argc, char *argv[]) {
   TVec<TCluster> ClusterSummaries;
   ClusterJob.SortClustersByFreq(ClusterSummaries, Clusters, &QB);
 
+  fprintf(stderr, "Saving files...\n");
   // Save to file
   if (!DoIncrementalClustering) {
+    fprintf(stderr, "non incremental clusering, boo.\n");
     TStr Command = "mkdir -p output";
     system(Command.CStr());
     TFOut FOut("output/clusters.bin");
@@ -92,12 +94,19 @@ int main(int argc, char *argv[]) {
     ClusterSummaries.Save(FOut);
     Log.Save(FOut);
   } else {
+    fprintf(stderr, "Incremental saving, w00t!\n");
     TStr OutputDir = "/lfs/1/tmp/curis/QBDBC/";
     TStr FileName = "QBDBC" + PresentTime.GetDtYmdStr() + ".bin";
+    fprintf(stderr, "Attempting save to: %s\n", (OutputDir + FileName).CStr());
     TFOut FOut(OutputDir + FileName);
+    fprintf(stderr, "Attempting save to: %s\n", (OutputDir + FileName).CStr());
     QB.Save(FOut);
+    fprintf(stderr, "QB saved!\n");
     DB.Save(FOut);
+    fprintf(stderr, "DB saved!\n");
     ClusterSummaries.Save(FOut);
+    fprintf(stderr, "Cluster Summaries saved!\n");
+    QGraph->Save(FOut); //TODO: why is this in memecluster?!?!?
   }
 
   /*
