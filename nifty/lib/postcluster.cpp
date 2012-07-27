@@ -9,8 +9,8 @@ const int PostCluster::PeakThreshold = 5;
 void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& TopFilteredClusters, TSecTm PresentTime) {
   TIntV TopClusterIds;
   CB->GetTopClusterIdsByFreq(TopClusterIds);
-  MergeClustersBasedOnSubstrings(QB, TopFilteredClusters);
-  MergeClustersWithCommonSources(QB, TopFilteredClusters);
+  MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
+  MergeClustersWithCommonSources(QB, TopFilteredClusters, CB);
   FilterAndCacheClusterPeaks(DB, QB, Log, TopFilteredClusters);
 
   // sort by popularity
@@ -50,7 +50,7 @@ void PostCluster::MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TClusterBase
         CB->GetCluster(ClusterIds[i], Cluster1);
         CB->GetCluster(ClusterIds[j], Cluster2);
         if (ShouldMergeClusters(QB, Cluster1, Cluster2)) {
-          Cluster1.MergeWithCluster(Cluster2, QB, true);
+          CB->MergeCluster2Into1(Cluster1, Cluster2, QB, true);
           ToSkip.AddKey(ClusterIds[j]);
 
           // For testing, print out which two clusters were merged:
@@ -91,7 +91,7 @@ bool PostCluster::ShouldMergeClusters(TQuoteBase *QB, TCluster& Cluster1, TClust
 //  FrequencyCutoff, and merges the pair of clusters if any quote of one is
 //  a substring of a quote of the other cluster's
 //  (Assumes ClusterSummaries contains clusters sorted by decreasing frequency)
-void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TVec<TCluster>& TopClusters) {
+void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TVec<TCluster>& TopClusters, TClusterBase *CB) {
   fprintf(stderr, "Merging clusters\n");
   TVec<TInt> ToSkip;  // Contains ids of clusters that have already been merged into another
   TInt NumClusters = TopClusters.Len();
@@ -101,7 +101,7 @@ void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TVec<TCluster>&
     if (ToSkip.SearchForw(i) >= 0) continue;
     for (int j = i + 1; j < NumClusters; j++) {
       if (ShouldMergeClusters(QB, TopClusters[i], TopClusters[j])) {
-        TopClusters[i].MergeWithCluster(TopClusters[j], QB, true);
+        CB->MergeCluster2Into1(TopClusters[i], TopClusters[j], QB, true);
         ToSkip.Add(j);
 
         // For testing, print out which two clusters were merged:
@@ -143,7 +143,7 @@ double PostCluster::ComputeClusterSourceOverlap(TIntV& Larger, TIntV& Smaller) {
   return count * 1.0 / Smaller.Len();
 }
 
-void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>& TopClusters) {
+void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>& TopClusters, TClusterBase *CB) {
   fprintf(stderr, "Merging clusters with common sources\n");
   int NumClusters = TopClusters.Len();
   TVec<TInt> ToSkip;
@@ -166,7 +166,7 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>&
         TopClusters[j].GetRepresentativeQuoteString(RepQuoteStr2, QB);
         fprintf(stderr, "CLUSTER1: %s\nCLUSTER2: %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
 
-        TopClusters[j].MergeWithCluster(TopClusters[i], QB, false);
+        CB->MergeCluster2Into1(TopClusters[j], TopClusters[i], QB, false);
         ToSkip.Add(i);
         break; // we really only want to merge once.
       }

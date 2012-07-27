@@ -41,7 +41,6 @@ public:
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TSecTm PresentTime);
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
 
-  void MergeWithCluster(TCluster& OtherCluster, TQuoteBase *QB, bool KeepOneRepId);
   static void GetUniqueSources(TIntV& UniqueSources, TIntV& QuoteIds, TQuoteBase *QB);
 
   //void GetFreqTimes(TFreqTripleV& FreqV, bool reset = false);
@@ -70,6 +69,7 @@ public:
   void GetTopClusterIdsByFreq(TIntV &TopClusterIds);
   void Clr();
   int Len();
+  void MergeCluster2Into1(TCluster& Cluster1, TCluster& Cluster2, TQuoteBase *QB, bool KeepOneRepId);
 };
 
 // Compares TClusters by sum of quote frequencies
