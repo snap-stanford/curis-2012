@@ -6,8 +6,9 @@ const int PostCluster::BucketSize = 2;
 const int PostCluster::SlidingWindowSize = 1;
 const int PostCluster::PeakThreshold = 5;
 
-void PostCluster::GetTopFilteredClusters(TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& SortedClusters, TVec<TCluster>& TopFilteredClusters, TSecTm PresentTime) {
-  GetTopClusters(SortedClusters, TopFilteredClusters);
+void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& TopFilteredClusters, TSecTm PresentTime) {
+  TIntV TopClusterIds;
+  CB->GetTopClusterIdsByFreq(TopClusterIds);
   MergeClustersBasedOnSubstrings(QB, TopFilteredClusters);
   MergeClustersWithCommonSources(QB, TopFilteredClusters);
   FilterAndCacheClusterPeaks(DB, QB, Log, TopFilteredClusters);
@@ -23,27 +24,12 @@ void PostCluster::GetTopFilteredClusters(TDocBase *DB, TQuoteBase *QB, LogOutput
   fprintf(stderr, "Done!\n");
 }
 
-void PostCluster::GetTopClusters(TVec<TCluster>& SortedClusters, TVec<TCluster>& TopClusters) {
-  int NumClusters = SortedClusters.Len();
-  for (int i = 0; i < NumClusters; ++i) {
-    if (SortedClusters[i].GetNumQuotes() < FrequencyCutoff) {
-      i = NumClusters; // Clusters are sorted so we can stop adding to TopClusters now
-    } else {
-      TopClusters.Add(SortedClusters[i]);
-    }
-  }
-}
-
 /// Merges pairs of clusters if any quote of one is a substring of a quote
 //  of the other cluster's
 void PostCluster::MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TClusterBase *CB) {
-
   // Hash cluster-ids into buckets based on the word-shingles of the quotes in the cluster
   THash<TMd5Sig, TIntSet> Shingles;
   LSH::HashShinglesOfClusters(&QB, &CB, LSH::ShingleWordLen, Shingles, false);
-  
-
-
 }
 
 /// Compare all pairs of clusters with frequency cutoff above the threshold
