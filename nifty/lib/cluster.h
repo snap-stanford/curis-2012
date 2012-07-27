@@ -67,6 +67,7 @@ public:
   TInt GetClusterIdFromQuoteId(TInt QuoteId);
   void GetAllClusterIds(TIntV &ClusterIds);
   void GetAllClusterIdsSortByFreq(TIntV &ClusterIds);
+  void GetTopClusterIdsByFreq(TIntV &TopClusterIds);
   void Clr();
   int Len();
 };

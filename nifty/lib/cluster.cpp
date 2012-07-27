@@ -295,6 +295,20 @@ void TClusterBase::GetAllClusterIdsSortByFreq(TIntV &ClusterIds) {
   ClusterIds.SortCmp(TCmpTClusterIdByNumQuotes(false, this));
 }
 
+void TClusterBase::GetTopClusterIdsByFreq(TIntV &TopClusterIds) {
+  TIntV ClusterIds;
+  GetAllClusterIdsSortByFreq(ClusterIds);
+  for (int i = 0; i < ClusterIds.Len(); i++) {
+    TCluster Cluster;
+    GetCluster(ClusterIds[i], Cluster);
+    if (Cluster.GetNumQuotes() < FrequencyCutoff) {
+      break;
+    } else {
+      TopClusterIds.Add(ClusterIds[i]);
+    }
+  }
+}
+
 void TClusterBase::Clr() {
   IdToTCluster.Clr();
   QuoteIdToClusterId.Clr();
