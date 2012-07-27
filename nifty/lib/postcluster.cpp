@@ -14,10 +14,13 @@ void PostCluster::GetTopFilteredClusters(TDocBase *DB, TQuoteBase *QB, LogOutput
 
   // sort by popularity
   // Sort remaining clusters by popularity
+  fprintf(stderr, "Sorting by popularity...\n");
   for (int i = 0; i < TopFilteredClusters.Len(); i++) {
+    //fprintf(stderr, "Calculating popularity for quote %d of %d\n", i, TopFilteredClusters.Len());
     TopFilteredClusters[i].CalculatePopularity(QB, DB, PresentTime);
   }
   TopFilteredClusters.SortCmp(TCmpTClusterByPopularity(false));
+  fprintf(stderr, "Done!\n");
 }
 
 void PostCluster::GetTopClusters(TVec<TCluster>& SortedClusters, TVec<TCluster>& TopClusters) {
@@ -119,6 +122,7 @@ double PostCluster::ComputeClusterSourceOverlap(TIntV& Larger, TIntV& Smaller) {
 }
 
 void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>& TopClusters) {
+  fprintf(stderr, "Merging clusters with common sources\n");
   int NumClusters = TopClusters.Len();
   TVec<TInt> ToSkip;
   for (int i = 1; i < NumClusters; ++i) {
@@ -147,6 +151,7 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>&
     }
   }
 
+  fprintf(stderr, "deleting extra clusters...\n");
   // delete merged clusters
   ToSkip.Sort(true);
   for (int i = 0; i < ToSkip.Len(); ++i) {
@@ -154,16 +159,18 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>&
     TopClusters[ToSkip[i] - i].GetRepresentativeQuoteString(RepQuoteStr, QB);
     TopClusters.Del(ToSkip[i] - i); // -i in order to keep track of deleted count changes.
   }
+  fprintf(stderr, "done!\n");
 }
 
 
 void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& TopClusters) {
+  fprintf(stderr, "Filtering clusters that have too many peaks...\n");
   TIntV DiscardedClusterIds;
   TVec<TCluster> DiscardedClusters;
   for (int i = 0; i < TopClusters.Len(); ++i) {
     TFreqTripleV PeakTimesV;
     TFreqTripleV FreqV;
-    TopClusters[i].GetPeaks(DB, QB, PeakTimesV, FreqV, BucketSize, SlidingWindowSize, TSecTm(0));
+    TopClusters[i].GetPeaks(DB, QB, PeakTimesV, FreqV, BucketSize, SlidingWindowSize, TSecTm(0), true);
     // Add clusters with too many peaks to the discard list.
     if (PeakTimesV.Len() > PeakThreshold) {
       DiscardedClusterIds.Add(i);
@@ -175,7 +182,9 @@ void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, LogOu
   for (int i = 0; i < DiscardedClusterIds.Len(); ++i) {
     TopClusters.Del(DiscardedClusterIds[i] - i); // -i in order to keep track of deleted count changes.
   }
+  fprintf(stderr, "Logging discarded clusters...\n");
 
   // log the discarded clusters in a log file.
   Log.OutputDiscardedClusters(QB, DiscardedClusters);
+  fprintf(stderr, "Done!\n");
 }

@@ -82,11 +82,11 @@ void TCluster::AddQuote(TQuoteBase *QB, const TIntV &QuoteIds) {
   }
 }
 
-void TCluster::AddQuote(TQuoteBase *QB,TInt QuoteId) {
+void TCluster::AddQuote(TQuoteBase *QB, TInt QuoteId) {
   this->QuoteIds.Add(QuoteId);
-  TQuote q;
-  QB->GetQuote(QuoteId, q);
-  this->NumQuotes += q.GetNumSources();
+  TQuote Q;
+  QB->GetQuote(QuoteId, Q);
+  this->NumQuotes += Q.GetNumSources();
 }
 
 void TCluster::SetRepresentativeQuoteIds(TIntV& QuoteIds) {
@@ -102,10 +102,13 @@ TFlt TCluster::GetPopularity() const {
 }
 
 void TCluster::CalculatePopularity(TQuoteBase *QuoteBase, TDocBase *DocBase, TSecTm CurrentTime) {
+  fprintf(stderr, "getting unique sources\n");
   TIntV UniqueSources;
   GetUniqueSources(UniqueSources, QuoteIds, QuoteBase);
+  fprintf(stderr, "getting frequency vectors\n");
   TFreqTripleV FreqV;
   Peaks::GetFrequencyVector(DocBase, UniqueSources, FreqV, 2, 1, CurrentTime);
+  fprintf(stderr, "calculating popularity\n");
   for (int i = 0; i < FreqV.Len(); i++) {
     Popularity += FreqV[i].Val2 * exp(FreqV[i].Val1 / 48);
   }
@@ -259,7 +262,7 @@ bool TClusterBase::GetCluster(TInt ClusterId, TCluster& RefC) {
 }
 
 // Returns -1 if QuoteId is not found
-TInt TClusterBase::GetClusterFromQuoteId(TInt QuoteId) {
+TInt TClusterBase::GetClusterIdFromQuoteId(TInt QuoteId) {
   TInt ClusterId;
   if (QuoteIdToClusterId.IsKeyGetDat(QuoteId, ClusterId)) {
     return ClusterId;
@@ -277,6 +280,12 @@ void TClusterBase::GetAllClusterIds(TIntV &ClusterIds) {
 void TClusterBase::GetAllClusterIdsSortByFreq(TIntV &ClusterIds) {
   IdToTCluster.GetKeyV(ClusterIds);
   ClusterIds.SortCmp(TCmpTClusterIdByNumQuotes(false, this));
+}
+
+void TClusterBase::Clr() {
+  IdToTCluster.Clr();
+  QuoteIdToClusterId.Clr();
+  ClusterIdCounter = 0;
 }
 
 int TClusterBase::Len() {
