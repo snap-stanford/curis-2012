@@ -145,6 +145,8 @@ TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &Q
       NewQuoteIds.Add(QId);
     }
     for (int j = 0; j < Sources.Len(); j++) {
+      // If doc is in original docbase, ignore it because that means
+      // the document is a duplicate
       if (!SeenDocSet.IsKey(Sources[j])) {
         TDoc D;
         DB2.GetDoc(Sources[j], D);
