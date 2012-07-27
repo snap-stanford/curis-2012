@@ -4,7 +4,7 @@
 /// Must pass in argument for the new day to be added, in format YYYY-MM-DD (-newday)
 //  TODO: Add framework for Log file (as in memepostcluster.cpp)
 int main(int argc, char *argv[]) {
-  bool DoIncrementalClustering = false;
+  /*bool DoIncrementalClustering = false;
   THash<TStr, TStr> Arguments;
   TStr BaseString;
   LogOutput Log;
@@ -39,6 +39,6 @@ int main(int argc, char *argv[]) {
   //Plotter.PlotClusterSize(ClusterSummaries);
   //Plotter.PlotQuoteFrequencies(QB);
 
-  printf("Done!\n");
+  printf("Done!\n");*/
   return 0;
 }
