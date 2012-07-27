@@ -51,18 +51,20 @@ public:
 
 class TClusterBase {
 private:
+  THash<TInt, TCluster> IdToTCluster;
+  THash<TInt, TInt> QuoteIdToClusterId;
   TInt ClusterIdCounter;
-  THash<TInt, TQuote> IdToTClusters;
-  TInt GetNewQuoteId();
 
 public:
   TClusterBase();
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
-  TQuote AddCluster(const TCluster& Cluster);
-  void RemoveCluster(TInt ClusterId);
-  bool GetCluster(TInt ClusterId, TCluster& RefC);
-  void GetAllClusterIds(TIntV &KeyV);
+  TInt AddCluster(const TCluster& Cluster);
+  bool AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterId);
+
+  bool GetCluster(TInt ClusterId, TCluster &RefC);
+  TInt GetClusterIdFromQuoteId(TInt QuoteId);
+  void GetAllClusterIds(TIntV &ClusterIds);
   int Len();
 };
 
