@@ -19,11 +19,9 @@ public:
   void Load(TSIn& SIn);
   void SetGraph(PNGraph QGraph);
   void GetRootNodes(TIntSet& RootNodes);
-  virtual void BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase *QB, TDocBase *DB, LogOutput& log);
+  virtual void BuildClusters(TIntSet& RootNodes, TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log);
   static TInt CalcRepresentativeQuote(TQuote& RepQuote, TIntV& Cluster, TQuoteBase *QuoteBase);
   static void SortClustersByFreq(TVec<TCluster>& ClusterSummaries, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase);
 };
 
 #endif
-
-// GEE GEE GEE GEE BABY BABY BABY

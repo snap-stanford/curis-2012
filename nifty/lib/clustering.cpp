@@ -28,7 +28,7 @@ void Clustering::GetRootNodes(TIntSet& RootNodes) {
   }
 }
 
-void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuoteBase *QB, TDocBase *DB, LogOutput& log) {
+void Clustering::BuildClusters(TIntSet& RootNodes, TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log) {
   // currently deletes all edges but the one leading to phrase that is most frequently cited.
   // TODO: Make more efficient? At 10k nodes this is ok
 
@@ -53,6 +53,7 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
 
   // find weakly connected components. these are our clusters. largely taken from memes.h
   fprintf(stderr, "Finding weakly connected components\n");
+  TVec<TIntV> Clusters;
   GetAllWCCs(QGraph, Clusters);
   log.LogValue(LogOutput::NumClusters, TInt(Clusters.Len()));
 
@@ -72,10 +73,13 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
   RandomQGraph = TSnap::GenRewire(QGraph);
   PNGraph OrigRandomQGraph;
   OrigRandomQGraph = TSnap::GetSubGraph(RandomQGraph, AllNIdsV);
+
   TIntSet Ignore;
   KeepAtMostOneChildPerNode(RandomQGraph, Ignore, QB, DB);
+
   TVec<TIntV> ClustersRandom;
   GetAllWCCs(RandomQGraph, ClustersRandom);
+
   NumEdgesInducedSubgraphs = 0;
   for (int i = 0; i < ClustersRandom.Len(); i++) {
     PNGraph SubgraphP;
@@ -85,6 +89,12 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TVec<TIntV>& Clusters, TQuote
   
   log.LogValue(LogOutput::PercentEdgesDeletedNFSBaseline, TFlt(100 - NumEdgesInducedSubgraphs * 100.0 / NumEdgesOriginal));
   
+  // Add clusters to CB
+  for (int i = 0; i < Clusters.Len(); i++) {
+    TCluster Cluster;
+    Cluster.AddQuote(QB, Clusters[i]);
+    CB->AddCluster(Cluster);
+  }
 }
 
 TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB) {
