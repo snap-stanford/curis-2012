@@ -213,9 +213,8 @@ int main(int argc, char *argv[]) {
         TDoc D;
         TmpDB.GetDoc(Sources[k], D);
         TInt NewSourceId = DB.AddDoc(D);
-        TDoc NewSource;
-        DB.GetDoc(NewSourceId, NewSource);
-        QB.AddQuote(QContentString, NewSource);
+        D.SetId(NewSourceId);
+        QB.AddQuote(QContentString, D);
       }
     } else {
       if (Q.GetNumSources() < MinMemeFreq) {

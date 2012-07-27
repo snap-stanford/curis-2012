@@ -6,7 +6,46 @@ const TInt TIncrementalClustering::QuoteThreshold = 20;
 
 void TIncrementalClustering::BuildClusters(TVec<TIntV>& MergedClusters, TVec<TCluster>& ClusterSummaries,
                                            TQuoteBase& QB, TDocBase& DB, TIntV& NewQuotes) {
-  // Add all the original clusters to MergedClusters
+  THashSet<TInt> NewQuotesSet;
+  for (int i = 0; i < NewQuotes.Len(); i++) {
+    NewQuotesSet.AddKey(NewQuotes[i]);
+  }
+
+  THash<TMd5Sig, TIntSet> Shingles;
+  LSH::HashShingles(&QB, LSH::ShingleLen, Shingles);
+  TVec<THash<TIntV, TIntSet> > BucketsVector;
+  LSH::MinHash(Shingles, BucketsVector);
+
+  for (int i = 0; i < BucketsVector.Len(); i++) {
+    printf("Processing band signature %d of %d\n", i+1, BucketsVector.Len());
+    TVec<TIntV> Buckets;
+    BucketsVector[i].GetKeyV(Buckets);
+    TVec<TIntV>::TIter BucketEnd = Buckets.EndI();
+    for (TVec<TIntV>::TIter BucketSig = Buckets.BegI(); BucketSig < BucketEnd; BucketSig++) {
+      TIntSet Bucket  = BucketsVector[i].GetDat(*BucketSig);
+      TIntV NQuotes, OQuotes;
+      for (TIntSet::TIter Quote = Bucket.BegI(); Quote < Bucket.EndI(); Quote++) {
+        TInt QuoteId = Quote.GetKey();
+        if (NewQuotesSet.IsKey(QuoteId)) {
+          NQuotes.Add(QuoteId);
+        } else {
+          OQuotes.Add(QuoteId);
+        }
+      }
+      for (int j = 0; j < NQuotes.Len(); j++) {
+        TQuote NewQ;
+        QB.GetQuote(NQuotes[j], NewQ);
+        for (int k = 0; k < OQuotes.Len(); k++) {
+          TQuote Q;
+          QB.GetQuote(OQuotes[j], Q);
+          if (QuoteGraph::EdgeShouldBeCreated(NewQ, Q)) {
+            // add newQ to cluster of Q
+          }
+        }
+      }
+    }
+  }
+
   for (int i = 0; i < ClusterSummaries.Len(); i++) {
     TIntV QuoteIds;
     ClusterSummaries[i].GetQuoteIds(QuoteIds);

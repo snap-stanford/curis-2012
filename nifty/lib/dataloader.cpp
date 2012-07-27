@@ -149,6 +149,7 @@ TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &Q
         TDoc D;
         DB2.GetDoc(Sources[j], D);
         TInt NewSourceId = DB1.AddDoc(D);
+        D.SetId(NewSourceId);
         QB1.AddQuote(QContentString, D);
       }
     }

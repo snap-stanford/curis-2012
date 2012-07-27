@@ -219,3 +219,62 @@ void TCluster::GetUniqueSources(TIntV& UniqueSources, TIntV& QuoteIds, TQuoteBas
     UniqueSources.Add(*DocId);
   }
 }
+
+TClusterBase::TClusterBase() {
+}
+
+void TClusterBase::Save(TSOut &SOut) const {
+  ClusterIdCounter.Save(SOut);
+  IdToTCluster.Save(SOut);
+  QuoteIdToClusterId.Save(SOut);
+}
+
+void TClusterBase::Load(TSIn& SIn) {
+  ClusterIdCounter.Load(SIn);
+  IdToTCluster.Load(SIn);
+  QuoteIdToClusterId.Load(SIn);
+}
+
+TInt TClusterBase::AddCluster(const TCluster &Cluster) {
+  TIntV QuoteIds;
+  Cluster.GetQuoteIds(QuoteIds);
+  for (int i = 0; i < QuoteIds.Len(); i++) {
+    QuoteIdToClusterId.AddDat(QuoteIds[i], ClusterIdCounter);
+  }
+  IdToTCluster.AddDat(ClusterIdCounter, Cluster);
+  return ClusterIdCounter++;
+}
+
+bool TClusterBase::AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterId) {
+  TCluster Cluster;
+  if (IdToTCluster.IsKeyGetDat(ClusterId, Cluster)) {
+    Cluster.AddQuote(QB, QuoteId);
+    IdToTCluster.AddDat(ClusterId, Cluster);
+    QuoteIdToClusterId.AddDat(QuoteId, ClusterId);
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool TClusterBase::GetCluster(TInt ClusterId, TCluster& RefC) {
+  return IdToTCluster.IsKeyGetDat(ClusterId, RefC);
+}
+
+// Returns -1 if QuoteId is not found
+TInt TClusterBase::GetClusterFromQuoteId(TInt QuoteId) {
+  TInt ClusterId;
+  if (QuoteIdToClusterId.IsKeyGetDat(QuoteId, ClusterId)) {
+    return ClusterId;
+  } else {
+    return -1;
+  }
+}
+
+void TClusterBase::GetAllClusterIds(TIntV &ClusterIds) {
+  IdToTCluster.GetKeyV(ClusterIds);
+}
+
+int TClusterBase::Len() {
+  return IdToTCluster.Len();
+}
