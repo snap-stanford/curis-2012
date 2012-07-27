@@ -69,19 +69,16 @@ int main(int argc, char *argv[]) {
   //PlotQuoteFreq(QB, DB, 1, 6, PresentTime);
   //PrintQuoteURLs(QB, DB);
 
-  fprintf(stderr, "Creating clusters\n");
- 
   // create clusters and save!
+  fprintf(stderr, "Creating clusters\n");
+  TClusterBase CB;
   QuoteGraph GraphCreator(&QB);
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
   Clustering ClusterJob;
   ClusterJob.SetGraph(QGraph);
   TIntSet RootNodes;
-  TVec<TIntV> Clusters;
-  ClusterJob.BuildClusters(RootNodes, Clusters, &QB, &DB, Log);
-  TVec<TCluster> ClusterSummaries;
-  ClusterJob.SortClustersByFreq(ClusterSummaries, Clusters, &QB);
+  ClusterJob.BuildClusters(RootNodes, &CB, &QB, &DB, Log);
 
   fprintf(stderr, "Saving files...\n");
   // Save to file
@@ -90,8 +87,7 @@ int main(int argc, char *argv[]) {
     TStr Command = "mkdir -p output";
     system(Command.CStr());
     TFOut FOut("output/clusters.bin");
-    Clusters.Save(FOut); //TODO: rewrite the method that needs this?
-    ClusterSummaries.Save(FOut);
+    CB.Save(FOut);
     Log.Save(FOut);
   } else {
     fprintf(stderr, "Incremental saving, w00t!\n");
@@ -104,8 +100,8 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "QB saved!\n");
     DB.Save(FOut);
     fprintf(stderr, "DB saved!\n");
-    ClusterSummaries.Save(FOut);
-    fprintf(stderr, "Cluster Summaries saved!\n");
+    CB.Save(FOut);
+    fprintf(stderr, "CB saved!\n");
     QGraph->Save(FOut); //TODO: why is this in memecluster?!?!?
   }
 
@@ -123,8 +119,6 @@ int main(int argc, char *argv[]) {
   Plotter.PlotClusterSize(ClusterSummaries);
   Plotter.PlotQuoteFrequencies(QB);
   */
-  //delete QB;
-  //delete DB;
   printf("Done!\n");
   return 0;
 }
