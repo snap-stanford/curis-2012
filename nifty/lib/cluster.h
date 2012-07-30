@@ -69,7 +69,7 @@ public:
   void GetTopClusterIdsByFreq(TIntV &TopClusterIds);
   void Clr();
   int Len();
-  void MergeCluster2Into1(TCluster& Cluster1, TCluster& Cluster2, TQuoteBase *QB, bool KeepOneRepId);
+  void MergeCluster2Into1(TInt Id1, TInt Id2, TQuoteBase *QB, bool KeepOneRepId);
 };
 
 // Compares TClusters by sum of quote frequencies
