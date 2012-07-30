@@ -2,6 +2,9 @@
 #include "cluster.h"
 #include "quote.h"
 #include "peaks.h"
+#include "clustering.h"
+
+const int TClusterBase::FrequencyCutoff = 300;
 
 TCluster::TCluster() {
 }
@@ -25,7 +28,6 @@ void TCluster::Save(TSOut& SOut) const {
   NumQuotes.Save(SOut);
   QuoteIds.Save(SOut);
   Id.Save(SOut);
-  Popularity.Save(SOut);
   PeakTimesV.Save(SOut);
   FreqV.Save(SOut);
 }
@@ -35,7 +37,6 @@ void TCluster::Load(TSIn& SIn) {
   NumQuotes.Load(SIn);
   QuoteIds.Load(SIn);
   Id.Load(SIn);
-  Popularity.Load(SIn);
   PeakTimesV.Load(SIn);
   FreqV.Load(SIn);
 }
@@ -76,6 +77,29 @@ void TCluster::GetQuoteIds(TIntV &QuoteIds) const {
   QuoteIds = this->QuoteIds;
 }
 
+TInt TCluster::GetId() const {
+  return Id;
+}
+
+TFlt TCluster::GetPopularity(TQuoteBase *QuoteBase, TDocBase *DocBase, TSecTm CurrentTime) {
+  TFlt Popularity;
+  fprintf(stderr, "getting unique sources\n");
+  TIntV UniqueSources;
+  GetUniqueSources(UniqueSources, QuoteIds, QuoteBase);
+  fprintf(stderr, "getting frequency vectors\n");
+  TFreqTripleV FreqV;
+  Peaks::GetFrequencyVector(DocBase, UniqueSources, FreqV, 2, 1, CurrentTime);
+  fprintf(stderr, "calculating popularity\n");
+  for (int i = 0; i < FreqV.Len(); i++) {
+    Popularity += FreqV[i].Val2 * exp(FreqV[i].Val1 / 48);
+  }
+  return Popularity;
+}
+
+void TCluster::SetId(TInt Id) {
+  this->Id = Id;
+}
+
 void TCluster::AddQuote(TQuoteBase *QB, const TIntV &QuoteIds) {
   for (int i = 0; i < QuoteIds.Len(); i++) {
     AddQuote(QB, QuoteIds[i]);
@@ -93,31 +117,6 @@ void TCluster::AddQuote(TQuoteBase *QB, TInt QuoteId) {
 
 void TCluster::SetRepresentativeQuoteIds(TIntV& QuoteIds) {
   this->RepresentativeQuoteIds = QuoteIds;
-}
-
-TInt TCluster::GetId() {
-  return Id;
-}
-
-TFlt TCluster::GetPopularity() const {
-  return Popularity;
-}
-
-void TCluster::CalculatePopularity(TQuoteBase *QuoteBase, TDocBase *DocBase, TSecTm CurrentTime) {
-  fprintf(stderr, "getting unique sources\n");
-  TIntV UniqueSources;
-  GetUniqueSources(UniqueSources, QuoteIds, QuoteBase);
-  fprintf(stderr, "getting frequency vectors\n");
-  TFreqTripleV FreqV;
-  Peaks::GetFrequencyVector(DocBase, UniqueSources, FreqV, 2, 1, CurrentTime);
-  fprintf(stderr, "calculating popularity\n");
-  for (int i = 0; i < FreqV.Len(); i++) {
-    Popularity += FreqV[i].Val2 * exp(FreqV[i].Val1 / 48);
-  }
-}
-
-void TCluster::SetId(TInt Id) {
-  this->Id = Id;
 }
 
 void TCluster::GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, bool reset) {
@@ -290,8 +289,12 @@ int TClusterBase::Len() {
 
 /// Merges the second cluster into the first. For the quotes in the second cluster, updates
 //  the quote id to cluster id mappings to point to the first cluster
-void TClusterBase::MergeCluster2Into1(TCluster& Cluster1, TCluster& Cluster2, TQuoteBase *QB, bool KeepOneRepId) {
+void TClusterBase::MergeCluster2Into1(TInt Id1, TInt Id2, TQuoteBase *QB, bool KeepOneRepId) {
   // Add the quote ids of the second cluster to the first
+  TCluster Cluster1, Cluster2;
+  if (!IdToTCluster.IsKeyGetDat(Id1, Cluster1) || !IdToTCluster.IsKeyGetDat(Id2, Cluster2)) {
+    return;
+  }
   TIntV Cluster2QuoteIds;
   Cluster2.GetQuoteIds(Cluster2QuoteIds);
 
@@ -300,7 +303,8 @@ void TClusterBase::MergeCluster2Into1(TCluster& Cluster1, TCluster& Cluster2, TQ
     AddQuoteToCluster(QB, Cluster2QuoteIds[i], Cluster1.GetId());
   }
 
-
+  // Get the new cluster 1, with the quotes from cluster 2 added
+  IdToTCluster.IsKeyGetDat(Id1, Cluster1);
 
   if (KeepOneRepId) {
     // The new representative quote is the quote with the longer content string
@@ -311,6 +315,7 @@ void TClusterBase::MergeCluster2Into1(TCluster& Cluster1, TCluster& Cluster2, TQ
       TIntV RepQuoteIds2;
       Cluster2.GetRepresentativeQuoteIds(RepQuoteIds2);
       Cluster1.SetRepresentativeQuoteIds(RepQuoteIds2);
+      IdToTCluster.AddDat(Id1, Cluster1);
     }
   } else {
     // The new representative quote is both clusters' repIds appended to each other.
@@ -319,5 +324,6 @@ void TClusterBase::MergeCluster2Into1(TCluster& Cluster1, TCluster& Cluster2, TQ
     Cluster2.GetRepresentativeQuoteIds(RepQuoteIds2);
     RepQuoteIds1.AddV(RepQuoteIds2);
     Cluster1.SetRepresentativeQuoteIds(RepQuoteIds1);
+    IdToTCluster.AddDat(Id1, Cluster1);
   }
 }
