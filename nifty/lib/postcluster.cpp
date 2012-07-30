@@ -41,6 +41,17 @@ void PostCluster::MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TClusterBase
 
   for (THash<TMd5Sig, TIntV>::TIter Shingle = Shingles.BegI(); Shingle < Shingles.EndI(); Shingle++) {
     TIntV ClusterIds = Shingle.GetDat();
+
+    // For testing, print out the quotes in each bucket
+    for (int i = 0; i < ClusterIds.Len(); i++) {
+      TCluster Cluster;
+      CB->GetCluster(ClusterIds[i], Cluster);
+      TStr ClusterRepQuote;
+      Cluster.GetRepresentativeQuoteString(ClusterRepQuote, QB);
+      fprintf(stderr, "\t%s\n", ClusterRepQuote.CStr());
+    }
+    fprintf(stderr, "\n\n");
+
     ClusterIds.Sort(true);
     for (int i = 0; i < ClusterIds.Len(); i++) {
 
@@ -99,11 +110,11 @@ void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV &TopClust
 
   for (int i = 0; i < NumClusters; i++) {
   // Assumption: the requirements for merging two clusters are transitive
-    if (ToSkip.IsKey(TopClusters[i]) >= 0) { continue; }
+    if (ToSkip.IsKey(TopClusters[i])) { continue; }
     TCluster Ci;
     CB->GetCluster(TopClusters[i], Ci);
     for (int j = i + 1; j < NumClusters; j++) {
-      if (ToSkip.IsKey(TopClusters[j]) >= 0) { continue; }
+      if (ToSkip.IsKey(TopClusters[j])) { continue; }
       TCluster Cj;
       CB->GetCluster(TopClusters[j], Cj);
       if (ShouldMergeClusters(QB, Ci, Cj)) {
