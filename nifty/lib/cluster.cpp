@@ -3,6 +3,8 @@
 #include "quote.h"
 #include "peaks.h"
 
+const int TClusterBase::FrequencyCutoff = 300;
+
 TCluster::TCluster() {
 }
 
@@ -97,11 +99,8 @@ TInt TCluster::GetId() {
   return Id;
 }
 
-TFlt TCluster::GetPopularity() const {
-  return Popularity;
-}
-
-void TCluster::CalculatePopularity(TQuoteBase *QuoteBase, TDocBase *DocBase, TSecTm CurrentTime) {
+TFlt TCluster::CalculatePopularity(TQuoteBase *QuoteBase, TDocBase *DocBase, TSecTm CurrentTime) {
+  TFlt Popularity;
   fprintf(stderr, "getting unique sources\n");
   TIntV UniqueSources;
   GetUniqueSources(UniqueSources, QuoteIds, QuoteBase);
@@ -112,6 +111,7 @@ void TCluster::CalculatePopularity(TQuoteBase *QuoteBase, TDocBase *DocBase, TSe
   for (int i = 0; i < FreqV.Len(); i++) {
     Popularity += FreqV[i].Val2 * exp(FreqV[i].Val1 / 48);
   }
+  return Popularity;
 }
 
 void TCluster::SetId(TInt Id) {
@@ -285,6 +285,28 @@ void TClusterBase::GetAllClusterIdsSortByFreq(TIntV &ClusterIds) {
 void TClusterBase::GetTopClusterIdsByFreq(TIntV &TopClusterIds) {
   TIntV ClusterIds;
   GetAllClusterIdsSortByFreq(ClusterIds);
+  for (int i = 0; i < ClusterIds.Len(); i++) {
+    TCluster Cluster;
+    GetCluster(ClusterIds[i], Cluster);
+    if (Cluster.GetNumQuotes() < FrequencyCutoff) {
+      break;
+    } else {
+      TopClusterIds.Add(ClusterIds[i]);
+    }
+  }
+}
+
+/// Sorts clusters in decreasing order, and finds representative quote for each cluster
+//  RepQuotesAndFreq is a vector of cluster results, represented by TClusters
+void TClusterBase::GetAllClusterIdsSortByPopularity(TIntV &ClusterIds) {
+  IdToTCluster.GetKeyV(ClusterIds);
+
+  ClusterIds.SortCmp(TCmpTClusterIdByNumQuotes(false, this));
+}
+
+void TClusterBase::GetTopClusterIdsByPopularity(TIntV &TopClusterIds) {
+  TIntV ClusterIds;
+  GetAllClusterIdsSortByPopularity(ClusterIds);
   for (int i = 0; i < ClusterIds.Len(); i++) {
     TCluster Cluster;
     GetCluster(ClusterIds[i], Cluster);

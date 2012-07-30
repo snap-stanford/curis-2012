@@ -13,7 +13,6 @@ private:
   static bool ShouldMergeClusters(TQuoteBase *QB, TCluster& Cluster1, TCluster& Cluster2);
 
 public:
-  static const int FrequencyCutoff;
   static const double ClusterSourceOverlapThreshold;
   static const int BucketSize;
   static const int SlidingWindowSize;

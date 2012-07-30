@@ -11,7 +11,6 @@ private:
   TInt NumQuotes;
   TIntV QuoteIds;
   TInt Id;
-  TFlt Popularity;
   TFreqTripleV PeakTimesV;
   TFreqTripleV FreqV;
 
@@ -27,9 +26,8 @@ public:
   TInt GetNumQuotes() const;
   TInt GetNumUniqueQuotes() const;
   void GetQuoteIds(TIntV &QuoteIds) const;
-  TInt GetId();
-  TFlt GetPopularity() const;
-  void CalculatePopularity(TQuoteBase *QuoteBase, TDocBase *DocBase, TSecTm CurrentTime);
+  TInt GetId() const;
+  TFlt CalculatePopularity(TQuoteBase *QuoteBase, TDocBase *DocBase, TSecTm CurrentTime);
   void SetId(TInt Id);
 
   void AddQuote(TQuoteBase *QB, const TIntV &QuoteIds);
@@ -56,6 +54,8 @@ private:
   TInt ClusterIdCounter;
 
 public:
+  static const int FrequencyCutoff;
+
   TClusterBase();
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
