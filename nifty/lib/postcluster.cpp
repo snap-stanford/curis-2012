@@ -52,7 +52,7 @@ void PostCluster::MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TClusterBase
         CB->GetCluster(ClusterIds[i], Cluster1);
         CB->GetCluster(ClusterIds[j], Cluster2);
         if (ShouldMergeClusters(QB, Cluster1, Cluster2)) {
-          CB->MergeCluster2Into1(Cluster1, Cluster2, QB, true);
+          CB->MergeCluster2Into1(ClusterIds[i], ClusterIds[j], QB, true);
           ToSkip.AddKey(ClusterIds[j]);
 
           // For testing, print out which two clusters were merged:
@@ -107,7 +107,7 @@ void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV &TopClust
       TCluster Cj;
       CB->GetCluster(TopClusters[j], Cj);
       if (ShouldMergeClusters(QB, Ci, Cj)) {
-        CB->MergeCluster2Into1(Ci, Cj, QB, true);
+        CB->MergeCluster2Into1(TopClusters[i], TopClusters[j], QB, true);
         ToSkip.Add(j);
 
         // For testing, print out which two clusters were merged:
@@ -177,7 +177,7 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClust
         Cj.GetRepresentativeQuoteString(RepQuoteStr2, QB);
         fprintf(stderr, "CLUSTER1: %s\nCLUSTER2: %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
 
-        CB->MergeCluster2Into1(Cj, Ci, QB, false);
+        CB->MergeCluster2Into1(TopClusters[i], TopClusters[i], QB, false);
         ToSkip.Add(i);
         break; // we really only want to merge once.
       }

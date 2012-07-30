@@ -326,9 +326,7 @@ int TQuoteBase::Len() const {
 }
 
 void TQuoteBase::GetAllQuoteIds(TIntV &KeyV) const {
-  fprintf(stderr, "before\n");
   IdToTQuotes.GetKeyV(KeyV);
-  fprintf(stderr, "after\n");
 }
 
 void TQuoteBase::Save(TSOut &SOut) const {

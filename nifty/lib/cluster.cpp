@@ -303,7 +303,7 @@ void TClusterBase::MergeCluster2Into1(TInt Id1, TInt Id2, TQuoteBase *QB, bool K
   }
 
   // Get the new cluster 1, with the quotes from cluster 2 added
-  IdToTCluster.GetDat(Id1, Cluster1);
+  IdToTCluster.IsKeyGetDat(Id1, Cluster1);
 
   if (KeepOneRepId) {
     // The new representative quote is the quote with the longer content string
