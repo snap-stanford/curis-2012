@@ -288,8 +288,12 @@ int TClusterBase::Len() {
 
 /// Merges the second cluster into the first. For the quotes in the second cluster, updates
 //  the quote id to cluster id mappings to point to the first cluster
-void TClusterBase::MergeCluster2Into1(TCluster& Cluster1, TCluster& Cluster2, TQuoteBase *QB, bool KeepOneRepId) {
+void TClusterBase::MergeCluster2Into1(TInt Id1, TInt Id2, TQuoteBase *QB, bool KeepOneRepId) {
   // Add the quote ids of the second cluster to the first
+  TCluster Cluster1, Cluster2;
+  if (!IdToTCluster.IsKeyGetDat(Id1, Cluster1) || !IdToTCluster.IsKeyGetDat(Id2, Cluster2)) {
+    return;
+  }
   TIntV Cluster2QuoteIds;
   Cluster2.GetQuoteIds(Cluster2QuoteIds);
 
@@ -298,7 +302,8 @@ void TClusterBase::MergeCluster2Into1(TCluster& Cluster1, TCluster& Cluster2, TQ
     AddQuoteToCluster(QB, Cluster2QuoteIds[i], Cluster1.GetId());
   }
 
-
+  // Get the new cluster 1, with the quotes from cluster 2 added
+  IdToTCluster.GetDat(Id1, Cluster1);
 
   if (KeepOneRepId) {
     // The new representative quote is the quote with the longer content string
@@ -309,6 +314,7 @@ void TClusterBase::MergeCluster2Into1(TCluster& Cluster1, TCluster& Cluster2, TQ
       TIntV RepQuoteIds2;
       Cluster2.GetRepresentativeQuoteIds(RepQuoteIds2);
       Cluster1.SetRepresentativeQuoteIds(RepQuoteIds2);
+      IdToTCluster.AddDat(Id1, Cluster1);
     }
   } else {
     // The new representative quote is both clusters' repIds appended to each other.
@@ -317,5 +323,6 @@ void TClusterBase::MergeCluster2Into1(TCluster& Cluster1, TCluster& Cluster2, TQ
     Cluster2.GetRepresentativeQuoteIds(RepQuoteIds2);
     RepQuoteIds1.AddV(RepQuoteIds2);
     Cluster1.SetRepresentativeQuoteIds(RepQuoteIds1);
+    IdToTCluster.AddDat(Id1, Cluster1);
   }
 }
