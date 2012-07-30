@@ -232,9 +232,7 @@ bool TClusterBase::AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterI
 //  doesn't update the quote id to cluster id mappings
 void TClusterBase::RemoveCluster(TInt ClusterId) {
   if (IdToTCluster.IsKey(ClusterId)) {
-    TCluster C;
-    GetCluster(ClusterId, C);
-    IdToTCluster.DelKey(C.GetId());
+    IdToTCluster.DelKey(ClusterId);
   }
 }
 
