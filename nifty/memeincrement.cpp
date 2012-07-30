@@ -21,11 +21,11 @@ int main(int argc, char *argv[]) {
   // LOAD OLD QBDB
   TQuoteBase QB;
   TDocBase DB;
-  TVec<TCluster> ClusterSummaries;
+  TClusterBase CB;
   PNGraph OldQGraph;
   fprintf(stderr, "Loading cumulative QB, DB, and clusters from file...\n");
   TDataLoader::LoadCumulative("/lfs/1/tmp/curis/QBDBC/",
-                                                        OldDayDate, QB, DB, ClusterSummaries, OldQGraph);
+                                                        OldDayDate, QB, DB, CB, OldQGraph);
   fprintf(stderr, "Done!\n");
   fprintf(stderr, "Old Quote Counter: %d\n", QB.GetCurCounterValue().Val);
   // LOAD NEW QBDB
@@ -68,23 +68,23 @@ int main(int argc, char *argv[]) {
   GraphCreator.GetAffectedNodes(AffectedNodes);
   IncrementalClustering2 ClusterJob(&QB, NewQuotes, QGraph, AffectedNodes);
   TIntSet RootNodes;
-  TVec<TIntV> Clusters;
-  ClusterJob.BuildClusters(RootNodes, Clusters, &QB, &DB, Log);
-  ClusterSummaries.Clr();
-  Clustering::SortClustersByFreq(ClusterSummaries, Clusters, &QB);
+  ClusterBase NewCB;
+  ClusterJob.BuildClusters(RootNodes, NewCB, &QB, &DB, Log);
+  TIntV SortedClusters;
+  NewCB->GetAllClusterIdsSortByFreq(SortedClusters);
+  Clustering::SortClustersByFreq(&CB, Clusters, &QB);
 
   // save clusters
   TStr Command = "mkdir -p output";
   system(Command.CStr());
   TFOut FOut("output/clusters.bin");
-  Clusters.Save(FOut); //TODO: rewrite the method that needs this?
-  ClusterSummaries.Save(FOut);
+  CB.Save(FOut); //TODO: rewrite the method that needs this?
   Log.Save(FOut);
 
   // post clustering
   Log.SetupFiles(); // safe to make files now.
   TVec<TCluster> TopFilteredClusters;
-  PostCluster::GetTopFilteredClusters(&DB, &QB, Log, ClusterSummaries, TopFilteredClusters, PresentTime);
+  PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, PresentTime);
 
   // OUTPUT
   //Log.SetupFiles(); // safe to make files now.
