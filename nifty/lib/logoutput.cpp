@@ -77,7 +77,7 @@ void LogOutput::WriteClusteringOutputToFile() {
   fclose(F);
 }
 
-void LogOutput::OutputClusterInformation(TDocBase &DB, TQuoteBase &QB, TClusterBase &CB, TIntV& ClusterIds, TSecTm PresentTime) {
+void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime) {
   fprintf(stderr, "printing stuff\n");
   if (!ShouldLog) return;
   TStr FileName = WebDirectory + TimeStamp + "/top_clusters.txt";
@@ -106,9 +106,9 @@ void LogOutput::OutputClusterInformation(TDocBase &DB, TQuoteBase &QB, TClusterB
 
   for (int i = 0; i < ClusterIds.Len(); i++) {
     TCluster Cluster;
-    CB.GetCluster(ClusterIds[i], Cluster);
+    CB->GetCluster(ClusterIds[i], Cluster);
     TStr RepQuoteStr;
-    Cluster.GetRepresentativeQuoteString(RepQuoteStr, &QB);
+    Cluster.GetRepresentativeQuoteString(RepQuoteStr, QB);
     TInt FreqOfAllClusterQuotes = Cluster.GetNumQuotes();
     TIntV QuotesInCluster;
     Cluster.GetQuoteIds(QuotesInCluster);
@@ -124,7 +124,7 @@ void LogOutput::OutputClusterInformation(TDocBase &DB, TQuoteBase &QB, TClusterB
       fprintf(H, "<tr><td>%d</td><td>N/A</td><td>%d</td><td>%s</td></tr>\n", Rank, Cluster.GetNumQuotes().Val, URLLink.CStr());
       TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(Rank).GetStr() + ".html";
       TStr ImageFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(Rank).GetStr();
-      Cluster.GraphFreqOverTime(&DB, &QB, ImageFileName, 2, 1, PresentTime);
+      Cluster.GraphFreqOverTime(DB, QB, ImageFileName, 2, 1, PresentTime);
       FILE *C = fopen(ClusterFileName.CStr(), "w");
       fprintf(C, "<html>\n");
       fprintf(C, "<head>\n");
@@ -140,10 +140,10 @@ void LogOutput::OutputClusterInformation(TDocBase &DB, TQuoteBase &QB, TClusterB
       fprintf(C, "<b><tr><td>Frequency</td><td>Quote</td></tr></b>\n");
       for (int j = 0; j < QuotesInCluster.Len(); j++) {
         TQuote Quote;
-        if (QB.GetQuote(QuotesInCluster[j], Quote)) {
+        if (QB->GetQuote(QuotesInCluster[j], Quote)) {
           TStr QuoteStr, QuoteRepUrl;
           Quote.GetContentString(QuoteStr);
-          Quote.GetRepresentativeUrl(&DB, QuoteRepUrl);
+          Quote.GetRepresentativeUrl(DB, QuoteRepUrl);
           fprintf(C, "<tr><td>%d</td><td><a href=\"%s\">%s</a><br />\n", Quote.GetNumSources().Val, QuoteRepUrl.CStr(), QuoteStr.CStr());
           fprintf(C, "<a data-toggle=\"collapse\" href=\"#quoteUrls%d\">Urls</a><br />\n", Quote.GetId().Val);
           TIntV QuoteSources;
@@ -151,7 +151,7 @@ void LogOutput::OutputClusterInformation(TDocBase &DB, TQuoteBase &QB, TClusterB
           fprintf(C, "<div style=\"padding-left: 10px;\" id=\"quoteUrls%d\" class=\"collapse\">", Quote.GetId().Val);
           for (int k = 0; k < QuoteSources.Len(); k++) {
             TDoc Doc;
-            DB.GetDoc(QuoteSources[k], Doc);
+            DB->GetDoc(QuoteSources[k], Doc);
             TStr DocUrl;
             Doc.GetUrl(DocUrl);
             fprintf(C, "%s<br />\n", DocUrl.CStr());
@@ -171,7 +171,7 @@ void LogOutput::OutputClusterInformation(TDocBase &DB, TQuoteBase &QB, TClusterB
     // Write quote information
     for (int j = 0; j < QuotesInCluster.Len(); j++) {
       TQuote Quote;
-      if (QB.GetQuote(QuotesInCluster[j], Quote)) {
+      if (QB->GetQuote(QuotesInCluster[j], Quote)) {
         TStr QuoteStr;
         Quote.GetContentString(QuoteStr);
         fprintf(F, "\t%d\t%s\n", Quote.GetNumSources().Val, QuoteStr.CStr());
