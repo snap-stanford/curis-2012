@@ -7,6 +7,7 @@ const int PostCluster::PeakThreshold = 5;
 
 void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm PresentTime) {
   CB->GetTopClusterIdsByFreq(TopFilteredClusters);
+  //MergeAllClustersBasedOnSubstrings(QB, CB);
   MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
   MergeClustersWithCommonSources(QB, TopFilteredClusters, CB);
   FilterAndCacheClusterPeaks(DB, QB, CB, Log, TopFilteredClusters);
@@ -36,16 +37,14 @@ void PostCluster::MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TClusterBase
   // Check all clusters in the same bucket for substring merge
   // Keep track of compared clusters, so we don't compare the same pair of clusters more than once
   THashSet<TIntPr> ComparedClusters;  // in each pair of cluster ids, the first must be smaller
-  THashSet<TInt> ToSkip;  // Contains ids of clusters have have already been merged into another
+  TIntSet ToSkip;  // Contains ids of clusters have have already been merged into another
 
   for (THash<TMd5Sig, TIntV>::TIter Shingle = Shingles.BegI(); Shingle < Shingles.EndI(); Shingle++) {
     TIntV ClusterIds = Shingle.GetDat();
     ClusterIds.Sort(true);
     for (int i = 0; i < ClusterIds.Len(); i++) {
-      if (ToSkip.IsKey(ClusterIds[i])) { continue; }
 
       for (int j = i + 1; j < ClusterIds.Len(); j++) {
-        if (ToSkip.IsKey(ClusterIds[j])) { continue; }
         if (ComparedClusters.IsKey(TIntPr(ClusterIds[i], ClusterIds[j]))) { continue; }
         ComparedClusters.AddKey(TIntPr(ClusterIds[i], ClusterIds[j]));
         TCluster Cluster1, Cluster2;
@@ -59,7 +58,7 @@ void PostCluster::MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TClusterBase
           TStr RepQuoteStr1, RepQuoteStr2;
           Cluster1.GetRepresentativeQuoteString(RepQuoteStr1, QB);
           Cluster2.GetRepresentativeQuoteString(RepQuoteStr2, QB);
-          fprintf(stderr, "Merged cluster %s into %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
+          fprintf(stderr, "Merged cluster %s INTO %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
         }
       }
     }
@@ -95,21 +94,21 @@ bool PostCluster::ShouldMergeClusters(TQuoteBase *QB, TCluster& Cluster1, TClust
 //  (Assumes ClusterSummaries contains clusters sorted by decreasing frequency)
 void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV &TopClusters, TClusterBase *CB) {
   fprintf(stderr, "Merging clusters\n");
-  TVec<TInt> ToSkip;  // Contains ids of clusters that have already been merged into another
+  TIntSet ToSkip;  // Contains ids of clusters that have already been merged into another
   TInt NumClusters = TopClusters.Len();
 
   for (int i = 0; i < NumClusters; i++) {
   // Assumption: the requirements for merging two clusters are transitive
-    if (ToSkip.SearchForw(i) >= 0) { continue; }
+    if (ToSkip.IsKey(TopClusters[i]) >= 0) { continue; }
     TCluster Ci;
     CB->GetCluster(TopClusters[i], Ci);
     for (int j = i + 1; j < NumClusters; j++) {
-      if (ToSkip.SearchForw(j) >= 0) { continue; }
+      if (ToSkip.IsKey(TopClusters[j]) >= 0) { continue; }
       TCluster Cj;
       CB->GetCluster(TopClusters[j], Cj);
       if (ShouldMergeClusters(QB, Ci, Cj)) {
         CB->MergeCluster2Into1(TopClusters[i], TopClusters[j], QB, true);
-        ToSkip.Add(j);
+        ToSkip.AddKey(TopClusters[j]);
 
         // For testing, print out which two clusters were merged:
         TStr RepQuoteStr1, RepQuoteStr2;
@@ -121,13 +120,16 @@ void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV &TopClust
   }
 
   // delete merged clusters and remove from ClusterBase
-  ToSkip.Sort(true);
-  for (int i = 0; i < ToSkip.Len(); ++i) {
-    // TStr RepQuoteStr;
-    // TopClusters[ToSkip[i] - i].GetRepresentativeQuoteString(RepQuoteStr, QB);
-    TopClusters.Del(ToSkip[i] - i); // -i in order to keep track of deleted count changes.
-    CB->RemoveCluster(ToSkip[i]);
+  for (TIntSet::TIter Id = ToSkip.BegI(); Id < ToSkip.EndI(); Id++) {
+    CB->RemoveCluster(*Id);
   }
+  TIntV NewTopClusters;
+  for (int i = 0; i < TopClusters.Len(); i++) {
+    if (!ToSkip.IsKey(TopClusters[i])) {
+      NewTopClusters.Add(TopClusters[i]);
+    }
+  }
+  TopClusters = NewTopClusters;
 
   fprintf(stderr, "merged clusters\n");
 }
@@ -154,9 +156,9 @@ double PostCluster::ComputeClusterSourceOverlap(TIntV& Larger, TIntV& Smaller) {
 void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClusters, TClusterBase *CB) {
   fprintf(stderr, "Merging clusters with common sources\n");
   int NumClusters = TopClusters.Len();
-  TVec<TInt> ToSkip;
+  TIntSet ToSkip;  // Contains cluster ids
   for (int i = 0; i < NumClusters; i++) {
-    if (ToSkip.SearchForw(i) >= 0) { continue; }
+    if (ToSkip.IsKey(TopClusters[i])) { continue; }
     TCluster Ci;
     CB->GetCluster(TopClusters[i], Ci);
     TIntV QuoteIds;
@@ -165,7 +167,7 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClust
     TCluster::GetUniqueSources(UniqueSources, QuoteIds, QB);
     UniqueSources.Sort(true);
     for (int j = i + 1; j < NumClusters; j++) {
-      if (ToSkip.SearchForw(j) >= 0) { continue; }
+      if (ToSkip.IsKey(TopClusters[j])) { continue; }
       TCluster Cj;
       CB->GetCluster(TopClusters[j], Cj);
       TIntV MoreQuoteIds;
@@ -181,21 +183,24 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClust
         fprintf(stderr, "CLUSTER1: %s\nCLUSTER2: %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
 
         CB->MergeCluster2Into1(TopClusters[i], TopClusters[i], QB, false);
-        ToSkip.Add(i);
+        ToSkip.AddKey(TopClusters[i]);
         break; // we really only want to merge once.
       }
     }
   }
 
   fprintf(stderr, "deleting extra clusters...\n");
-  // delete merged clusters and remove from clusterbase
-  ToSkip.Sort(true);
-  for (int i = 0; i < ToSkip.Len(); ++i) {
-    // TStr RepQuoteStr;
-    // TopClusters[ToSkip[i] - i].GetRepresentativeQuoteString(RepQuoteStr, QB);
-    TopClusters.Del(ToSkip[i] - i); // -i in order to keep track of deleted count changes.
-    CB->RemoveCluster(ToSkip[i]);
+  // delete merged clusters and remove from ClusterBase
+  for (TIntSet::TIter Id = ToSkip.BegI(); Id < ToSkip.EndI(); Id++) {
+    CB->RemoveCluster(*Id);
   }
+  TIntV NewTopClusters;
+  for (int i = 0; i < TopClusters.Len(); i++) {
+    if (!ToSkip.IsKey(TopClusters[i])) {
+      NewTopClusters.Add(TopClusters[i]);
+    }
+  }
+  TopClusters = NewTopClusters;
   fprintf(stderr, "done!\n");
 }
 
