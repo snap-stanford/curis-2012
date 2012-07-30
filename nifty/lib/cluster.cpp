@@ -83,13 +83,10 @@ TInt TCluster::GetId() const {
 
 TFlt TCluster::GetPopularity(TQuoteBase *QuoteBase, TDocBase *DocBase, TSecTm CurrentTime) {
   TFlt Popularity;
-  fprintf(stderr, "getting unique sources\n");
   TIntV UniqueSources;
   GetUniqueSources(UniqueSources, QuoteIds, QuoteBase);
-  fprintf(stderr, "getting frequency vectors\n");
   TFreqTripleV FreqV;
   Peaks::GetFrequencyVector(DocBase, UniqueSources, FreqV, 2, 1, CurrentTime);
-  fprintf(stderr, "calculating popularity\n");
   for (int i = 0; i < FreqV.Len(); i++) {
     Popularity += FreqV[i].Val2 * exp(FreqV[i].Val1 / 48);
   }
