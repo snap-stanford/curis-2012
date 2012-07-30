@@ -39,7 +39,6 @@ public:
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TSecTm PresentTime);
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
 
-  void MergeWithCluster(TCluster& OtherCluster, TQuoteBase *QB, bool KeepOneRepId);
   static void GetUniqueSources(TIntV& UniqueSources, TIntV& QuoteIds, TQuoteBase *QB);
 
   //void GetFreqTimes(TFreqTripleV& FreqV, bool reset = false);
@@ -61,6 +60,7 @@ public:
   void Load(TSIn& SIn);
   TInt AddCluster(const TCluster& Cluster);
   bool AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterId);
+  void RemoveCluster(TInt ClusterId);
 
   bool GetCluster(TInt ClusterId, TCluster &RefC);
   TInt GetClusterIdFromQuoteId(TInt QuoteId);
@@ -69,6 +69,7 @@ public:
   void GetTopClusterIdsByFreq(TIntV &TopClusterIds);
   void Clr();
   int Len();
+  void MergeCluster2Into1(TCluster& Cluster1, TCluster& Cluster2, TQuoteBase *QB, bool KeepOneRepId);
 };
 
 // Compares TClusters by sum of quote frequencies

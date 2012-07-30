@@ -20,8 +20,8 @@ public:
 
   static void GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& TopFilteredClusters, TSecTm PresentTime);
   static void MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TClusterBase *CB);
-  static void MergeClustersBasedOnSubstrings(TQuoteBase *QB, TVec<TCluster>& TopClusters);
-  static void MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>& TopClusters);
+  static void MergeClustersBasedOnSubstrings(TQuoteBase *QB, TVec<TCluster>& TopClusters, TClusterBase *CB);
+  static void MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>& TopClusters, TClusterBase *CB);
   static void FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& TopClusters);
 
 };

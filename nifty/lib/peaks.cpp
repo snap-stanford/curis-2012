@@ -2,6 +2,7 @@
 #include "peaks.h"
 #include "quote.h"
 #include "doc.h"
+#include "assert.h"
 
 const int Peaks::K = 5;
 const uint Peaks::NumSecondsInHour = 3600;
@@ -89,7 +90,8 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
   TIntV SourcesSorted(Sources);
   SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
 
-  if(SourcesSorted.Len() == 0) return;
+  //assert(SourcesSorted.Len() > 0);
+  if (SourcesSorted.Len() == 0) return;
 
   TDoc StartDoc;
   int StartDocIndex = 0;

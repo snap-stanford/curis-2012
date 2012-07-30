@@ -86,9 +86,11 @@ void TCluster::AddQuote(TQuoteBase *QB, const TIntV &QuoteIds) {
 
 void TCluster::AddQuote(TQuoteBase *QB, TInt QuoteId) {
   this->QuoteIds.Add(QuoteId);
-  TQuote Q;
-  QB->GetQuote(QuoteId, Q);
-  this->NumQuotes += Q.GetNumSources();
+
+  // Only count the unique sources for the new frequency of the cluster
+  TIntV UniqueSources;
+  GetUniqueSources(UniqueSources, QuoteIds, QB);
+  NumQuotes = UniqueSources.Len();
 }
 
 void TCluster::SetRepresentativeQuoteIds(TIntV& QuoteIds) {
@@ -173,36 +175,6 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
   //GP.SavePng(Filename + ".png", 1000, 800, TStr(), SetXTic);
 }
 
-/// Merges OtherCluster into this cluster
-void TCluster::MergeWithCluster(TCluster& OtherCluster, TQuoteBase *QB, bool KeepOneRepId) {
-  // Put the quote ids of the two clusters together into one vector
-  TIntV OtherQuoteIds;
-  OtherCluster.GetQuoteIds(OtherQuoteIds);
-  QuoteIds.AddV(OtherQuoteIds);
-
-  // Only count the unique sources for the new frequency of the cluster
-  TIntV UniqueSources;
-  GetUniqueSources(UniqueSources, QuoteIds, QB);
-  NumQuotes = UniqueSources.Len();
-
-  if (KeepOneRepId) {
-    // The new representative quote is the quote with the longer content string
-    TStr ThisRepQuoteStr, OtherRepQuoteStr;
-    GetRepresentativeQuoteString(ThisRepQuoteStr, QB);
-    OtherCluster.GetRepresentativeQuoteString(OtherRepQuoteStr, QB);
-    if (OtherRepQuoteStr.Len() > ThisRepQuoteStr.Len()) {
-      TIntV OtherRepQuoteIds;
-      OtherCluster.GetRepresentativeQuoteIds(OtherRepQuoteIds);
-      RepresentativeQuoteIds = OtherRepQuoteIds;
-    }
-  } else {
-    // The new representative quote is both clusters' repIds appended to each other.
-    TIntV OtherRepQuoteIds;
-    OtherCluster.GetRepresentativeQuoteIds(OtherRepQuoteIds);
-    RepresentativeQuoteIds.AddV(OtherRepQuoteIds);
-  }
-}
-
 /// Calculates the number of unique sources among the quotes in a cluster,
 //  to get the frequency of the cluster
 void TCluster::GetUniqueSources(TIntV& UniqueSources, TIntV& QuoteIds, TQuoteBase *QB) {
@@ -257,6 +229,16 @@ bool TClusterBase::AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterI
   }
 }
 
+/// Just removes the cluster from the IdToTCluster table;
+//  doesn't update the quote id to cluster id mappings
+void TClusterBase::RemoveCluster(TInt ClusterId) {
+  if (IdToTCluster.IsKey(ClusterId)) {
+    TCluster C;
+    GetCluster(ClusterId, C);
+    IdToTCluster.DelKey(C.GetId());
+  }
+}
+
 bool TClusterBase::GetCluster(TInt ClusterId, TCluster& RefC) {
   return IdToTCluster.IsKeyGetDat(ClusterId, RefC);
 }
@@ -288,7 +270,7 @@ void TClusterBase::GetTopClusterIdsByFreq(TIntV &TopClusterIds) {
   for (int i = 0; i < ClusterIds.Len(); i++) {
     TCluster Cluster;
     GetCluster(ClusterIds[i], Cluster);
-    if (Cluster.GetNumQuotes() < FrequencyCutoff) {
+    if (Cluster.GetNumQuotes() < LogOutput::FrequencyCutoff) {
       break;
     } else {
       TopClusterIds.Add(ClusterIds[i]);
@@ -326,4 +308,38 @@ void TClusterBase::Clr() {
 
 int TClusterBase::Len() {
   return IdToTCluster.Len();
+}
+
+/// Merges the second cluster into the first. For the quotes in the second cluster, updates
+//  the quote id to cluster id mappings to point to the first cluster
+void TClusterBase::MergeCluster2Into1(TCluster& Cluster1, TCluster& Cluster2, TQuoteBase *QB, bool KeepOneRepId) {
+  // Add the quote ids of the second cluster to the first
+  TIntV Cluster2QuoteIds;
+  Cluster2.GetQuoteIds(Cluster2QuoteIds);
+
+  // Update the mappings in ClusterBase for the new quote ids
+  for (int i = 0; i < Cluster2QuoteIds.Len(); i++) {
+    AddQuoteToCluster(QB, Cluster2QuoteIds[i], Cluster1.GetId());
+  }
+
+
+
+  if (KeepOneRepId) {
+    // The new representative quote is the quote with the longer content string
+    TStr RepQuoteStr1, RepQuoteStr2;
+    Cluster1.GetRepresentativeQuoteString(RepQuoteStr1, QB);
+    Cluster2.GetRepresentativeQuoteString(RepQuoteStr2, QB);
+    if (RepQuoteStr2.Len() > RepQuoteStr1.Len()) {
+      TIntV RepQuoteIds2;
+      Cluster2.GetRepresentativeQuoteIds(RepQuoteIds2);
+      Cluster1.SetRepresentativeQuoteIds(RepQuoteIds2);
+    }
+  } else {
+    // The new representative quote is both clusters' repIds appended to each other.
+    TIntV RepQuoteIds1, RepQuoteIds2;
+    Cluster1.GetRepresentativeQuoteIds(RepQuoteIds1);
+    Cluster2.GetRepresentativeQuoteIds(RepQuoteIds2);
+    RepQuoteIds1.AddV(RepQuoteIds2);
+    Cluster1.SetRepresentativeQuoteIds(RepQuoteIds1);
+  }
 }
