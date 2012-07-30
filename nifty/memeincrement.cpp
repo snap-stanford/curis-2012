@@ -24,8 +24,7 @@ int main(int argc, char *argv[]) {
   TClusterBase CB;
   PNGraph OldQGraph;
   fprintf(stderr, "Loading cumulative QB, DB, and clusters from file...\n");
-  TDataLoader::LoadCumulative("/lfs/1/tmp/curis/QBDBC/",
-                                                        OldDayDate, QB, DB, CB, OldQGraph);
+  TDataLoader::LoadCumulative("/lfs/1/tmp/curis/QBDBC/", OldDayDate, QB, DB, CB, OldQGraph);
   fprintf(stderr, "Done!\n");
   fprintf(stderr, "Old Quote Counter: %d\n", QB.GetCurCounterValue().Val);
   // LOAD NEW QBDB
@@ -68,11 +67,11 @@ int main(int argc, char *argv[]) {
   GraphCreator.GetAffectedNodes(AffectedNodes);
   IncrementalClustering2 ClusterJob(&QB, NewQuotes, QGraph, AffectedNodes);
   TIntSet RootNodes;
-  ClusterBase NewCB;
-  ClusterJob.BuildClusters(RootNodes, NewCB, &QB, &DB, Log);
+  TClusterBase NewCB;
+  ClusterJob.BuildClusters(RootNodes, &NewCB, &QB, &DB, Log);
   TIntV SortedClusters;
-  NewCB->GetAllClusterIdsSortByFreq(SortedClusters);
-  Clustering::SortClustersByFreq(&CB, Clusters, &QB);
+  NewCB.GetAllClusterIdsSortByFreq(SortedClusters);
+  //Clustering::SortClustersByFreq(&CB, Clusters, &QB);
 
   // save clusters
   TStr Command = "mkdir -p output";
@@ -83,19 +82,19 @@ int main(int argc, char *argv[]) {
 
   // post clustering
   Log.SetupFiles(); // safe to make files now.
-  TVec<TCluster> TopFilteredClusters;
+  TIntV TopFilteredClusters;
   PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, PresentTime);
 
   // OUTPUT
   //Log.SetupFiles(); // safe to make files now.
-  Log.OutputClusterInformation(&DB, &QB, TopFilteredClusters, PresentTime);
+  Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime);
   Log.WriteClusteringOutputToFile();
 
   // plot output
-  ClusterPlot Plotter(TStr("/lfs/1/tmp/curis/"));
-  Plotter.PlotClusterSizeUnique(Clusters);
-  Plotter.PlotClusterSize(ClusterSummaries);
-  Plotter.PlotQuoteFrequencies(&QB);
+  //ClusterPlot Plotter(TStr("/lfs/1/tmp/curis/"));
+  //Plotter.PlotClusterSizeUnique(Clusters);
+  //Plotter.PlotClusterSize(ClusterSummaries);
+  //Plotter.PlotQuoteFrequencies(&QB);
 
   // Save to file
   /*Command = "mkdir -p output";

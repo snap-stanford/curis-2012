@@ -4,7 +4,7 @@
 /// Must pass in argument for the new day to be added, in format YYYY-MM-DD (-newday)
 //  TODO: Add framework for Log file (as in memecluster.cpp)
 int main(int argc, char *argv[]) {
-  /* LogOutput Log;
+  /*LogOutput Log;
   THash<TStr, TStr> Arguments;
   TStr BaseString;
   bool DoIncrementalClustering = false;
