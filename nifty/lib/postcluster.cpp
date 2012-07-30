@@ -1,4 +1,5 @@
 #include "postcluster.h"
+#include <assert.h>
 
 const double PostCluster::ClusterSourceOverlapThreshold = 0.8;
 const int PostCluster::BucketSize = 2;
@@ -126,6 +127,7 @@ void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV &TopClust
         Ci.GetRepresentativeQuoteString(RepQuoteStr1, QB);
         Cj.GetRepresentativeQuoteString(RepQuoteStr2, QB);
         fprintf(stderr, "Merged cluster %s INTO %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
+        break;
       }
     }
   }
@@ -193,8 +195,8 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClust
         Cj.GetRepresentativeQuoteString(RepQuoteStr2, QB);
         fprintf(stderr, "CLUSTER1: %s\nCLUSTER2: %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
 
-        CB->MergeCluster2Into1(TopClusters[i], TopClusters[i], QB, false);
-        ToSkip.AddKey(TopClusters[i]);
+        CB->MergeCluster2Into1(TopClusters[i], TopClusters[j], QB, false);
+        ToSkip.AddKey(TopClusters[j]);
         break; // we really only want to merge once.
       }
     }
