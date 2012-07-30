@@ -188,7 +188,12 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClust
       TIntV MoreUniqueSources;
       TCluster::GetUniqueSources(MoreUniqueSources, MoreQuoteIds, QB);
       MoreUniqueSources.Sort(true);
-      double Overlap = ComputeClusterSourceOverlap(MoreUniqueSources, UniqueSources);
+      double Overlap;
+      if (MoreUniqueSources.Len() < UniqueSources.Len()) {
+        Overlap = ComputeClusterSourceOverlap(UniqueSources, MoreUniqueSources);
+      } else {
+        Overlap = ComputeClusterSourceOverlap(MoreUniqueSources, UniqueSources);
+      }
       if (Overlap > ClusterSourceOverlapThreshold) {
         TStr RepQuoteStr1, RepQuoteStr2;
         Ci.GetRepresentativeQuoteString(RepQuoteStr1, QB);
