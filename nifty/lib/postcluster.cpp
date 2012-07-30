@@ -104,6 +104,7 @@ void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV &TopClust
     TCluster Ci;
     CB->GetCluster(TopClusters[i], Ci);
     for (int j = i + 1; j < NumClusters; j++) {
+      if (ToSkip.SearchForw(j) >= 0) { continue; }
       TCluster Cj;
       CB->GetCluster(TopClusters[j], Cj);
       if (ShouldMergeClusters(QB, Ci, Cj)) {
@@ -149,12 +150,12 @@ double PostCluster::ComputeClusterSourceOverlap(TIntV& Larger, TIntV& Smaller) {
   return count * 1.0 / Smaller.Len();
 }
 
-//TODO: ToSkip is not used properly
 void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClusters, TClusterBase *CB) {
   fprintf(stderr, "Merging clusters with common sources\n");
   int NumClusters = TopClusters.Len();
   TVec<TInt> ToSkip;
-  for (int i = 1; i < NumClusters; ++i) {
+  for (int i = 0; i < NumClusters; i++) {
+    if (ToSkip.SearchForw(i) >= 0) { continue; }
     TCluster Ci;
     CB->GetCluster(TopClusters[i], Ci);
     TIntV QuoteIds;
@@ -162,7 +163,8 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClust
     TIntV UniqueSources;
     TCluster::GetUniqueSources(UniqueSources, QuoteIds, QB);
     UniqueSources.Sort(true);
-    for (int j = 0; j < i; ++j) {
+    for (int j = i + 1; j < NumClusters; j++) {
+      if (ToSkip.SearchForw(j) >= 0) { continue; }
       TCluster Cj;
       CB->GetCluster(TopClusters[j], Cj);
       TIntV MoreQuoteIds;
