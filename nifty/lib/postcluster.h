@@ -18,11 +18,11 @@ public:
   static const int SlidingWindowSize;
   static const int PeakThreshold;
 
-  static void GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& TopFilteredClusters, TSecTm PresentTime);
+  static void GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm PresentTime);
   static void MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TClusterBase *CB);
-  static void MergeClustersBasedOnSubstrings(TQuoteBase *QB, TVec<TCluster>& TopClusters, TClusterBase *CB);
-  static void MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>& TopClusters, TClusterBase *CB);
-  static void FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& TopClusters);
+  static void MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV& TopClusters, TClusterBase *CB);
+  static void MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClusters, TClusterBase *CB);
+  static void FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV &TopClusters);
 
 };
 

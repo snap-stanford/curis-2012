@@ -17,7 +17,7 @@ private:
 public:
   TCluster();
   TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB);
-  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), Popularity(SIn), PeakTimesV(SIn), FreqV(SIn){ }
+  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), PeakTimesV(SIn), FreqV(SIn){ }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   void GetRepresentativeQuoteIds(TIntV& RepQuoteIds) const;
@@ -27,7 +27,7 @@ public:
   TInt GetNumUniqueQuotes() const;
   void GetQuoteIds(TIntV &QuoteIds) const;
   TInt GetId() const;
-  TFlt CalculatePopularity(TQuoteBase *QuoteBase, TDocBase *DocBase, TSecTm CurrentTime);
+  TFlt GetPopularity(TQuoteBase *QuoteBase, TDocBase *DocBase, TSecTm CurrentTime);
   void SetId(TInt Id);
 
   void AddQuote(TQuoteBase *QB, const TIntV &QuoteIds);
@@ -114,11 +114,11 @@ private:
   bool IsAsc;
 public:
   TCmpTClusterByPopularity(const bool& AscSort=true) : IsAsc(AscSort) { }
-  bool operator () (const TCluster& P1, const TCluster& P2) const {
+  bool operator () (const TPair<TInt, TFlt> P1, const TPair<TInt, TFlt> P2) const {
     if (IsAsc) {
-      return P1.GetPopularity() < P2.GetPopularity();
+      return P1.Val2 < P2.Val2;
     } else {
-      return P2.GetPopularity() < P1.GetPopularity();
+      return P2.Val2 < P1.Val2;
     }
   }
 };

@@ -2,16 +2,15 @@
 #include <stdio.h>
 
 int main(int argc, char *argv[]) {
+  TQuoteBase QB;
+  TDocBase DB;
+  TClusterBase CB;
   LogOutput Log;
 
   // LOAD CLUSTERS AND LOG FILE
-  fprintf(stderr, "loading clusters\n");
-  TVec<TIntV> Clusters;
-  TVec<TCluster> ClusterSummaries;
+  fprintf(stderr, "Loading CB\n");
   TFIn ClusterFile("output/clusters.bin");
-  Clusters.Load(ClusterFile);
-  ClusterSummaries.Load(ClusterFile);
-  TCluster tmp = ClusterSummaries[0];
+  CB.Load(ClusterFile);
   Log.Load(ClusterFile);
   fprintf(stderr, "Clusters loaded!\n");
 
@@ -21,30 +20,26 @@ int main(int argc, char *argv[]) {
   ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString, DoIncrementalClustering);
 
   fprintf(stderr, "Loading QB and DB from file...\n");
-  TQuoteBase *QB = new TQuoteBase;
-  TDocBase *DB = new TDocBase;
-  TSecTm PresentTime = TDataLoader::LoadBulkQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, *QB, *DB);
+  TSecTm PresentTime = TDataLoader::LoadBulkQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, QB, DB);
   fprintf(stderr, "Done!\n");
 
   Log.SetupFiles(); // safe to make files now.
-  TVec<TCluster> TopFilteredClusters;
-  PostCluster::GetTopFilteredClusters(DB, QB, Log, ClusterSummaries, TopFilteredClusters, PresentTime);
+  TIntV TopFilteredClusters;
+  PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, PresentTime);
 
   // TODO: consider if quote is dead?
 
   // OUTPUT
   //Log.SetupFiles(); // safe to make files now.
-  Log.OutputClusterInformation(DB, QB, TopFilteredClusters, PresentTime);
+  Log.OutputClusterInformation(DB, QB, CB, TopFilteredClusters, PresentTime);
   Log.WriteClusteringOutputToFile();
 
   // plot output
   ClusterPlot Plotter(TStr("/lfs/1/tmp/curis/"));
-  Plotter.PlotClusterSizeUnique(Clusters);
-  Plotter.PlotClusterSize(ClusterSummaries);
-  Plotter.PlotQuoteFrequencies(QB);
+  //Plotter.PlotClusterSizeUnique(Clusters);
+  //Plotter.PlotClusterSize(ClusterSummaries);
+  Plotter.PlotQuoteFrequencies(&QB);
 
-  delete QB;
-  delete DB;
   printf("Done!\n");
   return 0;
 }

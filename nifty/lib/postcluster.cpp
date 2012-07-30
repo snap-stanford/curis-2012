@@ -5,21 +5,24 @@ const int PostCluster::BucketSize = 2;
 const int PostCluster::SlidingWindowSize = 1;
 const int PostCluster::PeakThreshold = 5;
 
-void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& TopFilteredClusters, TSecTm PresentTime) {
-  TIntV TopClusterIds;
-  CB->GetTopClusterIdsByFreq(TopClusterIds);
+void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm PresentTime) {
+  CB->GetTopClusterIdsByFreq(TopFilteredClusters);
   MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
   MergeClustersWithCommonSources(QB, TopFilteredClusters, CB);
-  FilterAndCacheClusterPeaks(DB, QB, Log, TopFilteredClusters);
+  FilterAndCacheClusterPeaks(DB, QB, CB, Log, TopFilteredClusters);
 
   // sort by popularity
   // Sort remaining clusters by popularity
+  TVec<TPair<TInt, TFlt> > PopularityVec;
   fprintf(stderr, "Sorting by popularity...\n");
   for (int i = 0; i < TopFilteredClusters.Len(); i++) {
     //fprintf(stderr, "Calculating popularity for quote %d of %d\n", i, TopFilteredClusters.Len());
-    TopFilteredClusters[i].CalculatePopularity(QB, DB, PresentTime);
+    TCluster C;
+    CB->GetCluster(TopFilteredClusters[i], C);
+    TFlt Score = C.GetPopularity(QB, DB, PresentTime);
+    PopularityVec.Add(TPair<TInt, TFlt>(TopFilteredClusters[i], Score));
   }
-  TopFilteredClusters.SortCmp(TCmpTClusterByPopularity(false));
+  PopularityVec.SortCmp(TCmpTClusterByPopularity(false));
   fprintf(stderr, "Done!\n");
 }
 
@@ -90,23 +93,27 @@ bool PostCluster::ShouldMergeClusters(TQuoteBase *QB, TCluster& Cluster1, TClust
 //  FrequencyCutoff, and merges the pair of clusters if any quote of one is
 //  a substring of a quote of the other cluster's
 //  (Assumes ClusterSummaries contains clusters sorted by decreasing frequency)
-void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TVec<TCluster>& TopClusters, TClusterBase *CB) {
+void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV &TopClusters, TClusterBase *CB) {
   fprintf(stderr, "Merging clusters\n");
   TVec<TInt> ToSkip;  // Contains ids of clusters that have already been merged into another
   TInt NumClusters = TopClusters.Len();
 
   for (int i = 0; i < NumClusters; i++) {
   // Assumption: the requirements for merging two clusters are transitive
-    if (ToSkip.SearchForw(i) >= 0) continue;
+    if (ToSkip.SearchForw(i) >= 0) { continue; }
+    TCluster Ci;
+    CB->GetCluster(TopClusters[i], Ci);
     for (int j = i + 1; j < NumClusters; j++) {
-      if (ShouldMergeClusters(QB, TopClusters[i], TopClusters[j])) {
-        CB->MergeCluster2Into1(TopClusters[i], TopClusters[j], QB, true);
+      TCluster Cj;
+      CB->GetCluster(TopClusters[j], Cj);
+      if (ShouldMergeClusters(QB, Ci, Cj)) {
+        CB->MergeCluster2Into1(Ci, Cj, QB, true);
         ToSkip.Add(j);
 
         // For testing, print out which two clusters were merged:
         TStr RepQuoteStr1, RepQuoteStr2;
-        TopClusters[i].GetRepresentativeQuoteString(RepQuoteStr1, QB);
-        TopClusters[j].GetRepresentativeQuoteString(RepQuoteStr2, QB);
+        Ci.GetRepresentativeQuoteString(RepQuoteStr1, QB);
+        Cj.GetRepresentativeQuoteString(RepQuoteStr2, QB);
         fprintf(stderr, "Merged cluster %s into %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
       }
     }
@@ -115,8 +122,8 @@ void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TVec<TCluster>&
   // delete merged clusters
   ToSkip.Sort(true);
   for (int i = 0; i < ToSkip.Len(); ++i) {
-    TStr RepQuoteStr;
-    TopClusters[ToSkip[i] - i].GetRepresentativeQuoteString(RepQuoteStr, QB);
+    // TStr RepQuoteStr;
+    // TopClusters[ToSkip[i] - i].GetRepresentativeQuoteString(RepQuoteStr, QB);
     TopClusters.Del(ToSkip[i] - i); // -i in order to keep track of deleted count changes.
   }
 
@@ -142,30 +149,35 @@ double PostCluster::ComputeClusterSourceOverlap(TIntV& Larger, TIntV& Smaller) {
   return count * 1.0 / Smaller.Len();
 }
 
-void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>& TopClusters, TClusterBase *CB) {
+//TODO: ToSkip is not used properly
+void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClusters, TClusterBase *CB) {
   fprintf(stderr, "Merging clusters with common sources\n");
   int NumClusters = TopClusters.Len();
   TVec<TInt> ToSkip;
   for (int i = 1; i < NumClusters; ++i) {
+    TCluster Ci;
+    CB->GetCluster(TopClusters[i], Ci);
     TIntV QuoteIds;
-    TopClusters[i].GetQuoteIds(QuoteIds);
+    Ci.GetQuoteIds(QuoteIds);
     TIntV UniqueSources;
-    UniqueSources.Sort(true);
     TCluster::GetUniqueSources(UniqueSources, QuoteIds, QB);
+    UniqueSources.Sort(true);
     for (int j = 0; j < i; ++j) {
+      TCluster Cj;
+      CB->GetCluster(TopClusters[j], Cj);
       TIntV MoreQuoteIds;
-      TopClusters[j].GetQuoteIds(MoreQuoteIds);
+      Cj.GetQuoteIds(MoreQuoteIds);
       TIntV MoreUniqueSources;
       TCluster::GetUniqueSources(MoreUniqueSources, MoreQuoteIds, QB);
       MoreUniqueSources.Sort(true);
       double Overlap = ComputeClusterSourceOverlap(MoreUniqueSources, UniqueSources);
       if (Overlap > ClusterSourceOverlapThreshold) {
         TStr RepQuoteStr1, RepQuoteStr2;
-        TopClusters[i].GetRepresentativeQuoteString(RepQuoteStr1, QB);
-        TopClusters[j].GetRepresentativeQuoteString(RepQuoteStr2, QB);
+        Ci.GetRepresentativeQuoteString(RepQuoteStr1, QB);
+        Cj.GetRepresentativeQuoteString(RepQuoteStr2, QB);
         fprintf(stderr, "CLUSTER1: %s\nCLUSTER2: %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
 
-        CB->MergeCluster2Into1(TopClusters[j], TopClusters[i], QB, false);
+        CB->MergeCluster2Into1(Cj, Ci, QB, false);
         ToSkip.Add(i);
         break; // we really only want to merge once.
       }
@@ -176,26 +188,28 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TVec<TCluster>&
   // delete merged clusters
   ToSkip.Sort(true);
   for (int i = 0; i < ToSkip.Len(); ++i) {
-    TStr RepQuoteStr;
-    TopClusters[ToSkip[i] - i].GetRepresentativeQuoteString(RepQuoteStr, QB);
+    // TStr RepQuoteStr;
+    // TopClusters[ToSkip[i] - i].GetRepresentativeQuoteString(RepQuoteStr, QB);
     TopClusters.Del(ToSkip[i] - i); // -i in order to keep track of deleted count changes.
   }
   fprintf(stderr, "done!\n");
 }
 
 
-void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TVec<TCluster>& TopClusters) {
+void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV& TopClusters) {
   fprintf(stderr, "Filtering clusters that have too many peaks...\n");
   TIntV DiscardedClusterIds;
   TVec<TCluster> DiscardedClusters;
   for (int i = 0; i < TopClusters.Len(); ++i) {
+    TCluster C;
+    CB->GetCluster(TopClusters[i], C);
     TFreqTripleV PeakTimesV;
     TFreqTripleV FreqV;
-    TopClusters[i].GetPeaks(DB, QB, PeakTimesV, FreqV, BucketSize, SlidingWindowSize, TSecTm(0), true);
+    C.GetPeaks(DB, QB, PeakTimesV, FreqV, BucketSize, SlidingWindowSize, TSecTm(0), true);
     // Add clusters with too many peaks to the discard list.
     if (PeakTimesV.Len() > PeakThreshold) {
       DiscardedClusterIds.Add(i);
-      DiscardedClusters.Add(TopClusters[i]);
+      DiscardedClusters.Add(C);
     }
   }
 
