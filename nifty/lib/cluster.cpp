@@ -2,6 +2,7 @@
 #include "cluster.h"
 #include "quote.h"
 #include "peaks.h"
+#include "clustering.h"
 
 const int TClusterBase::FrequencyCutoff = 300;
 

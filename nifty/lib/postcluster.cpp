@@ -114,17 +114,18 @@ void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV &TopClust
         TStr RepQuoteStr1, RepQuoteStr2;
         Ci.GetRepresentativeQuoteString(RepQuoteStr1, QB);
         Cj.GetRepresentativeQuoteString(RepQuoteStr2, QB);
-        fprintf(stderr, "Merged cluster %s into %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
+        fprintf(stderr, "Merged cluster %s INTO %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
       }
     }
   }
 
-  // delete merged clusters
+  // delete merged clusters and remove from ClusterBase
   ToSkip.Sort(true);
   for (int i = 0; i < ToSkip.Len(); ++i) {
     // TStr RepQuoteStr;
     // TopClusters[ToSkip[i] - i].GetRepresentativeQuoteString(RepQuoteStr, QB);
     TopClusters.Del(ToSkip[i] - i); // -i in order to keep track of deleted count changes.
+    CB->RemoveCluster(ToSkip[i]);
   }
 
   fprintf(stderr, "merged clusters\n");
@@ -185,12 +186,13 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClust
   }
 
   fprintf(stderr, "deleting extra clusters...\n");
-  // delete merged clusters
+  // delete merged clusters and remove from clusterbase
   ToSkip.Sort(true);
   for (int i = 0; i < ToSkip.Len(); ++i) {
     // TStr RepQuoteStr;
     // TopClusters[ToSkip[i] - i].GetRepresentativeQuoteString(RepQuoteStr, QB);
     TopClusters.Del(ToSkip[i] - i); // -i in order to keep track of deleted count changes.
+    CB->RemoveCluster(ToSkip[i]);
   }
   fprintf(stderr, "done!\n");
 }

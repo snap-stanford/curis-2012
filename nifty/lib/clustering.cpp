@@ -93,6 +93,10 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TClusterBase *CB, TQuoteBase 
   for (int i = 0; i < Clusters.Len(); i++) {
     TCluster Cluster;
     Cluster.AddQuote(QB, Clusters[i]);
+    TQuote ClusterRepQuote;
+    CalcRepresentativeQuote(ClusterRepQuote, Clusters[i], QB);
+    TIntV ClusterRepQuoteIds(ClusterRepQuote.GetId());
+    Cluster.SetRepresentativeQuoteIds(ClusterRepQuoteIds);
     CB->AddCluster(Cluster);
   }
 }
