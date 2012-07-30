@@ -197,6 +197,21 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClust
 
         CB->MergeCluster2Into1(TopClusters[i], TopClusters[j], QB, false);
         ToSkip.AddKey(TopClusters[j]);
+
+        // FOR TESTING
+        TCluster NewC;
+        CB->GetCluster(TopClusters[i], NewC);
+        TIntV NewQuoteIds;
+        NewC.GetQuoteIds(NewQuoteIds);
+        for (int k = 0; k < NewQuoteIds.Len(); k++) {
+          TQuote NewQ;
+          QB->GetQuote(NewQuoteIds[k], NewQ);
+          TStr NewQStr;
+          NewQ.GetContentString(NewQStr);
+          fprintf(stderr, "\t%s\n", NewQStr.CStr());
+        }
+        fprintf(stderr, "\n\n");
+
         break; // we really only want to merge once.
       }
     }

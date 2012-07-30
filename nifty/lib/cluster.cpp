@@ -293,12 +293,13 @@ void TClusterBase::MergeCluster2Into1(TInt Id1, TInt Id2, TQuoteBase *QB, bool K
   if (!IdToTCluster.IsKeyGetDat(Id1, Cluster1) || !IdToTCluster.IsKeyGetDat(Id2, Cluster2)) {
     return;
   }
+
   TIntV Cluster2QuoteIds;
   Cluster2.GetQuoteIds(Cluster2QuoteIds);
 
   // Update the mappings in ClusterBase for the new quote ids
   for (int i = 0; i < Cluster2QuoteIds.Len(); i++) {
-    AddQuoteToCluster(QB, Cluster2QuoteIds[i], Cluster1.GetId());
+    AddQuoteToCluster(QB, Cluster2QuoteIds[i], Id1);
   }
 
   // Get the new cluster 1, with the quotes from cluster 2 added
