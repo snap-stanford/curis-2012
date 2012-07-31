@@ -9,12 +9,12 @@ private:
   TStr RootDirectory;
 public:
   ClusterPlot(TStr RootDirectory);
-  void PlotClusterSizeUnique(TVec<TIntV>& Clusters);
-  void PlotClusterSize(TVec<TCluster>& ClusterSummaries);
-  void PlotQuoteFrequencies(TQuoteBase* QB);
+  void PlotClusterSizeUnique(TClusterBase *CB);
+  void PlotClusterSize(TClusterBase *CB);
+  void PlotQuoteFrequencies(TQuoteBase *QB);
   //void PlotClusterPeaks(TTriple<TInt, TInt, TIntV>& Cluster);
 
-  class TCmpIntV {
+  /* class TCmpIntV {
   private:
     bool IsAsc;
   public:
@@ -27,7 +27,7 @@ public:
         return P2.Len() < P1.Len();
       }
     }
-  };
+  }; */
 };
 
 #endif
