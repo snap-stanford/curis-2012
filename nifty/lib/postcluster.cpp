@@ -1,4 +1,5 @@
 #include "postcluster.h"
+#include <assert.h>
 
 const double PostCluster::ClusterSourceOverlapThreshold = 0.8;
 const int PostCluster::BucketSize = 2;
@@ -99,11 +100,11 @@ void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV &TopClust
 
   for (int i = 0; i < NumClusters; i++) {
   // Assumption: the requirements for merging two clusters are transitive
-    if (ToSkip.IsKey(TopClusters[i]) >= 0) { continue; }
+    if (ToSkip.IsKey(TopClusters[i])) { continue; }
     TCluster Ci;
     CB->GetCluster(TopClusters[i], Ci);
     for (int j = i + 1; j < NumClusters; j++) {
-      if (ToSkip.IsKey(TopClusters[j]) >= 0) { continue; }
+      if (ToSkip.IsKey(TopClusters[j])) { continue; }
       TCluster Cj;
       CB->GetCluster(TopClusters[j], Cj);
       if (ShouldMergeClusters(QB, Ci, Cj)) {
@@ -115,6 +116,7 @@ void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV &TopClust
         Ci.GetRepresentativeQuoteString(RepQuoteStr1, QB);
         Cj.GetRepresentativeQuoteString(RepQuoteStr2, QB);
         fprintf(stderr, "Merged cluster %s INTO %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
+        break;
       }
     }
   }
@@ -175,15 +177,20 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClust
       TIntV MoreUniqueSources;
       TCluster::GetUniqueSources(MoreUniqueSources, MoreQuoteIds, QB);
       MoreUniqueSources.Sort(true);
-      double Overlap = ComputeClusterSourceOverlap(MoreUniqueSources, UniqueSources);
+      double Overlap;
+      if (MoreUniqueSources.Len() < UniqueSources.Len()) {
+        Overlap = ComputeClusterSourceOverlap(UniqueSources, MoreUniqueSources);
+      } else {
+        Overlap = ComputeClusterSourceOverlap(MoreUniqueSources, UniqueSources);
+      }
       if (Overlap > ClusterSourceOverlapThreshold) {
         TStr RepQuoteStr1, RepQuoteStr2;
         Ci.GetRepresentativeQuoteString(RepQuoteStr1, QB);
         Cj.GetRepresentativeQuoteString(RepQuoteStr2, QB);
         fprintf(stderr, "CLUSTER1: %s\nCLUSTER2: %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
 
-        CB->MergeCluster2Into1(TopClusters[i], TopClusters[i], QB, false);
-        ToSkip.AddKey(TopClusters[i]);
+        CB->MergeCluster2Into1(TopClusters[i], TopClusters[j], QB, false);
+        ToSkip.AddKey(TopClusters[j]);
         break; // we really only want to merge once.
       }
     }
