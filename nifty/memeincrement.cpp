@@ -4,91 +4,80 @@
 /// Must pass in argument for the new day to be added, in format YYYY-MM-DD (-newday)
 //  TODO: Add framework for Log file (as in memecluster.cpp)
 int main(int argc, char *argv[]) {
-  // PARSE ARGUMENTS AND SET UP EVERYTHING
+  // #### SETUP: Parse Arguments
   LogOutput Log;
   THash<TStr, TStr> Arguments;
   TStr BaseString;
   ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
 
-  if (!Arguments.IsKey("newday")) {
-    fprintf(stderr, "Must input date of the new day to be added, in the format YYYY-MM-DD (-newday)");
-    exit(1);
+  TStr StartString, EndString;
+  if (!Arguments.IsKeyGetDat("start", StartString)) {
+    StartString = "2012-07-08";
   }
-  TStr OldDayDate = "2012-07-07";
-  TStr NewDayDate = "2012-07-08";
+  if (!Arguments.IsKeyGetDat("end", EndString)) {
+    EndString = "2012-07-09";
+  }
 
-  // LOAD OLD QBDB
+  TSecTm StartDate = TSecTm::GetDtTmFromYmdHmsStr(StartString);
+  TSecTm EndDate = TSecTm::GetDtTmFromYmdHmsStr(EndString);
+
+  // #### LOAD OLD QBDB
+  TSecTm OldDate = StartDate;
+  OldDate.AddDays(-1);
   TQuoteBase QB;
   TDocBase DB;
   TClusterBase CB;
   PNGraph OldQGraph;
-  fprintf(stderr, "Loading cumulative QB, DB, and clusters from file...\n");
-  TDataLoader::LoadCumulative("/lfs/1/tmp/curis/QBDBC/", OldDayDate, QB, DB, CB, OldQGraph);
-  fprintf(stderr, "Done!\n");
-  fprintf(stderr, "Old Quote Counter: %d\n", QB.GetCurCounterValue().Val);
-  // LOAD NEW QBDB
-  TQuoteBase NewDayQB;
-  TDocBase NewDayDB;
-  fprintf(stderr, "Loading New Day QB and DB from file...\n");
-  TDataLoader::LoadQBDB("/lfs/1/tmp/curis/QBDB/", NewDayDate, NewDayQB, NewDayDB);
-  fprintf(stderr, "Done!\n");
-  fprintf(stderr, "New Quote Counter: %d\n", NewDayQB.GetCurCounterValue().Val);
+  fprintf(stderr, "Loading cumulative QBDBCB from file...\n");
+  TDataLoader::LoadCumulative(QBDBC_DIRECTORY, OldDate, QB, DB, CB, OldQGraph);
+  fprintf(stderr, "\tDone loading cumulative QBDBCB!\n");
 
-  // MERGE OLD AND NEW QBDB
-  fprintf(stderr, "Adding new quotes to clusters and creating new ones\n");
-  //IncrementalClustering ClusterJob;
-  TVec<TIntV> MergedClusters;
-  //ClusterJob.BuildClusters(MergedClusters, ClusterSummaries, QB, DB, NewDayQB, NewDayDB);
-  TIntSet NewQuotes(TDataLoader::MergeQBDB(QB, DB, NewDayQB, NewDayDB));
-  fprintf(stderr, "Merged Quote Counter: %d\n", QB.GetCurCounterValue().Val);
-  TIntV TempV;
-  QB.GetAllQuoteIds(TempV);
-  fprintf(stderr, "Number of quotes: %d\n", TempV.Len());
+  // #### MAIN CLUSTERING STEP.
+  TSecTm CurrentDate = StartDate;
+  while(CurrentDate < EndDate) {
+    // ## LOAD NEW QBDB
+    TQuoteBase NewQB;
+    TDocBase NewDB;
+    fprintf(stderr, "Loading QBDB for %s...\n", CurrentDate.GetDtYmdStr());
+    TDataLoader::LoadQBDB(QBDB_DIRECTORY, CurrentDate.GetDtYmdStr(), NewQB, NewDB);
+    fprintf(stderr, "Done loading new QBDB!\n");
 
-  TSecTm PresentTime = TSecTm::GetDtTmFromYmdHmsStr(NewDayDate + " 23:59:59");
+    // ## MERGE AND GET NEW QUOTES
+    TIntSet NewQuotes(TDataLoader::MergeQBDB(QB, DB, NewQB, NewDB));
 
-  // create clusters and save!
-  /*QuoteGraph GraphCreator(&QB);
-  PNGraph QGraph;
-  GraphCreator.CreateGraph(QGraph);
-  Clustering ClusterJob;
-  ClusterJob.SetGraph(QGraph);
-  TIntSet RootNodes;
-  TVec<TIntV> Clusters;
-  ClusterJob.BuildClusters(RootNodes, Clusters, &QB, &DB, Log);
-  ClusterSummaries.Clr();
-  ClusterJob.SortClustersByFreq(ClusterSummaries, Clusters, &QB);*/
+    // ## CLUSTERING STEP
+    IncrementalQuoteGraph GraphCreator(&QB, NewQuotes, OldQGraph);
+    PNGraph QGraph;
+    GraphCreator.UpdateGraph(QGraph);
+    TIntSet AffectedNodes;
+    GraphCreator.GetAffectedNodes(AffectedNodes);
+    IncrementalClustering2 ClusterJob(&QB, NewQuotes, QGraph, AffectedNodes);
+    TIntSet RootNodes;
+    TClusterBase NewCB;
+    ClusterJob.BuildClusters(&NewCB, &QB, &DB, Log);
+    TIntV SortedClusters;
+    NewCB.GetAllClusterIdsSortByFreq(SortedClusters);
 
-  IncrementalQuoteGraph GraphCreator(&QB, NewQuotes, OldQGraph);
-  PNGraph QGraph;
-  GraphCreator.UpdateGraph(QGraph);
-  TIntSet AffectedNodes;
-  GraphCreator.GetAffectedNodes(AffectedNodes);
-  IncrementalClustering2 ClusterJob(&QB, NewQuotes, QGraph, AffectedNodes);
-  TIntSet RootNodes;
-  TClusterBase NewCB;
-  ClusterJob.BuildClusters(&NewCB, &QB, &DB, Log);
-  TIntV SortedClusters;
-  NewCB.GetAllClusterIdsSortByFreq(SortedClusters);
-  //Clustering::SortClustersByFreq(&CB, Clusters, &QB);
+    // ## POSTCLUSTERING STEP AND OUTPUT?
+    Log.SetupFiles();
+    TIntV TopFilteredClusters;
+    PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, CurrentDate);
+    Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, CurrentDate);
+    Log.WriteClusteringOutputToFile();
 
-  // save clusters
-  TStr Command = "mkdir -p output";
-  system(Command.CStr());
-  TFOut FOut("output/clusters.bin");
-  CB.Save(FOut); //TODO: rewrite the method that needs this?
-  Log.Save(FOut);
+    // ## SAVE CLUSTERS OR SAVE THEM TO VARIABLES.
+    OldQGraph = QGraph;
+    CB = NewCB;
+    TStr FileName = TStr(QBDBC_DIRECTORY) + "QBDBC" + CurrentDate.GetDtYmdStr() + ".bin";
+    fprintf(stderr, "Saving Cluster information to file: %s", FileName.CStr());
+    TFOut FOut(FileName);
+    QB.Save(FOut);
+    DB.Save(FOut);
+    CB.Save(FOut);
+    QGraph->Save(FOut);
 
-  // post clustering
-  Log.SetupFiles(); // safe to make files now.
-  TIntV TopFilteredClusters;
-  PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, PresentTime);
-
-  // OUTPUT
-  //Log.SetupFiles(); // safe to make files now.
-  Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime);
-  Log.WriteClusteringOutputToFile();
-
+    CurrentDate.AddDays(1);
+  }
   // plot output
   //ClusterPlot Plotter(TStr("/lfs/1/tmp/curis/"));
   //Plotter.PlotClusterSizeUnique(Clusters);
@@ -100,9 +89,6 @@ int main(int argc, char *argv[]) {
   system(Command.CStr());
   TFOut FOut2("output/cumulativeclusters" + NewDayDate.CStr() + ".bin");
   MergedClusterSummaries.Save(FOut2);*/
-
-  //delete QB;
-  //delete DB;
-  printf("Done!\n");
+  printf("Done with EVERYTHING!\n");
   return 0;
 }
