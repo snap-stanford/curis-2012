@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "quote.h"
 #include "doc.h"
 #include "peaks.h"
@@ -103,7 +102,6 @@ void TQuote::AddSource(TDoc& SourceDoc) {
   TInt SourceId = SourceDoc.GetId();
   if (Sources.SearchForw(SourceId) < 0) {
     Sources.Add(SourceId);
-    SourceDoc.IncNumQuotes();
   }
   //printf("Source added. Source ID: %d. Num sources: %d", SourceId, Sources.Len().Val());
 }
@@ -270,26 +268,16 @@ TInt TQuoteBase::AddQuote(const TStr &ContentString, TDoc& SourceDoc) {
   }
 }
 
-void TQuoteBase::RemoveQuoteAndSources(TDocBase *DB, TInt QuoteId) {
+void TQuoteBase::RemoveQuote(TInt QuoteId) {
   // TODO: memory management
   if (IdToTQuotes.IsKey(QuoteId)) {
     TQuote CurQuote = IdToTQuotes.GetDat(QuoteId);
-    TIntV CurSources;
-    CurQuote.GetSources(CurSources);
     TStrV CurContent;
     CurQuote.GetContent(CurContent);
     if (QuoteToId.IsKey(CurContent)) {
       QuoteToId.DelKey(CurContent);
     }
     IdToTQuotes.DelKey(QuoteId);
-    for (int i = 0; i < CurSources.Len(); i++) {
-      TDoc Doc;
-      DB->GetDoc(CurSources[i], Doc);
-      Doc.DecNumQuotes();
-      if (Doc.GetNumQuotes() <= 0) {
-        DB->RemoveDoc(Doc.GetId());
-      }
-    }
   }
 }
 

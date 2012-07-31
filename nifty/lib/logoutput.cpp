@@ -1,7 +1,6 @@
 #include "logoutput.h"
 #include "quote.h"
 #include "doc.h"
-#include "stdafx.h"
 
 const TStr LogOutput::OutputDirectory = "/lfs/1/tmp/curis/output/clustering/";
 const TStr LogOutput::WebDirectory = "../../public_html/curis/output/clustering/";
