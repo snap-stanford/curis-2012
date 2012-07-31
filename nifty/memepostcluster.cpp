@@ -35,8 +35,8 @@ int main(int argc, char *argv[]) {
 
   // plot output
   ClusterPlot Plotter(TStr("/lfs/1/tmp/curis/"));
-  //Plotter.PlotClusterSizeUnique(Clusters);
-  //Plotter.PlotClusterSize(ClusterSummaries);
+  Plotter.PlotClusterSizeUnique(&CB);
+  Plotter.PlotClusterSize(&CB);
   Plotter.PlotQuoteFrequencies(&QB);
 
   printf("Done!\n");
