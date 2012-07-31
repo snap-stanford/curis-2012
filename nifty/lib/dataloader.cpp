@@ -162,11 +162,17 @@ TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &Q
 
 void TDataLoader::LoadCumulative(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, PNGraph& P) {
   TStr CurFileName = "QBDBC" + Date + ".bin";
+  fprintf(stderr, "1: %s\n", (Prefix+CurFileName).CStr());
   TFIn CurFile(Prefix + CurFileName);
+  fprintf(stderr, "2\n");
   QB.Load(CurFile);
+  fprintf(stderr, "3\n");
   DB.Load(CurFile);
+  fprintf(stderr, "4\n");
   CB.Load(CurFile);
+  fprintf(stderr, "5\n");
   P = TNGraph::Load(CurFile);
+  fprintf(stderr, "6\n");
 }
 
 void TDataLoader::LoadQBDB(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB) {

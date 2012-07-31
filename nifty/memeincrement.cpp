@@ -15,8 +15,8 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Must input date of the new day to be added, in the format YYYY-MM-DD (-newday)");
     exit(1);
   }
-  TStr OldDayDate = "2012-07-01";
-  TStr NewDayDate = "2012-07-02";
+  TStr OldDayDate = "2012-07-07";
+  TStr NewDayDate = "2012-07-08";
 
   // LOAD OLD QBDB
   TQuoteBase QB;
@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
 
   // OUTPUT
   //Log.SetupFiles(); // safe to make files now.
-  Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime);
+  Log.OutputClusterInformation(DB, QB, CB, TopFilteredClusters, PresentTime);
   Log.WriteClusteringOutputToFile();
 
   // plot output
