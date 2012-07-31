@@ -58,7 +58,7 @@ void LSH::GetHashedShinglesOfCluster(TQuoteBase *QuoteBase, TCluster& C, TInt Sh
       TStr Shingle;
       for (int j = 0; j < ShingleLen; j++) {
         if (j > 0) { Shingle.InsStr(Shingle.Len(), " "); }
-        Shingle.InsStr(Shingle.Len(), QContentV[i]);
+        Shingle.InsStr(Shingle.Len(), QContentV[i + j]);
       }
       TMd5Sig ShingleMd5(Shingle);
       HashedShingles.AddKey(ShingleMd5);

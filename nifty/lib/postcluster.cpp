@@ -8,8 +8,8 @@ const int PostCluster::PeakThreshold = 5;
 
 void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm PresentTime) {
   CB->GetTopClusterIdsByFreq(TopFilteredClusters);
-  //MergeAllClustersBasedOnSubstrings(QB, CB);
-  MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
+  MergeAllClustersBasedOnSubstrings(QB, CB);
+  //MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
   MergeClustersWithCommonSources(QB, TopFilteredClusters, CB);
   FilterAndCacheClusterPeaks(DB, QB, CB, Log, TopFilteredClusters);
 
@@ -31,6 +31,7 @@ void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteB
 /// Merges pairs of clusters if any quote of one is a substring of a quote
 //  of the other cluster's
 void PostCluster::MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TClusterBase *CB) {
+  fprintf(stderr, "Merging all clusters\n");
   // Hash cluster-ids into buckets based on the word-shingles of the quotes in the cluster
   THash<TMd5Sig, TIntV> Shingles;
   LSH::HashShinglesOfClusters(QB, CB, LSH::ShingleWordLen, Shingles);
@@ -44,14 +45,14 @@ void PostCluster::MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TClusterBase
     TIntV ClusterIds = Shingle.GetDat();
 
     // For testing, print out the quotes in each bucket
-    for (int i = 0; i < ClusterIds.Len(); i++) {
-      TCluster Cluster;
-      CB->GetCluster(ClusterIds[i], Cluster);
-      TStr ClusterRepQuote;
-      Cluster.GetRepresentativeQuoteString(ClusterRepQuote, QB);
-      fprintf(stderr, "\t%s\n", ClusterRepQuote.CStr());
-    }
-    fprintf(stderr, "\n\n");
+    //for (int i = 0; i < ClusterIds.Len(); i++) {
+    //  TCluster Cluster;
+    //  CB->GetCluster(ClusterIds[i], Cluster);
+    //  TStr ClusterRepQuote;
+    //  Cluster.GetRepresentativeQuoteString(ClusterRepQuote, QB);
+    //  fprintf(stderr, "\t%s\n", ClusterRepQuote.CStr());
+    //}
+    //fprintf(stderr, "\n\n");
 
     ClusterIds.Sort(true);
     for (int i = 0; i < ClusterIds.Len(); i++) {
