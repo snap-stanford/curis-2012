@@ -1,8 +1,7 @@
 #include "stdafx.h"
 #include "argumentparser.h"
 
-void ArgumentParser::ParseArguments(int argc, char *argv[], THash<TStr, TStr>& Arguments, LogOutput& Log, TStr& BaseString, bool& DoIncrementalClustering) {
-  DoIncrementalClustering = false;
+void ArgumentParser::ParseArguments(int argc, char *argv[], THash<TStr, TStr>& Arguments, LogOutput& Log, TStr& BaseString) {
   for (int i = 1; i < argc; i++) {
     if (strlen(argv[i]) >= 2 && argv[i][0] == '-' && i + 1 < argc) {
       Arguments.AddDat(TStr(argv[i] + 1), TStr(argv[i + 1]));
@@ -25,8 +24,5 @@ void ArgumentParser::ParseArguments(int argc, char *argv[], THash<TStr, TStr>& A
   }
   if (Arguments.IsKey("nolog")) {
     Log.DisableLogging();
-  }
-  if (Arguments.IsKey("incremental")) {
-    DoIncrementalClustering = true;
   }
 }

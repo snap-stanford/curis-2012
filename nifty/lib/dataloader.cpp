@@ -195,3 +195,18 @@ TSecTm TDataLoader::LoadBulkQBDB(const TStr &Prefix, const TStr &InFileName, TQu
   }
   return TSecTm::GetDtTmFromYmdHmsStr(CurrentDate + " 23:00:00");
 }
+
+TSecTm TDataLoader::LoadQBDBByWindow(const TStr& Prefix, const TStr& StartDate, const TInt WindowSize, TQuoteBase& QB, TDocBase& DB) {
+  TSecTm CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(StartDate);
+  for (int i = 0; i < WindowSize; i++) {
+    TQuoteBase TmpQB;
+    TDocBase TmpDB;
+    fprintf(stderr, "Seeking file %s%s\n", Prefix.CStr(), CurrentDate.GetDtYmdStr().CStr());
+    LoadQBDB(Prefix, CurrentDate.GetDtYmdStr(), TmpQB, TmpDB);
+    MergeQBDB(QB, DB, TmpQB, TmpDB);
+    if (i + 1 < WindowSize) {
+      CurrentDate.AddDays(1);
+    }
+  }
+  return CurrentDate;
+}

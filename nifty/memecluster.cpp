@@ -54,11 +54,10 @@ void PrintQuoteURLs(TQuoteBase *QB, TDocBase *DB) {
 }
 
 int main(int argc, char *argv[]) {
-  bool DoIncrementalClustering;
   LogOutput Log;
   THash<TStr, TStr> Arguments;
   TStr BaseString;
-  ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString, DoIncrementalClustering);
+  ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
 
   TQuoteBase QB;
   TDocBase DB;
@@ -75,35 +74,16 @@ int main(int argc, char *argv[]) {
   QuoteGraph GraphCreator(&QB);
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
-  Clustering ClusterJob;
-  ClusterJob.SetGraph(QGraph);
-  TIntSet RootNodes;
-  ClusterJob.BuildClusters(RootNodes, &CB, &QB, &DB, Log);
+  Clustering ClusterJob(QGraph);
+  ClusterJob.BuildClusters(&CB, &QB, &DB, Log);
 
   fprintf(stderr, "Saving files...\n");
   // Save to file
-  if (!DoIncrementalClustering) {
-    fprintf(stderr, "non incremental clusering, boo.\n");
-    TStr Command = "mkdir -p output";
-    system(Command.CStr());
-    TFOut FOut("output/clusters.bin");
-    CB.Save(FOut);
-    Log.Save(FOut);
-  } else {
-    fprintf(stderr, "Incremental saving, w00t!\n");
-    TStr OutputDir = "/lfs/1/tmp/curis/QBDBC/";
-    TStr FileName = "QBDBC" + PresentTime.GetDtYmdStr() + ".bin";
-    fprintf(stderr, "Attempting save to: %s\n", (OutputDir + FileName).CStr());
-    TFOut FOut(OutputDir + FileName);
-    fprintf(stderr, "Attempting save to: %s\n", (OutputDir + FileName).CStr());
-    QB.Save(FOut);
-    fprintf(stderr, "QB saved!\n");
-    DB.Save(FOut);
-    fprintf(stderr, "DB saved!\n");
-    CB.Save(FOut);
-    fprintf(stderr, "CB saved!\n");
-    QGraph->Save(FOut); //TODO: why is this in memecluster?!?!?
-  }
+  TStr Command = "mkdir -p output";
+  system(Command.CStr());
+  TFOut FOut("output/clusters.bin");
+  CB.Save(FOut);
+  Log.Save(FOut);
 
   /*
   // OUTPUT

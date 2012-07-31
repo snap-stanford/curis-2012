@@ -6,7 +6,7 @@
 
 class ArgumentParser {
 public:
-  static void ParseArguments(int argc, char *argv[], THash<TStr, TStr>& Arguments, LogOutput& Log, TStr& BaseString, bool& DoIncrementalClustering);
+  static void ParseArguments(int argc, char *argv[], THash<TStr, TStr>& Arguments, LogOutput& Log, TStr& BaseString);
 };
 
 #endif
