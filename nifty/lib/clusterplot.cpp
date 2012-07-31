@@ -8,21 +8,29 @@ ClusterPlot::ClusterPlot(TStr RootDirectory) {
 
 /* x-axis: number of different quotes in the cluster, y-axis: number
  * of clusters with x quotes */
-void ClusterPlot::PlotClusterSizeUnique(TVec<TIntV>& Clusters) {
+void ClusterPlot::PlotClusterSizeUnique(TClusterBase *CB) {
   TGnuPlot Plot = TGnuPlot(RootDirectory + "plot_unique_clusters", "Cluster Size Frequency - Unique Quotes", false);
   Plot.SetXYLabel("number of unique quotes", "number of clusters");
   Plot.SetScale(gpsLog2XY);
 
-  Clusters.SortCmp(TCmpIntV(false));
-  TInt ClusterLen = Clusters.Len();
+  TIntV ClusterIds;
+  CB->GetAllClusterIds(ClusterIds);
+  TIntV ClusterUniqueSize;
+  for (int i = 0; i < ClusterIds.Len(); i++) {
+    TCluster C;
+    CB->GetCluster(ClusterIds[i], C);
+    ClusterUniqueSize.Add(C.GetNumUniqueQuotes());
+  }
+
+  ClusterUniqueSize.Sort(false);
   TIntPrV Coordinates;
   TInt LastFrequency = -1;
-  for (int i = 0; i < ClusterLen; ++i) {
+  for (int i = 0; i < ClusterUniqueSize.Len(); ++i) {
     int j = i;
-    while (j < ClusterLen && Clusters[j].Len() == Clusters[i].Len()) {
+    while (j < ClusterUniqueSize.Len() && ClusterUniqueSize[j] == ClusterUniqueSize[i]) {
       j++;
     }
-    Coordinates.Add(TIntPr(Clusters[i].Len(), j - i));
+    Coordinates.Add(TIntPr(ClusterUniqueSize[i], j - i));
     i = j - 1;
   }
 
@@ -33,20 +41,29 @@ void ClusterPlot::PlotClusterSizeUnique(TVec<TIntV>& Clusters) {
 /*2) x-axis: total frequency quotes in the cluster, y-axis: number of
 clusters of frequency x
 3) x-axis: frequency of a quote, y-axis: number of quotes with freq. x. */
-void ClusterPlot::PlotClusterSize(TVec<TCluster>& ClusterSummaries) {
+void ClusterPlot::PlotClusterSize(TClusterBase *CB) {
   TGnuPlot Plot = TGnuPlot(RootDirectory + "plot_cluster_size", "Cluster Size Frequency - Total Quotes", false);
   Plot.SetXYLabel("number of quotes", "number of clusters");
   Plot.SetScale(gpsLog2XY);
 
-  TInt ClusterLen = ClusterSummaries.Len();
+  TIntV ClusterIds;
+  CB->GetAllClusterIds(ClusterIds);
+  TIntV ClusterSize;
+  for (int i = 0; i < ClusterIds.Len(); i++) {
+    TCluster C;
+    CB->GetCluster(ClusterIds[i], C);
+    ClusterSize.Add(C.GetNumQuotes());
+  }
+
+  ClusterSize.Sort(false);
   TIntPrV Coordinates;
   TInt LastFrequency = -1;
-  for (int i = 0; i < ClusterLen; ++i) {
+  for (int i = 0; i < ClusterSize.Len(); ++i) {
     int j = i;
-    while (j < ClusterLen && ClusterSummaries[j].GetNumQuotes() == ClusterSummaries[i].GetNumQuotes()) {
+    while (j < ClusterSize.Len() && ClusterSize[j] == ClusterSize[i]) {
       j++;
     }
-    Coordinates.Add(TIntPr(ClusterSummaries[i].GetNumQuotes(), j - i));
+    Coordinates.Add(TIntPr(ClusterSize[i], j - i));
     i = j - 1;
   }
 
