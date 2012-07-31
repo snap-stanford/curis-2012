@@ -8,8 +8,7 @@ int main(int argc, char *argv[]) {
   LogOutput Log;
   THash<TStr, TStr> Arguments;
   TStr BaseString;
-  bool Increment;
-  ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString, Increment);
+  ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
 
   if (!Arguments.IsKey("newday")) {
     fprintf(stderr, "Must input date of the new day to be added, in the format YYYY-MM-DD (-newday)");
@@ -68,7 +67,7 @@ int main(int argc, char *argv[]) {
   IncrementalClustering2 ClusterJob(&QB, NewQuotes, QGraph, AffectedNodes);
   TIntSet RootNodes;
   TClusterBase NewCB;
-  ClusterJob.BuildClusters(RootNodes, &NewCB, &QB, &DB, Log);
+  ClusterJob.BuildClusters(&NewCB, &QB, &DB, Log);
   TIntV SortedClusters;
   NewCB.GetAllClusterIdsSortByFreq(SortedClusters);
   //Clustering::SortClustersByFreq(&CB, Clusters, &QB);
@@ -87,7 +86,7 @@ int main(int argc, char *argv[]) {
 
   // OUTPUT
   //Log.SetupFiles(); // safe to make files now.
-  Log.OutputClusterInformation(DB, QB, CB, TopFilteredClusters, PresentTime);
+  Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime);
   Log.WriteClusteringOutputToFile();
 
   // plot output

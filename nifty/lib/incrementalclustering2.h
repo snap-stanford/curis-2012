@@ -6,7 +6,7 @@
 class IncrementalClustering2 : public Clustering {
 public:
   IncrementalClustering2(TQuoteBase *QB, TIntSet& NewQuotes, PNGraph QGraph, TIntSet& AffectedNodes);
-  void KeepAtMostOneChildPerNode(PNGraph& G, TIntSet& RootNodes, TQuoteBase *QB, TDocBase *DB);
+  void KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase *DB);
 
 private:
   TQuoteBase *QB;

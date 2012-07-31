@@ -1,22 +1,20 @@
 #include "incrementalclustering2.h"
 
-IncrementalClustering2::IncrementalClustering2(TQuoteBase *QB, TIntSet& NewQuotes, PNGraph QGraph, TIntSet& AffectedNodes) {
+IncrementalClustering2::IncrementalClustering2(TQuoteBase *QB, TIntSet& NewQuotes, PNGraph QGraph, TIntSet& AffectedNodes) : Clustering(QGraph) {
   this->QB = QB;
   this->NewQuotes = NewQuotes;
   this->QGraph = QGraph;
   this->AffectedNodes = AffectedNodes;
 }
 
-void IncrementalClustering2::KeepAtMostOneChildPerNode(PNGraph& G, TIntSet& RootNodes, TQuoteBase *QB, TDocBase *DB) {
+void IncrementalClustering2::KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase *DB) {
   TIntSet::TIter EndNode = AffectedNodes.EndI();
   for (TIntSet::TIter NodeId = AffectedNodes.BegI(); NodeId < EndNode; NodeId++) {
     TNGraph::TNodeI Node = G->GetNI(NodeId.GetKey());
     TQuote SourceQuote;
     if (QB->GetQuote(Node.GetId(), SourceQuote)) {
       TInt NodeDegree = Node.GetOutDeg();
-      if (NodeDegree == 0) {
-        RootNodes.AddKey(Node.GetId());
-      } else if (NodeDegree > 1) {
+      if (NodeDegree > 1) {
         TFlt MaxScore = 0;
         TInt MaxNodeId = 0;
         TIntV NodeV;
