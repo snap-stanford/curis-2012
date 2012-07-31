@@ -67,10 +67,8 @@ void LSH::GetHashedShinglesOfCluster(TQuoteBase *QuoteBase, TCluster& C, TInt Sh
 }
 
 /// Shingles by words
-void LSH::HashShinglesOfClusters(TQuoteBase *QuoteBase, TClusterBase *ClusterBase, TInt ShingleLen, THash<TMd5Sig, TIntV>& ShingleToClusterIds) {
+void LSH::HashShinglesOfClusters(TQuoteBase *QuoteBase, TClusterBase *ClusterBase, TIntV& ClusterIds, TInt ShingleLen, THash<TMd5Sig, TIntV>& ShingleToClusterIds) {
   fprintf(stderr, "Hashing shingles of clusters...\n");
-  TIntV ClusterIds;
-  ClusterBase->GetAllClusterIds(ClusterIds);
   for (int i = 0; i < ClusterIds.Len(); i++) {
     if (i % 1000 == 0) {
       fprintf(stderr, "%d out of %d completed\n", i, ClusterIds.Len());
