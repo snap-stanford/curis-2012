@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
   TClusterBase CB;
   PNGraph OldQGraph;
   fprintf(stderr, "Loading cumulative QBDBCB from file...\n");
-  TDataLoader::LoadCumulative(QBDBC_DIRECTORY, OldDate, QB, DB, CB, OldQGraph);
+  TDataLoader::LoadCumulative(QBDBC_DIRECTORY, OldDate.GetDtYmdStr(), QB, DB, CB, OldQGraph);
   fprintf(stderr, "\tDone loading cumulative QBDBCB!\n");
 
   // #### MAIN CLUSTERING STEP.
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     // ## LOAD NEW QBDB
     TQuoteBase NewQB;
     TDocBase NewDB;
-    fprintf(stderr, "Loading QBDB for %s...\n", CurrentDate.GetDtYmdStr());
+    fprintf(stderr, "Loading QBDB for %s...\n", CurrentDate.GetDtYmdStr().CStr());
     TDataLoader::LoadQBDB(QBDB_DIRECTORY, CurrentDate.GetDtYmdStr(), NewQB, NewDB);
     fprintf(stderr, "Done loading new QBDB!\n");
 
