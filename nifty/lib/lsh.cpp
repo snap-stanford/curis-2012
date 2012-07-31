@@ -75,6 +75,7 @@ void LSH::HashShinglesOfClusters(TQuoteBase *QuoteBase, TClusterBase *ClusterBas
     }
     TCluster C;
     ClusterBase->GetCluster(ClusterIds[i], C);
+    //fprintf(stderr, "%d vs. %d\n", ClusterIds[i].Val, C.GetId().Val);
 
     // Put x-word shingles into hash table; x is specified by ShingleLen parameter
     THashSet<TMd5Sig> CHashedShingles;
@@ -84,7 +85,7 @@ void LSH::HashShinglesOfClusters(TQuoteBase *QuoteBase, TClusterBase *ClusterBas
       if (ShingleToClusterIds.IsKey(*Hash)) {
         ShingleClusterIds = ShingleToClusterIds.GetDat(*Hash);
       }
-      ShingleClusterIds.Add(C.GetId());
+      ShingleClusterIds.Add(ClusterIds[i]);
       ShingleToClusterIds.AddDat(*Hash, ShingleClusterIds);
     }
   }

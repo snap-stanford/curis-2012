@@ -44,6 +44,9 @@ void PostCluster::MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TIntV& TopCl
   TIntSet ToRemove;
 
   for (int i = 0; i < AllClusterIds.Len(); i++) {
+    if (i % 1000 == 0) {
+      fprintf("%d out of %d checked for merge\n", i, AllClusterIds.Len().Val);
+    }
     if (TopClustersSet.IsKey(AllClusterIds[i])) { continue; }
     TCluster CurrCluster;
     CB->GetCluster(AllClusterIds[i], CurrCluster);
@@ -59,8 +62,15 @@ void PostCluster::MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TIntV& TopCl
           if (AlreadyCompared.IsKey(*Id)) { continue; }
           TCluster TopCluster;
           CB->GetCluster(*Id, TopCluster);
+
+          // For testing purposes
+          TStr TopClusterStr;
+          TopCluster.GetRepresentativeQuoteString(TopClusterStr, QB);
+          //fprintf(stderr, "\t%s\n", TopClusterStr.CStr());
+
+
           if (ShouldMergeClusters(QB, TopCluster, CurrCluster)) {
-            CB->MergeCluster2Into1(*Id, AllClusterIds[i], QB, true);
+            CB->MergeCluster2Into1(TopCluster.GetId(), CurrCluster.GetId(), QB, true);
             FoundMatch = true;
 
             // For testing, print out which two clusters were merged:
@@ -68,7 +78,6 @@ void PostCluster::MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TIntV& TopCl
             TopCluster.GetRepresentativeQuoteString(RepQuoteStr1, QB);
             CurrCluster.GetRepresentativeQuoteString(RepQuoteStr2, QB);
             fprintf(stderr, "Merged cluster %s INTO %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
-
             break;
           }
           AlreadyCompared.AddKey(*Id);
