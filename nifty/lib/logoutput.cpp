@@ -103,7 +103,7 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
   PrevDay.AddDays(-1);
   TStr PrevDayLink = WebDirectory + TimeStamp + "/clusters_" + PrevDay.GetDtYmdStr() + ".html";
   TSecTm NextDay = PresentTime;
-  NextDay.AddDays(-1);
+  NextDay.AddDays(1);
   TStr NextDayLink = WebDirectory + TimeStamp + "/clusters_" + NextDay.GetDtYmdStr() + ".html";
   fprintf(H, "<div class=\"page-header\"><center><h1>\n");
   fprintf(H, "<a href=\"%s\">&laquo;</a> &middot; Top Clusters for %s &middot; <a href=\"%s\">&raquo;</a><h1><br />\n", PrevDayLink.CStr(), CurDateString.CStr(), NextDayLink.CStr());
