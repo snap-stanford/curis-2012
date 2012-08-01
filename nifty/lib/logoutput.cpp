@@ -106,7 +106,7 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
   NextDay.AddDays(-1);
   TStr NextDayLink = WebDirectory + TimeStamp + "/clusters_" + NextDay.GetDtYmdStr() + ".html";
   fprintf(H, "<div class=\"page-header\"><center><h1>\n");
-  fprintf(H, "<a href=\"%s\">&laquo;</a> &middot; Top Clusters for %s &middot; <h1><a href=\"%s\">&raquo;</a><br />\n", PrevDayLink.CStr(), CurDateString.CStr(), NextDayLink.CStr());
+  fprintf(H, "<a href=\"%s\">&laquo;</a> &middot; Top Clusters for %s &middot; <a href=\"%s\">&raquo;</a><h1><br />\n", PrevDayLink.CStr(), CurDateString.CStr(), NextDayLink.CStr());
   fprintf(H, "<small>MESSAGE HERE</small>\n");
   fprintf(H, "</h1></center></div>\n");
   fprintf(H, "<table border=\"1\" class=\"table table-condensed table-striped\">\n");
@@ -134,7 +134,7 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
         fprintf(stderr, "saved %d files so far!\n", i);
       }
       ++Rank;
-      TStr URLLink = "<a href=\"cluster/" + TInt(Rank).GetStr() + ".html\">" + RepQuoteStr + "</a>";
+      TStr URLLink = "<a href=\"cluster_" + CurDateString + "/" + TInt(Rank).GetStr() + ".html\">" + RepQuoteStr + "</a>";
       fprintf(H, "<tr><td>%d</td><td>N/A</td><td>%d</td><td>%s</td></tr>\n", Rank, Cluster.GetNumQuotes().Val, URLLink.CStr());
       TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster_" + CurDateString + "/" + TInt(Rank).GetStr() + ".html";
       TStr ImageFileName = WebDirectory + TimeStamp + "/cluster_" + CurDateString + "/" + TInt(Rank).GetStr();
