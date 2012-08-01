@@ -26,13 +26,15 @@ public:
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   void DisableLogging();
-  void SetupFiles();
+  void SetupNewOutputDirectory();
+  void SetDirectory(const TStr &Directory);
+  void GetDirectory(TStr& Directory);
   void LogValue(const TStr Key, TStr Value);
   void LogValue(const TStr Key, TInt Value);
   void LogValue(const TStr Key, TFlt Value);
-  void WriteClusteringOutputToFile();
+  void WriteClusteringOutputToFile(TSecTm& Date);
   void OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV &ClusterIds, TSecTm PresentTime);
-  void OutputDiscardedClusters(TQuoteBase *QB, TVec<TCluster>& DiscardedClusters);
+  void OutputDiscardedClusters(TQuoteBase *QB, TVec<TCluster>& DiscardedClusters, TSecTm& Date);
 };
 
 #endif

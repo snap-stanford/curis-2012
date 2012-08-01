@@ -10,12 +10,17 @@ int main(int argc, char *argv[]) {
   TStr BaseString;
   ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
 
-  TStr StartString, EndString;
+  TStr StartString, EndString, OutputDirectory;
   if (!Arguments.IsKeyGetDat("start", StartString)) {
     StartString = "2012-07-08";
   }
   if (!Arguments.IsKeyGetDat("end", EndString)) {
     EndString = "2012-07-09";
+  }
+  if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
+    Log.SetupNewOutputDirectory();
+  } else {
+    Log.SetDirectory(OutputDirectory);
   }
 
   TSecTm StartDate = TSecTm::GetDtTmFromYmdHmsStr(StartString);
@@ -59,11 +64,10 @@ int main(int argc, char *argv[]) {
     NewCB.GetAllClusterIdsSortByFreq(SortedClusters);
 
     // ## POSTCLUSTERING STEP AND OUTPUT?
-    Log.SetupFiles();
     TIntV TopFilteredClusters;
     PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, CurrentDate);
     Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, CurrentDate);
-    Log.WriteClusteringOutputToFile();
+    Log.WriteClusteringOutputToFile(CurrentDate);
 
     // ## SAVE CLUSTERS OR SAVE THEM TO VARIABLES.
     OldQGraph = QGraph;

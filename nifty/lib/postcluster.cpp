@@ -11,7 +11,7 @@ void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteB
   //MergeAllClustersBasedOnSubstrings(QB, CB);
   MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
   MergeClustersWithCommonSources(QB, TopFilteredClusters, CB);
-  FilterAndCacheClusterPeaks(DB, QB, CB, Log, TopFilteredClusters);
+  FilterAndCacheClusterPeaks(DB, QB, CB, Log, TopFilteredClusters, PresentTime);
 
   // sort by popularity
   // Sort remaining clusters by popularity
@@ -126,7 +126,7 @@ void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV &TopClust
         TStr RepQuoteStr1, RepQuoteStr2;
         Ci.GetRepresentativeQuoteString(RepQuoteStr1, QB);
         Cj.GetRepresentativeQuoteString(RepQuoteStr2, QB);
-        fprintf(stderr, "Merged cluster %s INTO %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
+        //fprintf(stderr, "Merged cluster %s INTO %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
         break;
       }
     }
@@ -198,13 +198,13 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClust
         TStr RepQuoteStr1, RepQuoteStr2;
         Ci.GetRepresentativeQuoteString(RepQuoteStr1, QB);
         Cj.GetRepresentativeQuoteString(RepQuoteStr2, QB);
-        fprintf(stderr, "CLUSTER1: %s\nCLUSTER2: %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
+        //fprintf(stderr, "CLUSTER1: %s\nCLUSTER2: %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
 
         CB->MergeCluster2Into1(TopClusters[i], TopClusters[j], QB, false);
         ToSkip.AddKey(TopClusters[j]);
 
         // FOR TESTING
-        TCluster NewC;
+        /*TCluster NewC;
         CB->GetCluster(TopClusters[i], NewC);
         TIntV NewQuoteIds;
         NewC.GetQuoteIds(NewQuoteIds);
@@ -215,7 +215,7 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClust
           NewQ.GetContentString(NewQStr);
           fprintf(stderr, "\t%s\n", NewQStr.CStr());
         }
-        fprintf(stderr, "\n\n");
+        fprintf(stderr, "\n\n"); */
 
         break; // we really only want to merge once.
       }
@@ -238,7 +238,7 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClust
 }
 
 
-void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV& TopClusters) {
+void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV& TopClusters, TSecTm& PresentTime) {
   fprintf(stderr, "Filtering clusters that have too many peaks...\n");
   TIntV DiscardedClusterIds;
   TVec<TCluster> DiscardedClusters;
@@ -262,6 +262,6 @@ void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClus
   fprintf(stderr, "Logging discarded clusters...\n");
 
   // log the discarded clusters in a log file.
-  Log.OutputDiscardedClusters(QB, DiscardedClusters);
+  Log.OutputDiscardedClusters(QB, DiscardedClusters, PresentTime);
   fprintf(stderr, "Done!\n");
 }

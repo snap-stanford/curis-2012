@@ -35,18 +35,23 @@ void LogOutput::DisableLogging() {
   ShouldLog = false;
 }
 
-void LogOutput::SetupFiles() {
+void LogOutput::SetupNewOutputDirectory() {
+  if (!ShouldLog) return;
   TSecTm Tm = TSecTm::GetCurTm();
 
-  TimeStamp= TStr::Fmt("%04d-%02d-%02d",  Tm.GetYearN(), Tm.GetMonthN(), Tm.GetDayN());
-  TimeStamp += "_" + Tm.GetTmStr();
+  TimeStamp = Tm.GetDtYmdStr() + "_" + Tm.GetTmStr();
+  printf("Setting up new output directory at %s\n", (WebDirectory + TimeStamp).CStr());
 
-  printf("%s %s\n", TimeStamp.CStr(), Tm.GetTmStr().CStr());
-
-  //TStr Command = "mkdir -p " + OutputDirectory + TimeStamp;
-  //system(Command.CStr());
   TStr Command = "mkdir -p " + WebDirectory + TimeStamp;
   system(Command.CStr());
+}
+
+void LogOutput::SetDirectory(const TStr &Directory) {
+  TimeStamp = Directory;
+}
+
+void LogOutput::GetDirectory(TStr& Directory) {
+  Directory = this->TimeStamp;
 }
 
 void LogOutput::LogValue(const TStr Key, TStr Value) {
@@ -61,9 +66,9 @@ void LogOutput::LogValue(const TStr Key, TFlt Value) {
   OutputValues.AddDat(Key, Value.GetStr());
 }
 
-void LogOutput::WriteClusteringOutputToFile() {
+void LogOutput::WriteClusteringOutputToFile(TSecTm& Date) {
   if (!ShouldLog) return;
-  TStr FileName = WebDirectory + TimeStamp + "/clustering_info.txt";
+  TStr FileName = WebDirectory + TimeStamp + "/clustering_info_" + Date.GetDtYmdStr() + ".txt";
   FILE *F = fopen(FileName.CStr(), "w");
 
   TStrV Keys;
@@ -78,11 +83,12 @@ void LogOutput::WriteClusteringOutputToFile() {
 }
 
 void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime) {
-  fprintf(stderr, "printing stuff\n");
   if (!ShouldLog) return;
-  TStr FileName = WebDirectory + TimeStamp + "/top_clusters.txt";
-  TStr HTMLFileName = WebDirectory + TimeStamp + "/clusters.html";
-  TStr Command = "mkdir -p " + WebDirectory + TimeStamp + "/cluster";
+  TStr CurDateString = PresentTime.GetDtYmdStr();
+  fprintf(stderr, "Writing cluster information ...\n");
+  TStr FileName = WebDirectory + TimeStamp + "/top_clusters_" + CurDateString + ".txt";
+  TStr HTMLFileName = WebDirectory + TimeStamp + "/clusters_" + CurDateString +".html";
+  TStr Command = "mkdir -p " + WebDirectory + TimeStamp + "/cluster_" + CurDateString;
   system(Command.CStr());
   FILE *F = fopen(FileName.CStr(), "w");
   FILE *H = fopen(HTMLFileName.CStr(), "w");
@@ -90,7 +96,7 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
   // HTML setup
   fprintf(H, "<html>\n");
   fprintf(H, "<head>\n");
-  fprintf(H, "<title>Top Clusters</title>\n");
+  fprintf(H, "<title>Top Clusters for %s</title>\n", CurDateString.CStr());
   fprintf(H, "<link href=\"%s\" rel=\"stylesheet\">\n", TWITTER_BOOTSTRAP);
   fprintf(H, "</head>\n");
   fprintf(H, "<body>\n");
@@ -122,8 +128,8 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
       ++Rank;
       TStr URLLink = "<a href=\"cluster/" + TInt(Rank).GetStr() + ".html\">" + RepQuoteStr + "</a>";
       fprintf(H, "<tr><td>%d</td><td>N/A</td><td>%d</td><td>%s</td></tr>\n", Rank, Cluster.GetNumQuotes().Val, URLLink.CStr());
-      TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(Rank).GetStr() + ".html";
-      TStr ImageFileName = WebDirectory + TimeStamp + "/cluster/" + TInt(Rank).GetStr();
+      TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster_" + CurDateString + "/" + TInt(Rank).GetStr() + ".html";
+      TStr ImageFileName = WebDirectory + TimeStamp + "/cluster_" + CurDateString + "/" + TInt(Rank).GetStr();
       Cluster.GraphFreqOverTime(DB, QB, ImageFileName, 2, 1, PresentTime);
       FILE *C = fopen(ClusterFileName.CStr(), "w");
       fprintf(C, "<html>\n");
@@ -189,8 +195,8 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
   fclose(H);
 }
 
-void LogOutput::OutputDiscardedClusters(TQuoteBase *QB, TVec<TCluster>& DiscardedClusters) {
-  TStr DiscardedFileName = WebDirectory + TimeStamp + "/discarded_clusters.txt";
+void LogOutput::OutputDiscardedClusters(TQuoteBase *QB, TVec<TCluster>& DiscardedClusters, TSecTm& Date) {
+  TStr DiscardedFileName = WebDirectory + TimeStamp + "/discarded_clusters_" + Date.GetDtYmdStr() + ".txt";
   FILE *D = fopen(DiscardedFileName.CStr(), "w");
 
   for (int i = 0; i < DiscardedClusters.Len(); ++i) {

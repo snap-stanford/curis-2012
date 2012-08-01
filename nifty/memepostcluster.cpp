@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
   TSecTm PresentTime = TDataLoader::LoadBulkQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, QB, DB);
   fprintf(stderr, "Done!\n");
 
-  Log.SetupFiles(); // safe to make files now.
+  Log.SetupNewOutputDirectory(); // safe to make files now.
   TIntV TopFilteredClusters;
   PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, PresentTime);
 
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
   // OUTPUT
   //Log.SetupFiles(); // safe to make files now.
   Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime);
-  Log.WriteClusteringOutputToFile();
+  Log.WriteClusteringOutputToFile(PresentTime);
 
   // plot output
   ClusterPlot Plotter(TStr("/lfs/1/tmp/curis/"));
