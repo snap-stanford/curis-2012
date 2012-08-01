@@ -95,11 +95,20 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
   // HTML setup
   fprintf(H, "<html>\n");
   fprintf(H, "<head>\n");
-  fprintf(H, "<title>Top Clusters for %s</title>\n", CurDateString.CStr());
+  fprintf(H, "<title>%s</title>\n", CurDateString.CStr());
   fprintf(H, "<link href=\"%s\" rel=\"stylesheet\">\n", TWITTER_BOOTSTRAP);
   fprintf(H, "</head>\n");
   fprintf(H, "<body>\n");
-  fprintf(H, "<div class=\"page-header\"><center><h1>Top Clusters<br /><small>MESSAGE HERE</small></h1></center></div>\n");
+  TSecTm PrevDay = PresentTime;
+  PrevDay.AddDays(-1);
+  TStr PrevDayLink = WebDirectory + TimeStamp + "/clusters_" + PrevDay.GetDtYmdStr() + ".html";
+  TSecTm NextDay = PresentTime;
+  NextDay.AddDays(-1);
+  TStr NextDayLink = WebDirectory + TimeStamp + "/clusters_" + NextDay.GetDtYmdStr() + ".html";
+  fprintf(H, "<div class=\"page-header\"><center><h1>\n");
+  fprintf(H, "<a href=\"%s\">&laquo;</a> &middot; Top Clusters for %s &middot; <h1><a href=\"%s\">&raquo;</a><br />\n", PrevDayLink.CStr(), CurDateString.CStr(), NextDayLink.CStr());
+  fprintf(H, "<small>MESSAGE HERE</small>\n");
+  fprintf(H, "</h1></center></div>\n");
   fprintf(H, "<table border=\"1\" class=\"table table-condensed table-striped\">\n");
   fprintf(H, "<b><tr><td>Rank</td><td>Previous Rank</td><td>Size</td><td>Quote</td></tr></b>\n");
   /*<tr>
