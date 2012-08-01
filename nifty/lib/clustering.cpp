@@ -3,6 +3,10 @@
 #include "quotegraph.h"
 #include "logoutput.h"
 
+Clustering::Clustering(PNGraph QGraph) {
+  this->QGraph = QGraph;
+}
+
 void Clustering::Save(TSOut &SOut) const {
   //QuoteIdCounter.Save(SOut);
   //IdToTQuotes.Save(SOut);
@@ -15,10 +19,6 @@ void Clustering::Load(TSIn& SIn) {
   //QuoteToId.Load(SIn);
 }
 
-void Clustering::SetGraph(PNGraph QGraph) {
-  this->QGraph = QGraph;
-}
-
 void Clustering::GetRootNodes(TIntSet& RootNodes) {
   TNGraph::TNodeI EndNode = QGraph->EndNI();
   for (TNGraph::TNodeI Node = QGraph->BegNI(); Node < EndNode; Node++) {
@@ -28,7 +28,7 @@ void Clustering::GetRootNodes(TIntSet& RootNodes) {
   }
 }
 
-void Clustering::BuildClusters(TIntSet& RootNodes, TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log) {
+void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log) {
   // currently deletes all edges but the one leading to phrase that is most frequently cited.
   // TODO: Make more efficient? At 10k nodes this is ok
 
@@ -45,7 +45,7 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TClusterBase *CB, TQuoteBase 
   log.LogValue(LogOutput::NumQuotes, TInt(NumNodes));
 
   printf("Deleting extra graph edges...\n");
-  KeepAtMostOneChildPerNode(QGraph, RootNodes, QB, DB);
+  KeepAtMostOneChildPerNode(QGraph, QB, DB);
   fprintf(stderr, "edges deleted!\n");
 
   log.LogValue(LogOutput::NumRemainingEdges, TInt(QGraph->GetEdges()));
@@ -74,8 +74,7 @@ void Clustering::BuildClusters(TIntSet& RootNodes, TClusterBase *CB, TQuoteBase 
   PNGraph OrigRandomQGraph;
   OrigRandomQGraph = TSnap::GetSubGraph(RandomQGraph, AllNIdsV);
 
-  TIntSet Ignore;
-  KeepAtMostOneChildPerNode(RandomQGraph, Ignore, QB, DB);
+  KeepAtMostOneChildPerNode(RandomQGraph, QB, DB);
 
   TVec<TIntV> ClustersRandom;
   GetAllWCCs(RandomQGraph, ClustersRandom);
@@ -162,16 +161,13 @@ TInt Clustering::CalcRepresentativeQuote(TQuote& RepQuote, TIntV& Cluster, TQuot
   fprintf(stderr, "Sorted: %d\n", ClusterSummaries.Len());
 }*/
 
-void Clustering::KeepAtMostOneChildPerNode(PNGraph& G, TIntSet& RootNodes, TQuoteBase *QB, TDocBase *DB) {
+void Clustering::KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase *DB) {
   TNGraph::TNodeI EndNode = G->EndNI();
-  int count = 0;
   for (TNGraph::TNodeI Node = G->BegNI(); Node < EndNode; Node++) {
     TQuote SourceQuote;
     if (QB->GetQuote(Node.GetId(), SourceQuote)) {
       TInt NodeDegree = Node.GetOutDeg();
-      if (NodeDegree == 0) {
-        RootNodes.AddKey(Node.GetId());
-      } else if (NodeDegree > 1) {
+      if (NodeDegree > 1) {
         TFlt MaxScore = 0;
         TInt MaxNodeId = 0;
         TIntV NodeV;
@@ -196,12 +192,10 @@ void Clustering::KeepAtMostOneChildPerNode(PNGraph& G, TIntSet& RootNodes, TQuot
           }
         }
         //printf("Out degree: %d out of %d\n", Node.GetOutDeg(), NodeDegree.Val);
-      } else {
-        count++;
       }
     }
   }
-  fprintf(stderr, "%d nodes with out degree 1 found.\n", count);
+  fprintf(stderr, "Edge deletion complete - each node should have max one outgoing edge now!\n");
 }
 
 void Clustering::GetAllWCCs(PNGraph& G, TVec<TIntV>& Clusters) {

@@ -14,10 +14,9 @@ int main(int argc, char *argv[]) {
   Log.Load(ClusterFile);
   fprintf(stderr, "Clusters loaded!\n");
 
-  bool DoIncrementalClustering = false;
   THash<TStr, TStr> Arguments;
   TStr BaseString;
-  ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString, DoIncrementalClustering);
+  ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
 
   fprintf(stderr, "Loading QB and DB from file...\n");
   TSecTm PresentTime = TDataLoader::LoadBulkQBDB("/lfs/1/tmp/curis/QBDB/", BaseString, QB, DB);

@@ -140,6 +140,8 @@ TInt TDocBase::AddDoc(TDoc &Doc) {
   } else {
     return GetDocId(DocUrl);
   }
+
+  // GEE GEE GEE GEE BABY BABY BABY
 }
 
 void TDocBase::RemoveDoc(TInt DocId) {

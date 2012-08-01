@@ -28,6 +28,7 @@ public:
   static void LoadCumulative(const TStr&, const TStr&, TQuoteBase&, TDocBase&, TClusterBase&, PNGraph&);
   static void LoadQBDB(const TStr&, const TStr&, TQuoteBase&, TDocBase&);
   static TSecTm LoadBulkQBDB(const TStr&, const TStr&, TQuoteBase&, TDocBase&);
+  static TSecTm LoadQBDBByWindow(const TStr& Prefix, const TStr& StartDate, const TInt WindowSize, TQuoteBase& QB, TDocBase& DB);
 };
 
 #endif

@@ -203,12 +203,13 @@ void TClusterBase::Load(TSIn& SIn) {
   QuoteIdToClusterId.Load(SIn);
 }
 
-TInt TClusterBase::AddCluster(const TCluster &Cluster) {
+TInt TClusterBase::AddCluster(TCluster &Cluster) {
   TIntV QuoteIds;
   Cluster.GetQuoteIds(QuoteIds);
   for (int i = 0; i < QuoteIds.Len(); i++) {
     QuoteIdToClusterId.AddDat(QuoteIds[i], ClusterIdCounter);
   }
+  Cluster.SetId(ClusterIdCounter);
   IdToTCluster.AddDat(ClusterIdCounter, Cluster);
   return ClusterIdCounter++;
 }
