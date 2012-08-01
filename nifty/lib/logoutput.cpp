@@ -157,7 +157,7 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
         if (QB->GetQuote(QuotesInCluster[j], Quote)) {
           TStr QuoteStr, QuoteRepUrl;
           Quote.GetContentString(QuoteStr);
-          Quote.GetRepresentativeUrl(DB, QuoteRepUrl);
+          QB->GetRepresentativeUrl(DB, Quote.GetId(), QuoteRepUrl);
           fprintf(C, "<tr><td>%d</td><td><a href=\"%s\">%s</a><br />\n", Quote.GetNumSources().Val, QuoteRepUrl.CStr(), QuoteStr.CStr());
           fprintf(C, "<a data-toggle=\"collapse\" href=\"#quoteUrls%d\">Urls</a><br />\n", Quote.GetId().Val);
           TIntV QuoteSources;
