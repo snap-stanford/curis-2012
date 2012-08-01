@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "quote.h"
 #include "doc.h"
 
 TDoc::TDoc() {
@@ -61,18 +61,6 @@ void TDoc::SetId(TInt Id) {
   this->Id = Id;
 }
 
-void TDoc::IncNumQuotes() {
-  this->NumQuotes += 1;
-}
-
-void TDoc::DecNumQuotes() {
-  this->NumQuotes -= 1;
-}
-
-void TDoc::SetNumQuotes(TInt NumQuotes) {
-  this->NumQuotes = NumQuotes;
-}
-
 void TDoc::SetUrl(const TStr &Url) {
   this->Url = Url;
 }
@@ -90,26 +78,22 @@ void TDoc::AddLink(const TStr &Link) {
 }
 
 TDocBase::TDocBase() {
-  NextId = 0;
-  NumDocs = 0;
 }
 
 void TDocBase::Save(TSOut& SOut) const {
   IdToDoc.Save(SOut);
   DocUrlToId.Save(SOut);
-  NumDocs.Save(SOut);
   NextId.Save(SOut);
 }
 
 void TDocBase::Load(TSIn& SIn) {
   IdToDoc.Load(SIn);
   DocUrlToId.Load(SIn);
-  NumDocs.Load(SIn);
   NextId.Load(SIn);
 }
 
 int TDocBase::Len() const {
-  return NumDocs;
+  return IdToDoc.Len();
 }
 
 TInt TDocBase::GetDocId(const TStr &Url) const {
@@ -134,7 +118,6 @@ TInt TDocBase::AddDoc(const TChA &Url, TSecTm Date, const TChA &Content, const T
   if (!DocUrlToId.IsKey(TStr(Url))) {
     TInt DocId = NextId;
     NextId += 1;
-    NumDocs += 1;
     TDoc NewDoc = TDoc(DocId, Url, Date, Content, Links);
     IdToDoc.AddDat(DocId, NewDoc);
     DocUrlToId.AddDat(TStr(Url), DocId);
@@ -150,9 +133,7 @@ TInt TDocBase::AddDoc(TDoc &Doc) {
   if (!DocUrlToId.IsKey(DocUrl)) {
     TInt DocId = NextId;
     NextId += 1;
-    NumDocs += 1;
     Doc.SetId(NextId);
-    Doc.SetNumQuotes(0);
     IdToDoc.AddDat(DocId, Doc);
     DocUrlToId.AddDat(DocUrl, DocId);
     return DocId;
@@ -170,13 +151,35 @@ void TDocBase::RemoveDoc(TInt DocId) {
     TStr DocUrl;
     Doc.GetUrl(DocUrl);
 
-    IdToDoc.DelKey(Doc.GetId());
+    IdToDoc.DelKey(DocId);
     DocUrlToId.DelKey(DocUrl);
-    NumDocs -= 1;
   }
 }
 
 void TDocBase::GetAllDocIds(TVec<TInt> &DocIds) const {
   IdToDoc.GetKeyV(DocIds);
+}
+
+void TDocBase::RemoveNullDocs(TQuoteBase *QB) {
+  TIntSet ValidDocs;
+
+  TIntV QuoteIds;
+  QB->GetAllQuoteIds(QuoteIds);
+  for (int i = 0; i < QuoteIds.Len(); i++) {
+    TQuote Q;
+    QB->GetQuote(QuoteIds[i], Q);
+    TIntV Sources;
+    Q.GetSources(Sources);
+    for (int j = 0; j < Sources.Len(); j++) {
+      ValidDocs.AddKey(Sources[j]);
+    }
+  }
+
+  TIntV DocIds;
+  for (int i = 0; i < DocIds.Len(); i++) {
+    if(!ValidDocs.IsKey(DocIds[i])) {
+      RemoveDoc(DocIds[i]);
+    }
+  }
 }
 

@@ -1,7 +1,9 @@
 #ifndef doc_h
 #define doc_h
 
-#include "stdafx.h"
+#include "quote.h"
+
+class TQuoteBase;
 
 class TDoc {
 private:
@@ -27,9 +29,6 @@ public:
   void GetLinks(TStrV &RefL);
 
   void SetId(TInt Id);
-  void IncNumQuotes();
-  void DecNumQuotes();
-  void SetNumQuotes(TInt NumQuotes);
   void SetUrl(const TStr &Url);
   void SetDate(TSecTm Date);
   void SetContent(const TStr &Content);
@@ -40,8 +39,8 @@ class TDocBase {
 private:
   THash<TInt, TDoc> IdToDoc;
   THash<TStr, TInt> DocUrlToId;
-  TInt NumDocs;
   TInt NextId;
+  void RemoveDoc(TInt DocId);
 
 public:
   TDocBase();
@@ -52,7 +51,7 @@ public:
   bool GetDoc(TInt Id, TDoc &RetDoc) const;
   TInt AddDoc(const TChA &Url, TSecTm Date, const TChA &Content, const TVec<TChA> &Links);
   TInt AddDoc(TDoc &Doc);
-  void RemoveDoc(TInt DocId);
+  void RemoveNullDocs(TQuoteBase *QB);
   void GetAllDocIds(TVec<TInt> &DocIds) const;
 };
 

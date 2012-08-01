@@ -1,7 +1,6 @@
 #ifndef logoutput_h
 #define logoutput_h
 
-#include "stdafx.h"
 #include "quote.h"
 #include "cluster.h"
 

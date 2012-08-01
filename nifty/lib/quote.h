@@ -1,7 +1,6 @@
 #ifndef quote_h
 #define quote_h
 
-#include "stdafx.h"
 #include "doc.h"
 
 class TQuote {
@@ -21,7 +20,7 @@ public:
   TQuote(TSIn& SIn) : Id(SIn), Content(SIn), ParsedContent(SIn), ParsedContentString(SIn), Sources(SIn) { }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
-  void AddSource(TDoc& SourceDoc);
+  void AddSource(TInt DocId);
   void GetSources(TIntV &RefS);
   void GetContent(TStrV &Ref);
   void GetContentString(TStr &Ref);
@@ -57,8 +56,8 @@ public:
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   TInt AddQuote(const TStr &ContentString);
-  TInt AddQuote(const TStr &ContentString, TDoc& SourceDoc);
-  void RemoveQuoteAndSources(TDocBase *DB, TInt QuoteId);
+  TInt AddQuote(const TStr &ContentString, TInt DocId);
+  void RemoveQuote(TInt QuoteId);
   TInt GetQuoteId(const TStrV &Content);
   TInt GetNewQuoteId(const TStrV &Content);
   bool GetQuote(TInt QuoteId, TQuote &RefQ) const;

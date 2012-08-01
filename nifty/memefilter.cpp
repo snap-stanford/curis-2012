@@ -168,9 +168,7 @@ int main(int argc, char *argv[]) {
         TInt CurrentDocId = TmpDB.AddDoc(Memes.PostUrlStr, Memes.PubTm, Memes.ContentStr, Memes.LinkV);
         for (int m = 0; m < Memes.MemeV.Len(); m++) {
           if (!Memes.MemeV[m].Len() < 1) {
-            TDoc CurrentDoc;
-            TmpDB.GetDoc(CurrentDocId, CurrentDoc);
-            TmpQB.AddQuote(Memes.MemeV[m], CurrentDoc);
+            TmpQB.AddQuote(Memes.MemeV[m], CurrentDocId);
           }
         }
       } else {
@@ -213,8 +211,7 @@ int main(int argc, char *argv[]) {
         TDoc D;
         TmpDB.GetDoc(Sources[k], D);
         TInt NewSourceId = DB.AddDoc(D);
-        D.SetId(NewSourceId);
-        QB.AddQuote(QContentString, D);
+        QB.AddQuote(QContentString, NewSourceId);
       }
     } else {
       if (Q.GetNumSources() < MinMemeFreq) {
