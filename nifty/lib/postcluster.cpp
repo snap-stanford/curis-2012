@@ -26,6 +26,12 @@ void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteB
     PopularityVec.Add(TPair<TInt, TFlt>(TopFilteredClusters[i], Score));
   }
   PopularityVec.SortCmp(TCmpTClusterByPopularity(false));
+
+  TIntV TopFilteredClustersByPopularity;
+  for (int i = 0; i < PopularityVec.Len(); i++) {
+    TopFilteredClustersByPopularity.Add(PopularityVec[i].Val1);
+  }
+  TopFilteredClusters = TopFilteredClustersByPopularity;
   fprintf(stderr, "Done!\n");
 }
 
