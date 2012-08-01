@@ -45,7 +45,7 @@ void PostCluster::MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TIntV& TopCl
 
   for (int i = 0; i < AllClusterIds.Len(); i++) {
     if (i % 1000 == 0) {
-      fprintf("%d out of %d checked for merge\n", i, AllClusterIds.Len().Val);
+      fprintf(stderr, "%d out of %d checked for merge\n", i, AllClusterIds.Len());
     }
     if (TopClustersSet.IsKey(AllClusterIds[i])) { continue; }
     TCluster CurrCluster;
