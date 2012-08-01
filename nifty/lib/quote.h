@@ -22,6 +22,7 @@ public:
   void Load(TSIn& SIn);
   void AddSource(TInt DocId);
   void GetSources(TIntV &RefS);
+  void RemoveDuplicateSources();
   void GetContent(TStrV &Ref);
   void GetContentString(TStr &Ref);
   void GetParsedContent(TStrV &Ref);
@@ -35,7 +36,6 @@ public:
   void GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
   void GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TSecTm PresentTime);
   void GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
-  void GetRepresentativeUrl(TDocBase *DocBase, TStr& RepUrl);
 
   static PSwSet StopWordSet;
   static void ParseContentString(const TStr& ContentString, TStrV& ParsedString);
@@ -50,6 +50,11 @@ private:
   THash<TInt, TQuote> IdToTQuotes;
   THash<TStrV, TInt> QuoteToId;
   TInt LongestSubSequenceOfWords(const TStrV& Content1, const TStrV& Content2);
+
+  static const TStr TopNewsSourcesFile;
+  TStrSet TopNewsSources;
+  void InitTopNewsSources();
+  bool IsUrlTopNewsSource(TStr Url);
 public:
   TQuoteBase();
   // returns true if new TQuote created, false otherwise.
@@ -62,10 +67,12 @@ public:
   TInt GetNewQuoteId(const TStrV &Content);
   bool GetQuote(TInt QuoteId, TQuote &RefQ) const;
   void GetAllQuoteIds(TIntV &KeyV) const;
+  void RemoveQuoteDuplicateSources();
   int Len() const;
   bool IsSubstring(TInt QuoteId1, TInt QuoteId2);
   bool Exists(TInt QuoteId1);
   TInt GetCurCounterValue();
+  void GetRepresentativeUrl(TDocBase *DocBase, TInt QuoteId, TStr& RepUrl);
 };
 
 // Compares two quotes by their frequency
