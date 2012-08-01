@@ -28,7 +28,7 @@ void Clustering::GetRootNodes(TIntSet& RootNodes) {
   }
 }
 
-void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log) {
+void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TClusterBase *OldCB) {
   // currently deletes all edges but the one leading to phrase that is most frequently cited.
   // TODO: Make more efficient? At 10k nodes this is ok
 
@@ -97,7 +97,7 @@ void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, L
     TIntV ClusterRepQuoteIds;
     ClusterRepQuoteIds.Add(ClusterRepQuote.GetId());
     Cluster.SetRepresentativeQuoteIds(ClusterRepQuoteIds);
-    CB->AddCluster(Cluster);
+    CB->AddCluster(Cluster, OldCB);
   }
 }
 
@@ -213,4 +213,3 @@ void Clustering::GetAllWCCs(PNGraph& G, TVec<TIntV>& Clusters) {
     Clusters.Add(Components[i].NIdV);
   }
 }
-

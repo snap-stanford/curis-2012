@@ -56,9 +56,10 @@ public:
   static const int FrequencyCutoff;
 
   TClusterBase();
+  TClusterBase(TInt& OldCounter);
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
-  TInt AddCluster(TCluster& Cluster);
+  TInt AddCluster(TCluster& Cluster, TClusterBase *OldCB);
   bool AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterId);
   void RemoveCluster(TInt ClusterId);
 
@@ -70,6 +71,7 @@ public:
   void Clr();
   int Len();
   void MergeCluster2Into1(TInt Id1, TInt Id2, TQuoteBase *QB, bool KeepOneRepId);
+  TInt GetCounter();
 };
 
 // Compares TClusters by sum of quote frequencies

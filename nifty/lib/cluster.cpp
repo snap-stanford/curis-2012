@@ -191,6 +191,10 @@ void TCluster::GetUniqueSources(TIntV& UniqueSources, TIntV& QuoteIds, TQuoteBas
 TClusterBase::TClusterBase() {
 }
 
+TClusterBase::TClusterBase(TInt& OldCounter) {
+  ClusterIdCounter = OldCounter;
+}
+
 void TClusterBase::Save(TSOut &SOut) const {
   ClusterIdCounter.Save(SOut);
   IdToTCluster.Save(SOut);
@@ -203,15 +207,29 @@ void TClusterBase::Load(TSIn& SIn) {
   QuoteIdToClusterId.Load(SIn);
 }
 
-TInt TClusterBase::AddCluster(TCluster &Cluster) {
+TInt TClusterBase::AddCluster(TCluster &Cluster, TClusterBase *OldCB) {
+  // setup to determine cluster id number
   TIntV QuoteIds;
   Cluster.GetQuoteIds(QuoteIds);
-  for (int i = 0; i < QuoteIds.Len(); i++) {
-    QuoteIdToClusterId.AddDat(QuoteIds[i], ClusterIdCounter);
+  TInt CurCounter = -1;
+  if (OldCB != NULL && QuoteIds.Len() > 0) {
+    for (int i = 0; i < QuoteIds.Len(); i++) {
+      CurCounter = OldCB->GetClusterIdFromQuoteId(QuoteIds[i]);
+      if (CurCounter >= 0) break;
+    }
   }
-  Cluster.SetId(ClusterIdCounter);
-  IdToTCluster.AddDat(ClusterIdCounter, Cluster);
-  return ClusterIdCounter++;
+  if (CurCounter < 0) {
+    CurCounter = ClusterIdCounter;
+    ClusterIdCounter++;
+  }
+
+  // set cluster counter to quoteidtoclusterid mapping
+  for (int i = 0; i < QuoteIds.Len(); i++) {
+    QuoteIdToClusterId.AddDat(QuoteIds[i], CurCounter);
+  }
+  Cluster.SetId(CurCounter);
+  IdToTCluster.AddDat(CurCounter, Cluster);
+  return CurCounter;
 }
 
 bool TClusterBase::AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterId) {
@@ -281,6 +299,10 @@ void TClusterBase::Clr() {
 
 int TClusterBase::Len() {
   return IdToTCluster.Len();
+}
+
+TInt TClusterBase::GetCounter() {
+  return ClusterIdCounter;
 }
 
 /// Merges the second cluster into the first. For the quotes in the second cluster, updates

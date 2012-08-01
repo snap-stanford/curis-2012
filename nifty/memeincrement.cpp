@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
     IncrementalClustering2 ClusterJob(&QB, NewQuotes, QGraph, AffectedNodes);
     TIntSet RootNodes;
     TClusterBase NewCB;
-    ClusterJob.BuildClusters(&NewCB, &QB, &DB, Log);
+    ClusterJob.BuildClusters(&NewCB, &QB, &DB, Log, &CB);
     TIntV SortedClusters;
     NewCB.GetAllClusterIdsSortByFreq(SortedClusters);
 

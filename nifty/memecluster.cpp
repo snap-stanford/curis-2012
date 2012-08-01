@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
   Clustering ClusterJob(QGraph);
-  ClusterJob.BuildClusters(&CB, &QB, &DB, Log);
+  ClusterJob.BuildClusters(&CB, &QB, &DB, Log, NULL);
 
   fprintf(stderr, "Saving files...\n");
   // Save to file
