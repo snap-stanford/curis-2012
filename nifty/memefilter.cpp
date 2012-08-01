@@ -226,6 +226,8 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  QB.RemoveQuoteDuplicateSources();
+
   fprintf(FLog, "Number of quotes: %d\n", QB.Len());
   fprintf(FLog, "Skipped %d quotes\n", NSkipInfrequent + NSkipBadDomainRatio + NSkipRobustEnglish);
   fprintf(FLog, "\tbecause quote is infrequent:\t\t\t%d\n", NSkipInfrequent);

@@ -22,6 +22,7 @@ public:
   void Load(TSIn& SIn);
   void AddSource(TInt DocId);
   void GetSources(TIntV &RefS);
+  void RemoveDuplicateSources();
   void GetContent(TStrV &Ref);
   void GetContentString(TStr &Ref);
   void GetParsedContent(TStrV &Ref);
@@ -62,6 +63,7 @@ public:
   TInt GetNewQuoteId(const TStrV &Content);
   bool GetQuote(TInt QuoteId, TQuote &RefQ) const;
   void GetAllQuoteIds(TIntV &KeyV) const;
+  void RemoveQuoteDuplicateSources();
   int Len() const;
   bool IsSubstring(TInt QuoteId1, TInt QuoteId2);
   bool Exists(TInt QuoteId1);

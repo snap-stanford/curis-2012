@@ -105,6 +105,17 @@ void TQuote::GetSources(TIntV &RefS) {
   RefS = Sources;
 }
 
+void TQuote::RemoveDuplicateSources() {
+  TIntV UniqueSources;
+  Sources.Sort();
+  for (int i = 0; i < Sources.Len(); i++) {
+    if (i == 0 || Sources[i] != Sources[i-1]) {
+      UniqueSources.Add(Sources[i]);
+    }
+  }
+  Sources = UniqueSources;
+}
+
 /// Picks the first url within the time period of the first peak
 void TQuote::GetRepresentativeUrl(TDocBase *DocBase, TStr& RepUrl) {
   TVec<TSecTm> PeakTimesV;
@@ -302,6 +313,17 @@ bool TQuoteBase::GetQuote(TInt QuoteId, TQuote &RefQ) const {
     return true;
   }
   return false;
+}
+
+void TQuoteBase::RemoveQuoteDuplicateSources() {
+  TIntV QuoteIds;
+  GetAllQuoteIds(QuoteIds);
+  for (int i = 0; i < QuoteIds.Len(); i++) {
+    TQuote Q;
+    GetQuote(QuoteIds[i], Q);
+    Q.RemoveDuplicateSources();
+    IdToTQuotes.AddDat(QuoteIds[i], Q);
+  }
 }
 
 int TQuoteBase::Len() const {
