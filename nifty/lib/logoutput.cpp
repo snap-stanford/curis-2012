@@ -134,7 +134,7 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
         fprintf(stderr, "saved %d files so far!\n", i);
       }
       ++Rank;
-      TStr URLLink = "<a href=\"cluster/" + TInt(Rank).GetStr() + ".html\">" + RepQuoteStr + "</a>";
+      TStr URLLink = "<a href=\"cluster_" + CurDateString + "/" + TInt(Rank).GetStr() + ".html\">" + RepQuoteStr + "</a>";
       fprintf(H, "<tr><td>%d</td><td>N/A</td><td>%d</td><td>%s</td></tr>\n", Rank, Cluster.GetNumQuotes().Val, URLLink.CStr());
       TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster_" + CurDateString + "/" + TInt(Rank).GetStr() + ".html";
       TStr ImageFileName = WebDirectory + TimeStamp + "/cluster_" + CurDateString + "/" + TInt(Rank).GetStr();
