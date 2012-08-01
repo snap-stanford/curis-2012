@@ -97,13 +97,8 @@ TInt TQuote::GetNumSources() {
   return Sources.Len();
 }
 
-void TQuote::AddSource(TDoc& SourceDoc) {
-  // Only add source if it is not a duplicate
-  TInt SourceId = SourceDoc.GetId();
-  if (Sources.SearchForw(SourceId) < 0) {
-    Sources.Add(SourceId);
-  }
-  //printf("Source added. Source ID: %d. Num sources: %d", SourceId, Sources.Len().Val());
+void TQuote::AddSource(TInt DocId) {
+  Sources.Add(DocId);
 }
 
 void TQuote::GetSources(TIntV &RefS) {
@@ -245,7 +240,7 @@ TInt TQuoteBase::AddQuote(const TStr &ContentString) {
   }
 }
 
-TInt TQuoteBase::AddQuote(const TStr &ContentString, TDoc& SourceDoc) {
+TInt TQuoteBase::AddQuote(const TStr &ContentString, TInt DocId) {
   //TQuote NewQuote = AddQuote(ContentString);
   //NewQuote.AddSource(SourceDoc);
   //return NewQuote;
@@ -255,14 +250,14 @@ TInt TQuoteBase::AddQuote(const TStr &ContentString, TDoc& SourceDoc) {
   TInt QuoteId = GetNewQuoteId(ContentVectorString);
   if (IdToTQuotes.IsKey(QuoteId)) {
     TQuote CurQuote =  IdToTQuotes.GetDat(QuoteId); // nothing to do here; quote is already in database
-    CurQuote.AddSource(SourceDoc);
+    CurQuote.AddSource(DocId);
     IdToTQuotes.AddDat(QuoteId, CurQuote);
     return CurQuote.GetId();
   } else {
     // otherwise, create the new TQuote and proceed.
     //printf("%d: %s\n", QuoteId.Val, ContentString.CStr());
     TQuote NewQuote(QuoteId, ContentVectorString);
-    NewQuote.AddSource(SourceDoc);
+    NewQuote.AddSource(DocId);
     IdToTQuotes.AddDat(QuoteId, NewQuote);
     return NewQuote.GetId();
   }
