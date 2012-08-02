@@ -216,7 +216,7 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
 void LogOutput::ComputeOldRankString(THash<TInt, TInt>& OldRankings, TInt& ClusterId, TInt CurRank, TStr& OldRankStr) {
   TInt OldRanking;
   if (OldRankings.IsKeyGetDat(ClusterId, OldRanking)) {
-    TInt Difference = OldRanking - CurRank;
+    TInt Difference = OldRanking - CurRank + 1;
     if (Difference < 0) {
       OldRankStr = "<b><center><font color=\"red\">" + Difference.GetStr() + "</font></center></b>";
     } else if (Difference > 0) {
