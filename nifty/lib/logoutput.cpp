@@ -81,7 +81,7 @@ void LogOutput::WriteClusteringOutputToFile(TSecTm& Date) {
   fclose(F);
 }
 
-void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime) {
+void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime, TIntV &OldTopClusters) {
   if (!ShouldLog) return;
   TStr CurDateString = PresentTime.GetDtYmdStr();
   fprintf(stderr, "Writing cluster information ...\n");
@@ -91,6 +91,14 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
   system(Command.CStr());
   FILE *F = fopen(FileName.CStr(), "w");
   FILE *H = fopen(HTMLFileName.CStr(), "w");
+
+  // PREVIOUS RANKING SETUP
+  THash<TInt, TInt> OldRankings;
+  if (OldTopClusters.Len() > 0) {
+    for (int i = 0; i < OldTopClusters.Len(); i++) {
+      OldRankings.AddDat(OldTopClusters[i], i);
+    }
+  }
 
   // HTML setup
   fprintf(H, "<html>\n");
@@ -135,7 +143,9 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
       }
       ++Rank;
       TStr URLLink = "<a href=\"cluster_" + CurDateString + "/" + TInt(Rank).GetStr() + ".html\">" + RepQuoteStr + "</a>";
-      fprintf(H, "<tr><td>%d</td><td>N/A</td><td>%d</td><td>%s</td></tr>\n", Rank, Cluster.GetNumQuotes().Val, URLLink.CStr());
+      TStr OldRankStr;
+      ComputeOldRankString(OldRankings, ClusterIds[i], Rank, OldRankStr);
+      fprintf(H, "<tr><td>%d</td><td>%s</td><td>%d</td><td>%s</td></tr>\n", Rank, OldRankStr.CStr(), Cluster.GetNumQuotes().Val, URLLink.CStr());
       TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster_" + CurDateString + "/" + TInt(Rank).GetStr() + ".html";
       TStr ImageFileName = WebDirectory + TimeStamp + "/cluster_" + CurDateString + "/" + TInt(Rank).GetStr();
       Cluster.GraphFreqOverTime(DB, QB, ImageFileName, 2, 1, PresentTime);
@@ -201,6 +211,22 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
   //Close files
   fclose(F);
   fclose(H);
+}
+
+void LogOutput::ComputeOldRankString(THash<TInt, TInt>& OldRankings, TInt& ClusterId, TInt CurRank, TStr& OldRankStr) {
+  TInt OldRanking;
+  if (OldRankings.IsKeyGetDat(ClusterId, OldRanking)) {
+    TInt Difference = OldRanking - CurRank;
+    if (Difference < 0) {
+      OldRankStr = "<b><center><font color=\"red\">" + Difference.GetStr() + "</font></center></b>";
+    } else if (Difference > 0) {
+      OldRankStr = "<b><center><font color=\"green\">+" + Difference.GetStr() + "</font></center></b>";
+    } else {
+      OldRankStr = "<b><center>0</center></b>";
+    }
+  } else {
+    OldRankStr = "<center>new!</center>";
+  }
 }
 
 void LogOutput::OutputDiscardedClusters(TQuoteBase *QB, TVec<TCluster>& DiscardedClusters, TSecTm& Date) {

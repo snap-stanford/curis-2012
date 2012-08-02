@@ -191,7 +191,7 @@ void TCluster::GetUniqueSources(TIntV& UniqueSources, TIntV& QuoteIds, TQuoteBas
 TClusterBase::TClusterBase() {
 }
 
-TClusterBase::TClusterBase(TInt& OldCounter) {
+TClusterBase::TClusterBase(TInt OldCounter) {
   ClusterIdCounter = OldCounter;
 }
 

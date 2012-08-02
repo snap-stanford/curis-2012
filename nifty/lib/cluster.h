@@ -56,7 +56,7 @@ public:
   static const int FrequencyCutoff;
 
   TClusterBase();
-  TClusterBase(TInt& OldCounter);
+  TClusterBase(TInt OldCounter);
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   TInt AddCluster(TCluster& Cluster, TClusterBase *OldCB);

@@ -37,6 +37,10 @@ int main(int argc, char *argv[]) {
   TDataLoader::LoadCumulative(QBDBC_DIRECTORY, OldDate.GetDtYmdStr(), QB, DB, CB, OldQGraph);
   fprintf(stderr, "\tDone loading cumulative QBDBCB!\n");
 
+  // #### GET TOP FILTERED CLUSTERS FROM PREVIOUS DAY WHYY
+  TIntV OldTopClusters;
+  PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, OldTopClusters, OldDate);
+
   // #### MAIN CLUSTERING STEP.
   TSecTm CurrentDate = StartDate;
   while(CurrentDate < EndDate) {
@@ -58,20 +62,21 @@ int main(int argc, char *argv[]) {
     GraphCreator.GetAffectedNodes(AffectedNodes);
     IncrementalClustering2 ClusterJob(&QB, NewQuotes, QGraph, AffectedNodes);
     TIntSet RootNodes;
-    TClusterBase NewCB;
+    TClusterBase NewCB(CB.GetCounter());
     ClusterJob.BuildClusters(&NewCB, &QB, &DB, Log, &CB);
     TIntV SortedClusters;
     NewCB.GetAllClusterIdsSortByFreq(SortedClusters);
 
     // ## POSTCLUSTERING STEP AND OUTPUT?
     TIntV TopFilteredClusters;
-    PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, CurrentDate);
-    Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, CurrentDate);
+    PostCluster::GetTopFilteredClusters(&NewCB, &DB, &QB, Log, TopFilteredClusters, CurrentDate);
+    Log.OutputClusterInformation(&DB, &QB, &NewCB, TopFilteredClusters, CurrentDate, OldTopClusters);
     Log.WriteClusteringOutputToFile(CurrentDate);
 
     // ## SAVE CLUSTERS OR SAVE THEM TO VARIABLES.
     OldQGraph = QGraph;
     CB = NewCB;
+    OldTopClusters = TopFilteredClusters;
     TStr FileName = TStr(QBDBC_DIRECTORY) + "QBDBC" + CurrentDate.GetDtYmdStr() + ".bin";
     fprintf(stderr, "Saving Cluster information to file: %s", FileName.CStr());
     TFOut FOut(FileName);

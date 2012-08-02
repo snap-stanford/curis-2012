@@ -30,7 +30,8 @@ int main(int argc, char *argv[]) {
 
   // OUTPUT
   //Log.SetupFiles(); // safe to make files now.
-  Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime);
+  TIntV TempV;
+  Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime, TempV);
   Log.WriteClusteringOutputToFile(PresentTime);
 
   // plot output

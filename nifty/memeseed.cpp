@@ -49,8 +49,8 @@ int main(int argc, char *argv[]) {
   PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, PresentTime);
 
   // TODO: consider if quote is dead?
-
-  Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime);
+  TIntV TempV;
+  Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime, TempV);
   Log.WriteClusteringOutputToFile(PresentTime);
 
   return 0;
