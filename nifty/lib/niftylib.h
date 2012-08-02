@@ -29,6 +29,5 @@
 // incremental clustering
 #include "incrementalclustering.h"
 #include "incrementalquotegraph.h"
-#include "incrementalclustering2.h"
 
 #endif

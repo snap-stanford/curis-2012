@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
   Clustering ClusterJob(QGraph);
-  ClusterJob.BuildClusters(&CB, &QB, &DB, Log, NULL);
+  ClusterJob.BuildClusters(&CB, &QB, &DB, Log);
 
   // #### SAVE THE DOLPHINS! I MEAN CLUSTERS
   TStr FileName = TStr(QBDBC_DIRECTORY) + "QBDBC" + PresentTime.GetDtYmdStr() + ".bin";
@@ -49,8 +49,7 @@ int main(int argc, char *argv[]) {
   PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, PresentTime);
 
   // TODO: consider if quote is dead?
-  TIntV TempV;
-  Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime, TempV);
+  Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime);
   Log.WriteClusteringOutputToFile(PresentTime);
 
   return 0;
