@@ -96,7 +96,7 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
   THash<TInt, TInt> OldRankings;
   if (OldTopClusters.Len() > 0) {
     for (int i = 0; i < OldTopClusters.Len(); i++) {
-      OldRankings.AddDat(OldTopClusters[i], i);
+      OldRankings.AddDat(OldTopClusters[i], i + 1);
     }
   }
 
