@@ -100,7 +100,7 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
   if (PresentTime.GetAbsSecs() > 0) {  // If we want the x-axis with respect to present time
     // Round PresentTime up to the nearest 12am (if it's already at 12am, round to the **next** one)
     TUInt PresentTimeI = TUInt(PresentTime.GetAbsSecs());
-    PresentTimeI = TUInt(uint(ceil(PresentTimeI / NumSecondsInDay) + 1) * NumSecondsInDay);
+    PresentTimeI = TUInt(uint(PresentTimeI / NumSecondsInDay + 1) * NumSecondsInDay);
 
     HourStart = -1 * NumHoursInDay * NumDaysToGraph;
 
