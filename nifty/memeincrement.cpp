@@ -54,8 +54,6 @@ int main(int argc, char *argv[]) {
     // ## MERGE AND GET NEW QUOTES
     TIntSet NewQuotes(TDataLoader::MergeQBDB(QB, DB, NewQB, NewDB));
 
-    TInt Id = QB.GetQuoteId(FaceV);
-
     // ## CLUSTERING STEP
     IncrementalQuoteGraph GraphCreator(&QB, NewQuotes, OldQGraph);
     PNGraph QGraph;
