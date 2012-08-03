@@ -18,6 +18,8 @@ public:
   static const uint NumSecondsInHour;
   static const uint NumSecondsInDay;
   static const uint NumSecondsInWeek;
+  static const int NumHoursInDay;
+  static const int NumDaysToGraph;
   static void GetPeaks(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
   static void GetPeaks(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
   static void GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);

@@ -8,6 +8,8 @@ const int Peaks::K = 5;
 const uint Peaks::NumSecondsInHour = 3600;
 const uint Peaks::NumSecondsInDay = 86400;
 const uint Peaks::NumSecondsInWeek = 604800;
+const int Peaks::NumHoursInDay = 24;
+const int Peaks::NumDaysToGraph = 14;
 
 void Peaks::GetPeaks(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime) {
   TFreqTripleV FreqV;
@@ -93,26 +95,26 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
   //assert(SourcesSorted.Len() > 0);
   if (SourcesSorted.Len() == 0) return;
 
-  TDoc StartDoc;
-  int StartDocIndex = 0;
-  DocBase->GetDoc(SourcesSorted[StartDocIndex], StartDoc);
-
-  // Start time at 12am
-  TUInt StartTime = TUInt(StartDoc.GetDate().GetAbsSecs());
-  StartTime = (StartTime / NumSecondsInDay) * NumSecondsInDay;  // round to previous 12am
-
-  //fprintf(stderr, "3333333333333\n");
-
+  TUInt StartTime;
   TInt HourStart = 0;
-  if (PresentTime.GetAbsSecs() > 0) {
+  if (PresentTime.GetAbsSecs() > 0) {  // If we want the x-axis with respect to present time
+    // Round PresentTime up to the nearest 12am (if it's already at 12am, round to the **next** one)
     TUInt PresentTimeI = TUInt(PresentTime.GetAbsSecs());
-    PresentTimeI = TUInt(uint(ceil(PresentTimeI / NumSecondsInDay)) * NumSecondsInDay);  // round to next 12am 
+    PresentTimeI = TUInt(uint(ceil(PresentTimeI / NumSecondsInDay) + 1) * NumSecondsInDay);
 
-    HourStart = -1 * TInt((PresentTimeI - StartTime) / NumSecondsInHour);  // will be a negative hour offset
+    HourStart = -1 * NumHoursInDay * NumDaysToGraph;
+
+    // Start time at 12am NumDaysToGraph before
+    StartTime = PresentTimeI - (NumDaysToGraph * NumSecondsInDay);
+  } else {
+    // Start time at first doc
+    TDoc StartDoc;
+    DocBase->GetDoc(SourcesSorted[0], StartDoc);
+    StartTime = TUInt(StartDoc.GetDate().GetAbsSecs());
   }
 
   //fprintf(stderr, "4444444444444\n");
-  TInt Frequency = 1;
+  TInt Frequency = 0;
   TInt HourNum = 0;
   uint BucketSizeSecs = NumSecondsInHour * BucketSize.Val;
   TIntV RawFrequencyCounts;
@@ -125,6 +127,7 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
     TDoc CurDoc;
     if (DocBase->GetDoc(SourcesSorted[i], CurDoc)) {
       TUInt CurTime = TUInt(CurDoc.GetDate().GetAbsSecs());
+      if (CurTime < StartTime) { fprintf(stderr, "HELLO WORLD\n"); continue; }  // Ignore sources outside the X-day window
       if (CurTime - StartTime < BucketSizeSecs) { // still the same bucket? keep on incrementing.
         Frequency++;
       } else {
