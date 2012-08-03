@@ -6,6 +6,8 @@ const double PostCluster::ClusterSourceOverlapThreshold = 0.8;
 const int PostCluster::BucketSize = 2;
 const int PostCluster::SlidingWindowSize = 1;
 const int PostCluster::PeakThreshold = 5;
+const int PostCluster::DayThreshold = 3;
+const int PostCluster::QuoteThreshold = 20;
 
 void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm PresentTime) {
   CB->GetTopClusterIdsByFreq(TopFilteredClusters);
@@ -284,4 +286,48 @@ void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClus
   // log the discarded clusters in a log file.
   Log.OutputDiscardedClusters(QB, DiscardedClusters, PresentTime);
   fprintf(stderr, "Done!\n");
+}
+
+/// Remove clusters whose quotes have fewer than QuoteThreshold sources (total) for the last three days
+void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, TSecTm PresentTime) {
+  TIntV AllClusterIds;
+  CB->GetAllClusterIds(AllClusterIds);
+
+  for (int i = 0; i < AllClusterIds.Len(); i++) {
+    TCluster C;
+    CB->GetCluster(AllClusterIds[i], C);
+    TIntV ClusterQuoteIds;
+    C.GetQuoteIds(ClusterQuoteIds);
+    TIntSet AllSources;
+    for (int j = 0; j < ClusterQuoteIds.Len(); j++) {
+      TQuote Q;
+      QB->GetQuote(ClusterQuoteIds[j], Q);
+      TIntV QSources;
+      Q.GetSources(QSources);
+      AllSources.AddKeyV(QSources);
+    }
+
+    TInt NumRecentSources = 0;
+    // Round PresentTime to the nearest day afterward
+    TUInt PresentTimeI = TUInt(PresentTime.GetAbsSecs());
+    PresentTimeI = TUInt(uint(ceil(PresentTimeI / Peaks::NumSecondsInDay)) * Peaks::NumSecondsInDay);  // round to next 12am
+
+    TUInt ThresholdTime = PresentTimeI - DayThreshold * Peaks::NumSecondsInDay;
+    for (TIntSet::TIter SourceId = AllSources.BegI(); SourceId < AllSources.EndI(); SourceId++) {
+      TDoc Doc;
+      DB->GetDoc(*SourceId, Doc);
+      if (Doc.GetDate().GetAbsSecs() >= ThresholdTime) {
+        NumRecentSources += 1;
+      }
+    }
+
+    // If the number of recent sources does not pass the threshold, remove that cluster and all its quotes
+    if (NumRecentSources < QuoteThreshold) {
+      for (int j = 0; j < ClusterQuoteIds.Len(); j++) {
+        QB->RemoveQuote(ClusterQuoteIds[j]);
+      }
+      CB->RemoveCluster(AllClusterIds[i]);
+    }
+  }
+  return;
 }

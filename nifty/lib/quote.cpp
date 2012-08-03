@@ -424,16 +424,29 @@ bool TQuoteBase::IsUrlTopNewsSource(TStr Url) {
     InitTopNewsSources();
   }
 
+  TStr NewUrl(Url);
+  // Remove the http://
+  TStr HttpStr("http://");
+  if (Url.SearchStr(HttpStr) >= 0) {
+    TStr Ignore;
+    Url.SplitOnStr(Ignore, HttpStr, NewUrl);
+    if (NewUrl.Len() == 0) { return false; }
+  }
+
   TStrV PeriodVector;
-  Url.SplitOnAllAnyCh(".", PeriodVector);
+  NewUrl.SplitOnAllAnyCh(".", PeriodVector);
 
   if (PeriodVector.Len() >= 2) {
     TStrV SlashVector;
     PeriodVector[PeriodVector.Len() - 1].SplitOnAllAnyCh("/", SlashVector);
     if (SlashVector.Len() >= 1) {
       TStr DomainName = PeriodVector[PeriodVector.Len() - 2] + "." + SlashVector[0];
-      if (TopNewsSources.IsKey(DomainName)) {
-        return true;
+      if (TopNewsSources.IsKey(DomainName)) { return true; }
+      // Deal with domains ending in co.uk
+      TStr CoUk("co.uk");
+      if (DomainName == CoUk && PeriodVector.Len() > 2) {
+        DomainName = PeriodVector[PeriodVector.Len() - 3] + DomainName;
+        if (TopNewsSources.IsKey(DomainName)) { return true; }
       }
     }
   }
