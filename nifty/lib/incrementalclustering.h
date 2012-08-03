@@ -4,14 +4,17 @@
 #include "../../snap/snap-core/Snap.h"
 #include "niftylib.h"
 
-class TIncrementalClustering {
+class TIncrementalClustering : public Clustering {
 private:
   static const TInt DayThreshold;
   static const TInt QuoteThreshold;
+  TQuoteBase *QB;
+  TIntSet NewQuotes;
+  TIntSet AffectedNodes;
 
 public:
-  static void BuildClusters(TVec<TIntV>& MergedClusters, TVec<TCluster>& ClusterSummaries,
-                     TQuoteBase& QB, TDocBase& DB, TIntV& NewQuotes);
+  TIncrementalClustering(TQuoteBase *QB, TIntSet& NewQuotes, PNGraph QGraph, TIntSet& AffectedNodes);
+  void KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase *DB);
   static void RemoveOldClusters(TVec<TIntV>& NewMergedClusters, TVec<TIntV>& MergedClusters,
                                 TQuoteBase& QB, TDocBase& DB, TSecTm PresentTime);
 

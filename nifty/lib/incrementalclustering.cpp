@@ -4,86 +4,58 @@
 const TInt TIncrementalClustering::DayThreshold = 3;
 const TInt TIncrementalClustering::QuoteThreshold = 20;
 
-void TIncrementalClustering::BuildClusters(TVec<TIntV>& MergedClusters, TVec<TCluster>& ClusterSummaries,
-                                           TQuoteBase& QB, TDocBase& DB, TIntV& NewQuotes) {
-  THashSet<TInt> NewQuotesSet;
-  for (int i = 0; i < NewQuotes.Len(); i++) {
-    NewQuotesSet.AddKey(NewQuotes[i]);
-  }
+TIncrementalClustering::TIncrementalClustering(TQuoteBase *QB, TIntSet& NewQuotes, PNGraph QGraph, TIntSet& AffectedNodes) : Clustering(QGraph) {
+  this->QB = QB;
+  this->NewQuotes = NewQuotes;
+  this->QGraph = QGraph;
+  this->AffectedNodes = AffectedNodes;
+}
 
-  THash<TMd5Sig, TIntSet> Shingles;
-  LSH::HashShingles(&QB, LSH::ShingleLen, Shingles);
-  TVec<THash<TIntV, TIntSet> > BucketsVector;
-  LSH::MinHash(Shingles, BucketsVector);
-
-  for (int i = 0; i < BucketsVector.Len(); i++) {
-    printf("Processing band signature %d of %d\n", i+1, BucketsVector.Len());
-    TVec<TIntV> Buckets;
-    BucketsVector[i].GetKeyV(Buckets);
-    TVec<TIntV>::TIter BucketEnd = Buckets.EndI();
-    for (TVec<TIntV>::TIter BucketSig = Buckets.BegI(); BucketSig < BucketEnd; BucketSig++) {
-      TIntSet Bucket  = BucketsVector[i].GetDat(*BucketSig);
-      TIntV NQuotes, OQuotes;
-      for (TIntSet::TIter Quote = Bucket.BegI(); Quote < Bucket.EndI(); Quote++) {
-        TInt QuoteId = Quote.GetKey();
-        if (NewQuotesSet.IsKey(QuoteId)) {
-          NQuotes.Add(QuoteId);
-        } else {
-          OQuotes.Add(QuoteId);
-        }
-      }
-      for (int j = 0; j < NQuotes.Len(); j++) {
-        TQuote NewQ;
-        QB.GetQuote(NQuotes[j], NewQ);
-        for (int k = 0; k < OQuotes.Len(); k++) {
-          TQuote Q;
-          QB.GetQuote(OQuotes[j], Q);
-          if (QuoteGraph::EdgeShouldBeCreated(NewQ, Q)) {
-            // add newQ to cluster of Q
+void TIncrementalClustering::KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase *DB) {
+  TIntSet::TIter EndNode = AffectedNodes.EndI();
+  for (TIntSet::TIter NodeId = AffectedNodes.BegI(); NodeId < EndNode; NodeId++) {
+    TNGraph::TNodeI Node = G->GetNI(NodeId.GetKey());
+    TQuote SourceQuote;
+    if (QB->GetQuote(Node.GetId(), SourceQuote)) {
+      TInt NodeDegree = Node.GetOutDeg();
+      if (NodeDegree > 1) {
+        TFlt MaxScore = 0;
+        TInt MaxNodeId = 0;
+        TIntV NodeV;
+        // first pass: check to see if we are pointing to any old nodes - if so, they get higher
+        // priority over the new ones for edge selection.
+        bool ContainsOldNode = false;
+        for (int i = 0; i < NodeDegree; ++i) {
+          if (!NewQuotes.IsKey(Node.GetOutNId(i))) {
+            ContainsOldNode = true;
           }
         }
-      }
-    }
-  }
-
-  for (int i = 0; i < ClusterSummaries.Len(); i++) {
-    TIntV QuoteIds;
-    ClusterSummaries[i].GetQuoteIds(QuoteIds);
-    MergedClusters.Add(QuoteIds);
-  }
-  for (int i = 0; i < NewQuotes.Len(); i++) {
-    TQuote NewQ;
-    QB.GetQuote(NewQuotes[i], NewQ);
-    TStr NewStr;
-    NewQ.GetContentString(NewStr);
-    fprintf(stderr, "1: %s\n", NewStr.CStr());
-    for (int j = 0; j < MergedClusters.Len(); j++) {
-      TIntV QuoteIds = MergedClusters[j];
-      int NumSimilar = 0;
-      for (int k = 0; k < QuoteIds.Len(); k++) {
-        TQuote Q;
-        QB.GetQuote(QuoteIds[k], Q);
-        if (QuoteGraph::EdgeShouldBeCreated(NewQ, Q)) {
-          NumSimilar++;
+        // modified edge selection: filter out new nodes if old ones exist.
+        for (int i = 0; i < NodeDegree; ++i) {
+          TInt CurNode = Node.GetOutNId(i);
+          NodeV.Add(CurNode);
+          TQuote DestQuote;
+          if (QB->GetQuote(CurNode, DestQuote)) {
+            TFlt EdgeScore = 0;
+            if (!ContainsOldNode || !NewQuotes.IsKey(Node.GetOutNId(i))) {
+              EdgeScore = ComputeEdgeScore(SourceQuote, DestQuote, DB);
+            }
+            if (EdgeScore > MaxScore) {
+              MaxScore = EdgeScore;
+              MaxNodeId = CurNode;
+            }
+          }
         }
-      }
-      // if (5 * NumSimilar >= 4 * QuoteIds.Len()) {
-      if (NumSimilar > 0) {
-        MergedClusters[j].Add(NewQuotes[i]);
-        TQuote RepQuote;
-        Clustering::CalcRepresentativeQuote(RepQuote, MergedClusters[j], &QB);
-        TStr RepQuoteStr;
-        RepQuote.GetContentString(RepQuoteStr);
-        fprintf(stderr, "2: %s\n", RepQuoteStr.CStr());
-        break;
+
+        // remove all other edges, backwards to prevent indexing fail
+        for (int i = 0; i < NodeV.Len(); i++) {
+          if (NodeV[i] != MaxNodeId) {
+            G->DelEdge(Node.GetId(), NodeV[i]);
+          }
+        }
+        //printf("Out degree: %d out of %d\n", Node.GetOutDeg(), NodeDegree.Val);
       }
     }
-    // Add new cluster if this new quote does not match to any of the previous clusters
-    TIntV NewCluster;
-    NewCluster.Add(NewQuotes[i]);
-    MergedClusters.Add(NewCluster);
-    fprintf(stderr, "%d out of %d new quotes processed\n\n\n", i + 1, NewQuotes.Len());
   }
-
-  return;
+  fprintf(stderr, "finished deleting edges\n");
 }

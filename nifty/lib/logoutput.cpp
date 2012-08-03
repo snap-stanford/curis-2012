@@ -81,6 +81,11 @@ void LogOutput::WriteClusteringOutputToFile(TSecTm& Date) {
   fclose(F);
 }
 
+void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime) {
+  TIntV OldTopClusters;
+  OutputClusterInformation(DB, QB, CB, ClusterIds, PresentTime, OldTopClusters);
+}
+
 void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime, TIntV &OldTopClusters) {
   if (!ShouldLog) return;
   TStr CurDateString = PresentTime.GetDtYmdStr();

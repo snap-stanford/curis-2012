@@ -19,7 +19,8 @@ public:
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   void GetRootNodes(TIntSet& RootNodes);
-  virtual void BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TClusterBase *OldCB);
+  void BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log);
+  void BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TClusterBase *OldCB);
   static TInt CalcRepresentativeQuote(TQuote& RepQuote, TIntV& Cluster, TQuoteBase *QuoteBase);
   //static void SortClustersByFreq(TVec<TCluster>& ClusterSummaries, TVec<TIntV>& Clusters, TQuoteBase *QuoteBase);
 };

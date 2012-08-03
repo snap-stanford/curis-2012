@@ -28,6 +28,10 @@ void Clustering::GetRootNodes(TIntSet& RootNodes) {
   }
 }
 
+void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log) {
+  BuildClusters(CB, QB, DB, log, NULL);
+}
+
 void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TClusterBase *OldCB) {
   // currently deletes all edges but the one leading to phrase that is most frequently cited.
   // TODO: Make more efficient? At 10k nodes this is ok

@@ -60,8 +60,7 @@ int main(int argc, char *argv[]) {
     GraphCreator.UpdateGraph(QGraph);
     TIntSet AffectedNodes;
     GraphCreator.GetAffectedNodes(AffectedNodes);
-    IncrementalClustering2 ClusterJob(&QB, NewQuotes, QGraph, AffectedNodes);
-    TIntSet RootNodes;
+    TIncrementalClustering ClusterJob(&QB, NewQuotes, QGraph, AffectedNodes);
     TClusterBase NewCB(CB.GetCounter());
     ClusterJob.BuildClusters(&NewCB, &QB, &DB, Log, &CB);
     TIntV SortedClusters;
