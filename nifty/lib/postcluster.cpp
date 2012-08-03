@@ -10,6 +10,7 @@ const int PostCluster::DayThreshold = 3;
 const int PostCluster::QuoteThreshold = 20;
 
 void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm PresentTime) {
+  RemoveOldClusters(QB, DB, CB, PresentTime);
   CB->GetTopClusterIdsByFreq(TopFilteredClusters);
   MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
   MergeAllClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);

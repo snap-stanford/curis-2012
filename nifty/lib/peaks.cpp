@@ -8,6 +8,8 @@ const int Peaks::K = 5;
 const uint Peaks::NumSecondsInHour = 3600;
 const uint Peaks::NumSecondsInDay = 86400;
 const uint Peaks::NumSecondsInWeek = 604800;
+const int Peaks::NumHoursInDay = 24;
+const int Peaks::NumDaysToGraph = 14;
 
 void Peaks::GetPeaks(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime) {
   TFreqTripleV FreqV;
@@ -91,28 +93,19 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
   SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
 
   //assert(SourcesSorted.Len() > 0);
-  if (SourcesSorted.Len() == 0) return;
+  if (SourcesSorted.Len() == 0 || PresentTime.GetAbsSecs() == 0) return;
 
-  TDoc StartDoc;
-  int StartDocIndex = 0;
-  DocBase->GetDoc(SourcesSorted[StartDocIndex], StartDoc);
+  // Round PresentTime up to the nearest 12am
+  TUInt PresentTimeI = TUInt(PresentTime.GetAbsSecs());
+  PresentTimeI = TUInt(uint(ceil(PresentTimeI / NumSecondsInDay)) * NumSecondsInDay);
 
-  // Start time at 12am
-  TUInt StartTime = TUInt(StartDoc.GetDate().GetAbsSecs());
-  StartTime = (StartTime / NumSecondsInDay) * NumSecondsInDay;  // round to previous 12am
+  TInt HourStart = -1 * NumHoursInDay * NumDaysToGraph;
 
-  //fprintf(stderr, "3333333333333\n");
-
-  TInt HourStart = 0;
-  if (PresentTime.GetAbsSecs() > 0) {
-    TUInt PresentTimeI = TUInt(PresentTime.GetAbsSecs());
-    PresentTimeI = TUInt(uint(ceil(PresentTimeI / NumSecondsInDay)) * NumSecondsInDay);  // round to next 12am 
-
-    HourStart = -1 * TInt((PresentTimeI - StartTime) / NumSecondsInHour);  // will be a negative hour offset
-  }
+  // Start time at 12am NumDaysToGraph before
+  TUInt StartTime = PresentTimeI - (NumDaysToGraph * NumSecondsInDay);
 
   //fprintf(stderr, "4444444444444\n");
-  TInt Frequency = 1;
+  TInt Frequency = 0;
   TInt HourNum = 0;
   uint BucketSizeSecs = NumSecondsInHour * BucketSize.Val;
   TIntV RawFrequencyCounts;
