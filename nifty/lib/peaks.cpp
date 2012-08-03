@@ -106,9 +106,9 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
   TInt HourStart = 0;
   if (PresentTime.GetAbsSecs() > 0) {
     TUInt PresentTimeI = TUInt(PresentTime.GetAbsSecs());
-    PresentTimeI = TUInt(uint(ceil(PresentTime / NumSecondsInDay)) * NumSecondsInDay);  // round to next 12am 
+    PresentTimeI = TUInt(uint(ceil(PresentTimeI / NumSecondsInDay)) * NumSecondsInDay);  // round to next 12am 
 
-    HourStart = -1 * TInt((PresentTime - StartTime) / NumSecondsInHour);  // will be a negative hour offset
+    HourStart = -1 * TInt((PresentTimeI - StartTime) / NumSecondsInHour);  // will be a negative hour offset
   }
 
   //fprintf(stderr, "4444444444444\n");

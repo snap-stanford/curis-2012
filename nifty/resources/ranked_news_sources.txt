@@ -21,6 +21,7 @@ theatlantic.com
 ap.org
 reuters.co.uk
 news.google.com
-yahoo.com
 abcnews.go.com
 globalpost.com
+indiewire.com
+newsvine.com
