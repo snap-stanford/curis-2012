@@ -11,7 +11,7 @@ void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteB
   CB->GetTopClusterIdsByFreq(TopFilteredClusters);
   MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
   MergeAllClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
-  MergeClustersWithCommonSources(QB, TopFilteredClusters, CB);
+  //MergeClustersWithCommonSources(QB, TopFilteredClusters, CB);
   FilterAndCacheClusterPeaks(DB, QB, CB, Log, TopFilteredClusters, PresentTime);
 
   // sort by popularity

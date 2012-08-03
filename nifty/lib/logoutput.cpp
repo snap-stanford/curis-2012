@@ -123,7 +123,7 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
   fprintf(H, "<small>MESSAGE HERE</small>\n");
   fprintf(H, "</h1></center></div>\n");
   fprintf(H, "<table border=\"1\" class=\"table table-condensed table-striped\">\n");
-  fprintf(H, "<b><tr><td>Rank</td><td>Previous Rank</td><td>Size</td><td>Quote</td></tr></b>\n");
+  fprintf(H, "<b><tr><td>Rank</td><td>Old</td><td>Size</td><td>Unique</td><td>Quote</td></tr></b>\n");
   /*<tr>
   <td>Row 1, cell 1</td>
   <td>Row 1, cell 2</td>
@@ -150,7 +150,7 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
       TStr URLLink = "<a href=\"cluster_" + CurDateString + "/" + TInt(Rank).GetStr() + ".html\">" + RepQuoteStr + "</a>";
       TStr OldRankStr;
       ComputeOldRankString(OldRankings, ClusterIds[i], Rank, OldRankStr);
-      fprintf(H, "<tr><td>%d</td><td>%s</td><td>%d</td><td>%s</td></tr>\n", Rank, OldRankStr.CStr(), Cluster.GetNumQuotes().Val, URLLink.CStr());
+      fprintf(H, "<tr><td>%d</td><td>%s</td><td>%d</td><td>%d</td><td>%s</td></tr>\n", Rank, OldRankStr.CStr(), Cluster.GetNumQuotes().Val, QuotesInCluster.Len(), URLLink.CStr());
       TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster_" + CurDateString + "/" + TInt(Rank).GetStr() + ".html";
       TStr ImageFileName = WebDirectory + TimeStamp + "/cluster_" + CurDateString + "/" + TInt(Rank).GetStr();
       Cluster.GraphFreqOverTime(DB, QB, ImageFileName, 2, 1, PresentTime);
@@ -215,7 +215,7 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
 
   //Close files
   fclose(F);
-  fclose(H);
+  //fclose(H);
 }
 
 void LogOutput::ComputeOldRankString(THash<TInt, TInt>& OldRankings, TInt& ClusterId, TInt CurRank, TStr& OldRankStr) {

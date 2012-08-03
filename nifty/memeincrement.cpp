@@ -54,6 +54,8 @@ int main(int argc, char *argv[]) {
     // ## MERGE AND GET NEW QUOTES
     TIntSet NewQuotes(TDataLoader::MergeQBDB(QB, DB, NewQB, NewDB));
 
+    TInt Id = QB.GetQuoteId(FaceV);
+
     // ## CLUSTERING STEP
     IncrementalQuoteGraph GraphCreator(&QB, NewQuotes, OldQGraph);
     PNGraph QGraph;
@@ -68,8 +70,9 @@ int main(int argc, char *argv[]) {
 
     // ## POSTCLUSTERING STEP AND OUTPUT?
     TIntV TopFilteredClusters;
+    //CB.GetAllClusterIdsSortByFreq(TopFilteredClusters);
     PostCluster::GetTopFilteredClusters(&NewCB, &DB, &QB, Log, TopFilteredClusters, CurrentDate);
-    Log.OutputClusterInformation(&DB, &QB, &NewCB, TopFilteredClusters, CurrentDate, OldTopClusters);
+    Log.OutputClusterInformation(&DB, &QB, &NewCB, SortedClusters, CurrentDate, OldTopClusters);
     Log.WriteClusteringOutputToFile(CurrentDate);
 
     // ## SAVE CLUSTERS OR SAVE THEM TO VARIABLES.
@@ -88,6 +91,7 @@ int main(int argc, char *argv[]) {
   }
   // plot output
   //ClusterPlot Plotter(TStr("/lfs/1/tmp/curis/"));
+
   //Plotter.PlotClusterSizeUnique(Clusters);
   //Plotter.PlotClusterSize(ClusterSummaries);
   //Plotter.PlotQuoteFrequencies(&QB);

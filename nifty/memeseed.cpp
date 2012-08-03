@@ -46,6 +46,7 @@ int main(int argc, char *argv[]) {
   // #### POST CLUSTERING STEP YO
   Log.SetupNewOutputDirectory(); // safe to make files now.
   TIntV TopFilteredClusters;
+  //CB.GetAllClusterIdsSortByFreq(TopFilteredClusters);
   PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, PresentTime);
 
   // TODO: consider if quote is dead?
