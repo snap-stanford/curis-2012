@@ -93,16 +93,25 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
   SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
 
   //assert(SourcesSorted.Len() > 0);
-  if (SourcesSorted.Len() == 0 || PresentTime.GetAbsSecs() == 0) return;
+  if (SourcesSorted.Len() == 0) return;
 
-  // Round PresentTime up to the nearest 12am
-  TUInt PresentTimeI = TUInt(PresentTime.GetAbsSecs());
-  PresentTimeI = TUInt(uint(ceil(PresentTimeI / NumSecondsInDay)) * NumSecondsInDay);
+  TUInt StartTime;
+  TInt HourStart = 0;
+  if (PresentTime.GetAbsSecs() > 0) {  // If we want the x-axis with respect to present time
+    // Round PresentTime up to the nearest 12am (if it's already at 12am, round to the **next** one)
+    TUInt PresentTimeI = TUInt(PresentTime.GetAbsSecs());
+    PresentTimeI = TUInt(uint(ceil(PresentTimeI / NumSecondsInDay) + 1) * NumSecondsInDay);
 
-  TInt HourStart = -1 * NumHoursInDay * NumDaysToGraph;
+    HourStart = -1 * NumHoursInDay * NumDaysToGraph;
 
-  // Start time at 12am NumDaysToGraph before
-  TUInt StartTime = PresentTimeI - (NumDaysToGraph * NumSecondsInDay);
+    // Start time at 12am NumDaysToGraph before
+    StartTime = PresentTimeI - (NumDaysToGraph * NumSecondsInDay);
+  } else {
+    // Start time at first doc
+    TDoc StartDoc;
+    DocBase->GetDoc(SourcesSorted[0], StartDoc);
+    StartTime = TUInt(StartDoc.GetDate().GetAbsSecs());
+  }
 
   //fprintf(stderr, "4444444444444\n");
   TInt Frequency = 0;
@@ -118,6 +127,7 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
     TDoc CurDoc;
     if (DocBase->GetDoc(SourcesSorted[i], CurDoc)) {
       TUInt CurTime = TUInt(CurDoc.GetDate().GetAbsSecs());
+      if (CurTime < StartTime) { fprintf(stderr, "HELLO WORLD\n"); continue; }  // Ignore sources outside the X-day window
       if (CurTime - StartTime < BucketSizeSecs) { // still the same bucket? keep on incrementing.
         Frequency++;
       } else {
