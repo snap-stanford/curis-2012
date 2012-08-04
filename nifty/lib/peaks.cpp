@@ -21,6 +21,8 @@ void Peaks::GetPeaks(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& PeakTimesV
 
   Peaks::GetFrequencyVector(DocBase, Sources, FreqV, BucketSize, SlidingWindowSize, PresentTime);
 
+  //fprintf(stderr, "Length of frequency vector: %d\n", FreqV.Len());
+
   TFltV FreqFltV;
   Peaks::GetPeaksEquationFunction(FreqV, FreqFltV);
 
@@ -91,6 +93,7 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
   // Sort the given document sources by time (ascending).
   TIntV SourcesSorted(Sources);
   SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
+  //fprintf(stderr, "Getting frequency vector\n");
 
   //assert(SourcesSorted.Len() > 0);
   if (SourcesSorted.Len() == 0) return;
@@ -127,7 +130,7 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
     TDoc CurDoc;
     if (DocBase->GetDoc(SourcesSorted[i], CurDoc)) {
       TUInt CurTime = TUInt(CurDoc.GetDate().GetAbsSecs());
-      if (CurTime < StartTime) { fprintf(stderr, "HELLO WORLD\n"); continue; }  // Ignore sources outside the X-day window
+      if (CurTime < StartTime) { continue; }  // Ignore sources outside the X-day window
       if (CurTime - StartTime < BucketSizeSecs) { // still the same bucket? keep on incrementing.
         Frequency++;
       } else {
@@ -152,8 +155,17 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
     }
   }
 
-  RawFrequencyCounts.Add(TInt(0));
+  RawFrequencyCounts.Add(Frequency);
   FreqV.Add(TFreqTriple(HourStart + HourNum * BucketSize, CalcWindowAvg(RawFrequencyCounts, SlidingWindowSize), TSecTm(StartTime)));
+
+  if (PresentTime.GetAbsSecs() > 0) {
+    TInt NumHoursAhead = (PresentTime - StartTime) / BucketSizeSecs;
+    for (int j = 1; j <= NumHoursAhead; j++) {
+        StartTime = StartTime + j * BucketSizeSecs;
+        RawFrequencyCounts.Add(TInt(0));
+        FreqV.Add(TFreqTriple(HourStart + (HourNum + j) * BucketSize, CalcWindowAvg(RawFrequencyCounts, SlidingWindowSize), TSecTm(StartTime)));
+    }
+  }
 }
 
 TFlt Peaks::CalcWindowAvg(TIntV& FreqV, TInt SlidingWindowSize) {

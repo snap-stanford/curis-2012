@@ -153,6 +153,7 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
       fprintf(H, "<tr><td>%d</td><td>%s</td><td>%d</td><td>%s</td></tr>\n", Rank, OldRankStr.CStr(), Cluster.GetNumQuotes().Val, URLLink.CStr());
       TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster_" + CurDateString + "/" + TInt(Rank).GetStr() + ".html";
       TStr ImageFileName = WebDirectory + TimeStamp + "/cluster_" + CurDateString + "/" + TInt(Rank).GetStr();
+      //fprintf(stderr, "Cluster: %s\n", RepQuoteStr.CStr());
       Cluster.GraphFreqOverTime(DB, QB, ImageFileName, 2, 1, PresentTime);
       FILE *C = fopen(ClusterFileName.CStr(), "w");
       fprintf(C, "<html>\n");
