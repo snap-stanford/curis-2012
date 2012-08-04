@@ -272,9 +272,11 @@ void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClus
     TFreqTripleV PeakTimesV;
     TFreqTripleV FreqV;
     C.GetPeaks(DB, QB, PeakTimesV, FreqV, BucketSize, SlidingWindowSize, TSecTm(0), true);
+
+    fprintf(stderr, "Number of peaks: %d\n", PeakTimesV.Len());
     // Add clusters with too many peaks to the discard list.
     if (PeakTimesV.Len() > PeakThreshold) {
-      DiscardedClusterIds.Add(i);
+      DiscardedClusterIds.Add(TopClusters[i]);
       DiscardedClusters.Add(C);
     }
   }
@@ -312,7 +314,7 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
     TInt NumRecentSources = 0;
     // Round PresentTime to the nearest day afterward
     TUInt PresentTimeI = TUInt(PresentTime.GetAbsSecs());
-    PresentTimeI = TUInt(uint(ceil(PresentTimeI / Peaks::NumSecondsInDay)) * Peaks::NumSecondsInDay);  // round to next 12am
+    PresentTimeI = TUInt(uint(PresentTimeI / Peaks::NumSecondsInDay + 1) * Peaks::NumSecondsInDay);  // round to next 12am
 
     TUInt ThresholdTime = PresentTimeI - DayThreshold * Peaks::NumSecondsInDay;
     for (TIntSet::TIter SourceId = AllSources.BegI(); SourceId < AllSources.EndI(); SourceId++) {
