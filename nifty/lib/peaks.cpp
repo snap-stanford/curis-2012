@@ -127,7 +127,7 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
     TDoc CurDoc;
     if (DocBase->GetDoc(SourcesSorted[i], CurDoc)) {
       TUInt CurTime = TUInt(CurDoc.GetDate().GetAbsSecs());
-      if (CurTime < StartTime) { fprintf(stderr, "HELLO WORLD\n"); continue; }  // Ignore sources outside the X-day window
+      if (CurTime < StartTime) { /*fprintf(stderr, "HELLO WORLD\n"); */ continue; }  // Ignore sources outside the X-day window
       if (CurTime - StartTime < BucketSizeSecs) { // still the same bucket? keep on incrementing.
         Frequency++;
       } else {
