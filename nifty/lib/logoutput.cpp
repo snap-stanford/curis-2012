@@ -118,9 +118,11 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
   TSecTm NextDay = PresentTime;
   NextDay.AddDays(1);
   TStr NextDayLink = "clusters_" + NextDay.GetDtYmdStr() + ".html";
+  TStr LogMessage;
+  if (!OutputValues.IsKeyGetDat("notes", LogMessage)) LogMessage = "";
   fprintf(H, "<div class=\"page-header\"><center><h1>\n");
   fprintf(H, "<a href=\"%s\">&laquo;</a> &middot; Top Clusters for %s &middot; <a href=\"%s\">&raquo;</a><h1><br />\n", PrevDayLink.CStr(), CurDateString.CStr(), NextDayLink.CStr());
-  fprintf(H, "<small>MESSAGE HERE</small>\n");
+  fprintf(H, "<small>%s</small>\n", LogMessage.CStr());
   fprintf(H, "</h1></center></div>\n");
   fprintf(H, "<table border=\"1\" class=\"table table-condensed table-striped\">\n");
   fprintf(H, "<b><tr><td>Rank</td><td>Old</td><td>Size</td><td>Unique</td><td>Quote</td></tr></b>\n");
