@@ -49,7 +49,6 @@ private:
   TInt QuoteIdCounter;
   THash<TInt, TQuote> IdToTQuotes;
   THash<TStrV, TInt> QuoteToId;
-  TInt LongestSubSequenceOfWords(const TStrV& Content1, const TStrV& Content2);
 
   static const TStr TopNewsSourcesFile;
   TStrSet TopNewsSources;
@@ -73,6 +72,9 @@ public:
   bool Exists(TInt QuoteId1);
   TInt GetCurCounterValue();
   void GetRepresentativeUrl(TDocBase *DocBase, TInt QuoteId, TStr& RepUrl);
+
+  static TInt LongestSubSequenceOfWords(const TStrV& Content1, const TStrV& Content2);
+  static TInt SubWordListEditDistance(const TStrV& Content1, const TStrV& Content2);
 };
 
 // Compares two quotes by their frequency

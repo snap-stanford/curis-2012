@@ -349,58 +349,97 @@ bool TQuoteBase::IsSubstring(TInt QuoteId1, TInt QuoteId2) {
   return false;
 }
 
+TInt TQuoteBase::SubWordListEditDistance(const TStrV& Content1, const TStrV& Content2) {
+  const TStrV& V1 = Content1.Len() > Content2.Len() ? Content1:Content2; // longer quote
+  const TStrV& V2 = Content1.Len() > Content2.Len() ? Content2:Content1; // shorter quote
+
+  // We assume that the quotes are less than 50 words
+  IAssert(V1.Len() < 50 && V2.Len() < 50);
+  int lcs[50][50];
+
+  THash<TStr, TInt> WordToId;
+  TIntV IdV1, IdV2;
+  lcs[V1.Len()][0] = 0;
+  lcs[0][V2.Len()] = V2.Len();
+  for (int i = 0; i < V1.Len(); i++) {
+    TInt Id;
+    if(!WordToId.IsKeyGetDat(V1[i], Id)) {
+      Id = WordToId.Len();
+      WordToId.AddDat(V1[i], WordToId.Len());
+    }
+    IdV1.Add(Id);
+    lcs[i][0] = 0;
+  }
+  for (int i = 0; i < V2.Len(); i++) {
+    TInt Id;
+    if(!WordToId.IsKeyGetDat(V2[i], Id)) {
+      Id = WordToId.Len();
+      WordToId.AddDat(V2[i], WordToId.Len());
+    }
+    IdV2.Add(Id);
+    lcs[0][i] = i;
+  }
+
+  for (int i = 1; i <= IdV1.Len(); i++) {
+    for (int j = 1; j <= IdV2.Len(); j++) {
+      if (IdV1[i - 1] == IdV2[j - 1]) {
+        lcs[i][j] = lcs[i - 1][j - 1];
+      } else {
+        lcs[i][j] = min(lcs[i - 1][j] + 1, lcs[i][j - 1] + 1);
+        lcs[i][j] = min(lcs[i][j], lcs[i - 1][j - 1] + 1);
+      }
+    }
+  }
+  int MinDist = -1;
+  for (int i = 0; i <= IdV1.Len(); i++) {
+    printf("%d ", lcs[i][IdV2.Len()]);
+    if (MinDist == -1 || MinDist > lcs[i][IdV2.Len()]) MinDist = lcs[i][IdV2.Len()];
+  }
+  printf("\n");
+  return MinDist;
+}
+
 /// Finds the length of the longest common subsequence of words
 //  Based off the method TQuoteBs::LongestCmnSubSq(const TIntV& WIdV1, const TIntV& WIdV2,
 //  int& WIdV1Start, int& WIdV2Start, int& SkipId) in memes.cpp of memecluster
 TInt TQuoteBase::LongestSubSequenceOfWords(const TStrV& Content1, const TStrV& Content2) {
   const TStrV& V1 = Content1.Len() > Content2.Len() ? Content1:Content2; // longer quote
   const TStrV& V2 = Content1.Len() > Content2.Len() ? Content2:Content1; // shorter quote
-  TInt V1Len = V1.Len();
-  TInt V2Len = V2.Len();
 
-  THash<TStr, TIntV> SharedWordsH;  // Maps the words in the shorter quote to their position in the longer quote
-  THashSet<TStr> V2WordsSet;  // Stores all words in shorter quote
-
-  TInt WordV1Start, WordV2Start, SkipId;
-  WordV1Start = WordV2Start = SkipId = 0;
-  for (int i = 0; i < V2Len; i++) {
-    V2WordsSet.AddKey(V2[i]);
-  }
-  for (int i = 0; i < V1Len; i++) {
-    if (V2WordsSet.IsKey(V1[i])) {
-      SharedWordsH.AddDat(V1[i]).Add(i);
+  THash<TStr, TInt> WordToId;
+  TIntV IdV1, IdV2;
+  for (int i = 0; i < V1.Len(); i++) {
+    TInt Id;
+    if(!WordToId.IsKeyGetDat(V1[i], Id)) {
+      Id = WordToId.Len();
+      WordToId.AddDat(V1[i], WordToId.Len());
     }
+    IdV1.Add(Id);
+  }
+  for (int i = 0; i < V2.Len(); i++) {
+    TInt Id;
+    if(!WordToId.IsKeyGetDat(V2[i], Id)) {
+      Id = WordToId.Len();
+      WordToId.AddDat(V2[i], WordToId.Len());
+    }
+    IdV2.Add(Id);
   }
 
-  // Counts the length of each subsequence and finds the longest
-  int MaxLen = 0;
-  for (int w = 0; w < V2Len; w++) {
-    TStr Word = V2[w];
-    if (! SharedWordsH.IsKey(Word)) { continue; }  // Skip words in shorter quote but not in longer quote
-    TIntV& OccV = SharedWordsH.GetDat(Word);  // Occurrences of this word in the longer quote
-    for (int o = 0; o < OccV.Len(); o++) {
-      int beg = OccV[o];
-      int cnt = 0;  // Stores the number of words in the subsequency
-      int tmp = 0;
-      while (w+cnt < V2Len && beg+cnt < V1Len && V2[w+cnt]==V1[beg+cnt]) { cnt++; tmp=0; }           // no skip
-      //while (beg+1+cnt < V1Len && w+cnt < V2Len && V2[w+cnt]==V1[beg+cnt+1]) { cnt++; tmp=-1; }      // skip word in long
-      //while (beg+cnt+1 < V1Len && w+cnt+1 < V2Len && V2[w+cnt+1]==V1[beg+cnt+1]) {  cnt++; tmp=-2;}  // skip word in both
-      //while (beg+cnt < V1Len && w+cnt+1 < V2Len && V2[w+cnt+1]==V1[beg+cnt]) { cnt++; tmp=-3;}       // skip word in short
-      if (MaxLen < cnt) {
-        MaxLen = cnt;
-        SkipId=tmp;
-        WordV1Start = beg;
-        WordV2Start = w;
+  // We assume that the quotes are less than 50 words
+  IAssert(IdV1.Len() < 50 && IdV2.Len() < 50);
+  int lcs[50][50];
+  for (int i = 0; i < IdV1.Len(); i++) {
+    for (int j = 0; j < IdV2.Len(); j++) {
+      lcs[i][j] = 0;
+      if (i > 0) lcs[i][j] = max(lcs[i][j], lcs[i - 1][j]);
+      if (j > 0) lcs[i][j] = max(lcs[i][j], lcs[i][j - 1]);
+      if (IdV1[i] == IdV2[j]) {
+        if (i == 0 || j == 0) lcs[i][j] = max(lcs[i][j], 1);
+        else lcs[i][j] = max(lcs[i][j], lcs[i-1][j-1] + 1);
       }
-      IAssert(cnt >= 1);
     }
   }
-  if (! (Content1.Len()>Content2.Len())) {
-    int tmp = WordV1Start;
-    WordV1Start = WordV2Start;
-    WordV2Start = tmp;
-  }
-  return MaxLen;
+  return lcs[IdV1.Len() - 1][IdV2.Len() - 1];
 }
 
 bool TQuoteBase::Exists(TInt QuoteId) {

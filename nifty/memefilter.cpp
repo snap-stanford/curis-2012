@@ -106,11 +106,6 @@ int main(int argc, char *argv[]) {
   printf("File name must be in the form: web-{year}-{month}-{day}T{hour}-{minute}-{second}Z.rar\n");
 
   // Setup Output Directory
-  /*TSecTm Tm = TSecTm::GetCurTm();
-  TStr TimeStamp = TStr::Fmt("%04d-%02d-%02d",  Tm.GetYearN(), Tm.GetMonthN(), Tm.GetDayN());
-  TimeStamp += "_" + Tm.GetTmStr();
-  TStr Command = "mkdir -p /lfs/1/tmp/curis/output/filtering/" + TimeStamp;
-  system(Command.CStr());*/
   TStr OutputDirectory = "/lfs/1/tmp/curis/output/filtering/";
 
   // Initialize
