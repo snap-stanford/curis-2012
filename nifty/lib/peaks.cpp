@@ -99,10 +99,10 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
   if (SourcesSorted.Len() == 0) return;
 
   TUInt StartTime;
+  TUInt PresentTimeI = TUInt(PresentTime.GetAbsSecs());
   TInt HourStart = 0;
   if (PresentTime.GetAbsSecs() > 0) {  // If we want the x-axis with respect to present time
-    // Round PresentTime up to the nearest 12am (if it's already at 12am, round to the **next** one)
-    TUInt PresentTimeI = TUInt(PresentTime.GetAbsSecs());
+    // Round PresentTimeI up to the nearest 12am (if it's already at 12am, round to the **next** one)
     PresentTimeI = TUInt(uint(PresentTimeI / NumSecondsInDay + 1) * NumSecondsInDay);
 
     HourStart = -1 * NumHoursInDay * NumDaysToGraph;
@@ -159,7 +159,8 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
   FreqV.Add(TFreqTriple(HourStart + HourNum * BucketSize, CalcWindowAvg(RawFrequencyCounts, SlidingWindowSize), TSecTm(StartTime)));
 
   if (PresentTime.GetAbsSecs() > 0) {
-    TInt NumHoursAhead = (PresentTime - StartTime) / BucketSizeSecs;
+    TInt NumHoursAhead = (PresentTimeI - StartTime) / BucketSizeSecs;
+    //fprintf(stderr, "Number of Hours Ahead: %d\n", NumHoursAhead.Val);
     for (int j = 1; j <= NumHoursAhead; j++) {
         StartTime = StartTime + j * BucketSizeSecs;
         RawFrequencyCounts.Add(TInt(0));

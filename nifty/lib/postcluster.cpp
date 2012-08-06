@@ -10,11 +10,10 @@ const int PostCluster::DayThreshold = 3;
 const int PostCluster::QuoteThreshold = 20;
 
 void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm PresentTime) {
-
-  //RemoveOldClusters(QB, DB, CB, PresentTime);
+  RemoveOldClusters(QB, DB, CB, PresentTime);
   CB->GetTopClusterIdsByFreq(TopFilteredClusters);
-  MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
   MergeAllClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
+  MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
   //MergeClustersWithCommonSources(QB, TopFilteredClusters, CB);
   FilterAndCacheClusterPeaks(DB, QB, CB, Log, TopFilteredClusters, PresentTime);
 
@@ -129,7 +128,7 @@ bool PostCluster::ShouldMergeClusters(TQuoteBase *QB, TCluster& Cluster1, TClust
 //  a substring of a quote of the other cluster's
 //  (Assumes ClusterSummaries contains clusters sorted by decreasing frequency)
 void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV &TopClusters, TClusterBase *CB) {
-  fprintf(stderr, "Merging clusters\n");
+  fprintf(stderr, "Merging only top clusters\n");
   TIntSet ToSkip;  // Contains ids of clusters that have already been merged into another
   TInt NumClusters = TopClusters.Len();
 
@@ -150,7 +149,7 @@ void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV &TopClust
         TStr RepQuoteStr1, RepQuoteStr2;
         Ci.GetRepresentativeQuoteString(RepQuoteStr1, QB);
         Cj.GetRepresentativeQuoteString(RepQuoteStr2, QB);
-        //fprintf(stderr, "Merged cluster %s INTO %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
+        fprintf(stderr, "Merged cluster %s INTO %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
         break;
       }
     }
@@ -264,7 +263,7 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClust
 
 void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV& TopClusters, TSecTm& PresentTime) {
   fprintf(stderr, "Filtering clusters that have too many peaks...\n");
-  TIntV DiscardedClusterIds;
+  TIntSet DiscardedClusterIds;  // Contains id's of clusters to be discarded
   TVec<TCluster> DiscardedClusters;
   for (int i = 0; i < TopClusters.Len(); ++i) {
     TCluster C;
@@ -273,18 +272,25 @@ void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClus
     TFreqTripleV FreqV;
     C.GetPeaks(DB, QB, PeakTimesV, FreqV, BucketSize, SlidingWindowSize, TSecTm(0), true);
 
-    fprintf(stderr, "Number of peaks: %d\n", PeakTimesV.Len());
+    //fprintf(stderr, "Number of peaks: %d\n", PeakTimesV.Len());
     // Add clusters with too many peaks to the discard list.
     if (PeakTimesV.Len() > PeakThreshold) {
-      DiscardedClusterIds.Add(TopClusters[i]);
+      DiscardedClusterIds.AddKey(TopClusters[i]);
       DiscardedClusters.Add(C);
     }
   }
 
+  fprintf(stderr, "CHECKPOINT 0\n");
+
   // delete the discarded clusters from the top clusters list.
-  for (int i = 0; i < DiscardedClusterIds.Len(); ++i) {
-    TopClusters.Del(DiscardedClusterIds[i] - i); // -i in order to keep track of deleted count changes.
+  TIntV FilteredTopClusters;
+  for (int i = 0; i < TopClusters.Len(); ++i) {
+    if (!DiscardedClusterIds.IsKey(TopClusters[i])) {
+      FilteredTopClusters.Add(TopClusters[i]);
+    }
   }
+  TopClusters = FilteredTopClusters;
+
   fprintf(stderr, "Logging discarded clusters...\n");
 
   // log the discarded clusters in a log file.
