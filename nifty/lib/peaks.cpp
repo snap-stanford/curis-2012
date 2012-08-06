@@ -99,16 +99,17 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
   if (SourcesSorted.Len() == 0) return;
 
   TUInt StartTime;
+  TUInt PresentTimeI = TUInt(PresentTime.GetAbsSecs());
   TInt HourStart = 0;
   if (PresentTime.GetAbsSecs() > 0) {  // If we want the x-axis with respect to present time
-    // Round PresentTime up to the nearest 12am (if it's already at 12am, round to the **next** one)
-    TUInt PresentTimeI = TUInt(PresentTime.GetAbsSecs());
+    // Round PresentTimeI up to the nearest 12am (if it's already at 12am, round to the **next** one)
     PresentTimeI = TUInt(uint(PresentTimeI / NumSecondsInDay + 1) * NumSecondsInDay);
 
     HourStart = -1 * NumHoursInDay * NumDaysToGraph;
 
     // Start time at 12am NumDaysToGraph before
     StartTime = PresentTimeI - (NumDaysToGraph * NumSecondsInDay);
+    
   } else {
     // Start time at first doc
     TDoc StartDoc;
@@ -138,6 +139,7 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
         RawFrequencyCounts.Add(Frequency);
         FreqV.Add(TFreqTriple(HourStart + HourNum * BucketSize, CalcWindowAvg(RawFrequencyCounts, SlidingWindowSize), TSecTm(StartTime)));
         TInt NumHoursAhead = (CurTime - StartTime) / BucketSizeSecs;
+        //fprintf(stderr, "Num Hours Ahead: %d\n", NumHoursAhead.Val);
         //printf("PrevDoc Date: %s, CurrDoc Date: %s, NumHoursAhead: %d\n", PrevDoc.GetDate().GetYmdTmStr().GetCStr(), CurrDoc.GetDate().GetYmdTmStr().GetCStr(), NumHoursAhead.Val);
         // Add frequencies of 0 if there are hours in between the two occurrences
         //fprintf(stderr, "88888888888888\n");
@@ -158,8 +160,9 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
   RawFrequencyCounts.Add(Frequency);
   FreqV.Add(TFreqTriple(HourStart + HourNum * BucketSize, CalcWindowAvg(RawFrequencyCounts, SlidingWindowSize), TSecTm(StartTime)));
 
-  if (PresentTime.GetAbsSecs() > 0) {
-    TInt NumHoursAhead = (PresentTime - StartTime) / BucketSizeSecs;
+  if (PresentTime.GetAbsSecs() > 0 && PresentTimeI > StartTime) {
+    TInt NumHoursAhead = (PresentTimeI - StartTime) / BucketSizeSecs;
+    //fprintf(stderr, "Number of Hours Ahead: %d\n", NumHoursAhead.Val);
     for (int j = 1; j <= NumHoursAhead; j++) {
         StartTime = StartTime + j * BucketSizeSecs;
         RawFrequencyCounts.Add(TInt(0));
