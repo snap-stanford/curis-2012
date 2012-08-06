@@ -392,10 +392,8 @@ TInt TQuoteBase::SubWordListEditDistance(const TStrV& Content1, const TStrV& Con
   }
   int MinDist = -1;
   for (int i = 0; i <= IdV1.Len(); i++) {
-    printf("%d ", lcs[i][IdV2.Len()]);
     if (MinDist == -1 || MinDist > lcs[i][IdV2.Len()]) MinDist = lcs[i][IdV2.Len()];
   }
-  printf("\n");
   return MinDist;
 }
 
