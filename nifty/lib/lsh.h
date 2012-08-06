@@ -4,6 +4,9 @@
 #include "stdafx.h"
 #include "quote.h"
 
+typedef TPair<TInt, TInt> TShingleId;
+typedef THashSet<TShingleId> TShingleIdSet;
+
 class LSH {
 private:
 
