@@ -265,7 +265,7 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClust
 void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV& TopClusters, TSecTm& PresentTime) {
   fprintf(stderr, "Filtering clusters that have too many peaks...\n");
   TIntSet DiscardedClusterIds;  // Contains id's of clusters to be discarded
-  TVec<TCluster> DiscardedClusters;
+  TVec<TPair<TCluster, TInt> > DiscardedClusters;
   for (int i = 0; i < TopClusters.Len(); ++i) {
     TCluster C;
     CB->GetCluster(TopClusters[i], C);
@@ -276,7 +276,7 @@ void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClus
     // Add clusters with too many peaks to the discard list.
     if (PeakTimesV.Len() > PeakThreshold) {
       DiscardedClusterIds.AddKey(TopClusters[i]);
-      DiscardedClusters.Add(C);
+      DiscardedClusters.Add(TPair<TCluster, TInt>(C, TInt(PeakTimesV.Len())));
     }
   }
 

@@ -237,14 +237,14 @@ void LogOutput::ComputeOldRankString(THash<TInt, TInt>& OldRankings, TInt& Clust
   }
 }
 
-void LogOutput::OutputDiscardedClusters(TQuoteBase *QB, TVec<TCluster>& DiscardedClusters, TSecTm& Date) {
+void LogOutput::OutputDiscardedClusters(TQuoteBase *QB, TVec<TPair<TCluster, TInt> >& DiscardedClusters, TSecTm& Date) {
   TStr DiscardedFileName = WebDirectory + TimeStamp + "/discarded_clusters_" + Date.GetDtYmdStr() + ".txt";
   FILE *D = fopen(DiscardedFileName.CStr(), "w");
 
   for (int i = 0; i < DiscardedClusters.Len(); ++i) {
     TStr RepQuoteStr;
-    DiscardedClusters[i].GetRepresentativeQuoteString(RepQuoteStr, QB);
-    fprintf(D, "%d\t%s\n", 0, RepQuoteStr.CStr()); // TODO: Add num clusters somehow
+    DiscardedClusters[i].Val1.GetRepresentativeQuoteString(RepQuoteStr, QB);
+    fprintf(D, "%d\t%s\n", DiscardedClusters[i].Val2.Val, RepQuoteStr.CStr()); // TODO: Add num clusters somehow
   }
 
   fclose(D);
