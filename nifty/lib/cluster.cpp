@@ -87,7 +87,11 @@ TFlt TCluster::GetPopularity(TQuoteBase *QuoteBase, TDocBase *DocBase, TSecTm Cu
   GetUniqueSources(UniqueSources, QuoteIds, QuoteBase);
   TFreqTripleV FreqV;
   Peaks::GetFrequencyVector(DocBase, UniqueSources, FreqV, 2, 1, CurrentTime);
+  TStr RepQuoteStr;
+  GetRepresentativeQuoteString(RepQuoteStr, QuoteBase);
+  //fprintf(stderr, "Cluster: %s\n", RepQuoteStr.CStr());
   for (int i = 0; i < FreqV.Len(); i++) {
+    //fprintf(stderr, "\t%d\t%f\n", FreqV[i].Val1.Val, FreqV[i].Val2.Val);
     Popularity += FreqV[i].Val2 * exp(FreqV[i].Val1 / 48);
   }
   return Popularity;
@@ -145,18 +149,23 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
   TFreqTripleV FreqTripleV;
   GetPeaks(DocBase, QuoteBase, PeakTimesV, FreqTripleV, BucketSize, SlidingWindowSize, PresentTime);
 
+  TStr ContentStr;
+  GetRepresentativeQuoteString(ContentStr, QuoteBase);
+  //fprintf(stderr, "Cluster: %s\n", ContentStr.CStr());
+  //fprintf(stderr, "Peaks:\n");
   TVec<TIntFltPr> PeakV;
   for (int i = 0; i < PeakTimesV.Len(); ++i) {
     PeakV.Add(TIntFltPr(PeakTimesV[i].Val1, PeakTimesV[i].Val2));
+    //fprintf(stderr, "\t%d\t%f\n", PeakTimesV[i].Val1.Val, PeakTimesV[i].Val2.Val);
   }
 
+  //fprintf(stderr, "Points:\n");
   TVec<TIntFltPr> FreqV;
   for (int i = 0; i < FreqTripleV.Len(); ++i) {
     FreqV.Add(TIntFltPr(FreqTripleV[i].Val1, FreqTripleV[i].Val2));
+    //fprintf(stderr, "\t%d\t%f\n", FreqTripleV[i].Val1.Val, FreqTripleV[i].Val2.Val);
   }
 
-  TStr ContentStr;
-  GetRepresentativeQuoteString(ContentStr, QuoteBase);
   TGnuPlot GP(Filename, "Frequency of Cluster " + Id.GetStr() + " Over Time: " + ContentStr);
   GP.SetXLabel(TStr("Hour Offset From Present Time"));
   GP.SetYLabel(TStr("Frequency of Cluster"));

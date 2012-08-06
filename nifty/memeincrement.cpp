@@ -12,10 +12,10 @@ int main(int argc, char *argv[]) {
 
   TStr StartString, EndString, OutputDirectory;
   if (!Arguments.IsKeyGetDat("start", StartString)) {
-    StartString = "2012-07-08";
+    StartString = "2012-07-01";
   }
   if (!Arguments.IsKeyGetDat("end", EndString)) {
-    EndString = "2012-07-09";
+    EndString = "2012-07-08";
   }
   if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
     Log.SetupNewOutputDirectory();
@@ -69,6 +69,7 @@ int main(int argc, char *argv[]) {
     // ## POSTCLUSTERING STEP AND OUTPUT?
     TIntV TopFilteredClusters;
     PostCluster::GetTopFilteredClusters(&NewCB, &DB, &QB, Log, TopFilteredClusters, CurrentDate);
+    
     Log.OutputClusterInformation(&DB, &QB, &NewCB, TopFilteredClusters, CurrentDate, OldTopClusters);
     Log.WriteClusteringOutputToFile(CurrentDate);
 
@@ -88,6 +89,7 @@ int main(int argc, char *argv[]) {
   }
   // plot output
   //ClusterPlot Plotter(TStr("/lfs/1/tmp/curis/"));
+
   //Plotter.PlotClusterSizeUnique(Clusters);
   //Plotter.PlotClusterSize(ClusterSummaries);
   //Plotter.PlotQuoteFrequencies(&QB);

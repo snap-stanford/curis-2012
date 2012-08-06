@@ -12,10 +12,11 @@ const int PostCluster::QuoteThreshold = 20;
 void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm PresentTime) {
   RemoveOldClusters(QB, DB, CB, PresentTime);
   CB->GetTopClusterIdsByFreq(TopFilteredClusters);
-  MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
   MergeAllClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
+  MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
   //MergeClustersWithCommonSources(QB, TopFilteredClusters, CB);
   FilterAndCacheClusterPeaks(DB, QB, CB, Log, TopFilteredClusters, PresentTime);
+  fprintf(stderr, "Number of top clusters: %d\n", TopFilteredClusters.Len());
 
   // sort by popularity
   // Sort remaining clusters by popularity
@@ -128,7 +129,7 @@ bool PostCluster::ShouldMergeClusters(TQuoteBase *QB, TCluster& Cluster1, TClust
 //  a substring of a quote of the other cluster's
 //  (Assumes ClusterSummaries contains clusters sorted by decreasing frequency)
 void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV &TopClusters, TClusterBase *CB) {
-  fprintf(stderr, "Merging clusters\n");
+  fprintf(stderr, "Merging only top clusters\n");
   TIntSet ToSkip;  // Contains ids of clusters that have already been merged into another
   TInt NumClusters = TopClusters.Len();
 
@@ -149,7 +150,7 @@ void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV &TopClust
         TStr RepQuoteStr1, RepQuoteStr2;
         Ci.GetRepresentativeQuoteString(RepQuoteStr1, QB);
         Cj.GetRepresentativeQuoteString(RepQuoteStr2, QB);
-        //fprintf(stderr, "Merged cluster %s INTO %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
+        fprintf(stderr, "Merged cluster %s INTO %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
         break;
       }
     }
@@ -263,26 +264,34 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClust
 
 void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV& TopClusters, TSecTm& PresentTime) {
   fprintf(stderr, "Filtering clusters that have too many peaks...\n");
-  TIntV DiscardedClusterIds;
-  TVec<TCluster> DiscardedClusters;
+  TIntSet DiscardedClusterIds;  // Contains id's of clusters to be discarded
+  TVec<TPair<TCluster, TInt> > DiscardedClusters;
   for (int i = 0; i < TopClusters.Len(); ++i) {
     TCluster C;
     CB->GetCluster(TopClusters[i], C);
     TFreqTripleV PeakTimesV;
     TFreqTripleV FreqV;
     C.GetPeaks(DB, QB, PeakTimesV, FreqV, BucketSize, SlidingWindowSize, TSecTm(0), true);
+
     // Add clusters with too many peaks to the discard list.
     if (PeakTimesV.Len() > PeakThreshold) {
-      DiscardedClusterIds.Add(i);
-      DiscardedClusters.Add(C);
+      DiscardedClusterIds.AddKey(TopClusters[i]);
+      DiscardedClusters.Add(TPair<TCluster, TInt>(C, TInt(PeakTimesV.Len())));
     }
   }
 
   // delete the discarded clusters from the top clusters list.
-  for (int i = 0; i < DiscardedClusterIds.Len(); ++i) {
-    TopClusters.Del(DiscardedClusterIds[i] - i); // -i in order to keep track of deleted count changes.
+  TIntV FilteredTopClusters;
+  for (int i = 0; i < TopClusters.Len(); ++i) {
+    if (!DiscardedClusterIds.IsKey(TopClusters[i])) {
+      FilteredTopClusters.Add(TopClusters[i]);
+    }
   }
+  fprintf(stderr, "Number of top clusters (1): %d\n", TopClusters.Len());
+  TopClusters = FilteredTopClusters;
+
   fprintf(stderr, "Logging discarded clusters...\n");
+  fprintf(stderr, "Number of top clusters (2): %d\n", TopClusters.Len());
 
   // log the discarded clusters in a log file.
   Log.OutputDiscardedClusters(QB, DiscardedClusters, PresentTime);
@@ -311,7 +320,7 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
     TInt NumRecentSources = 0;
     // Round PresentTime to the nearest day afterward
     TUInt PresentTimeI = TUInt(PresentTime.GetAbsSecs());
-    PresentTimeI = TUInt(uint(ceil(PresentTimeI / Peaks::NumSecondsInDay)) * Peaks::NumSecondsInDay);  // round to next 12am
+    PresentTimeI = TUInt(uint(PresentTimeI / Peaks::NumSecondsInDay + 1) * Peaks::NumSecondsInDay);  // round to next 12am
 
     TUInt ThresholdTime = PresentTimeI - DayThreshold * Peaks::NumSecondsInDay;
     for (TIntSet::TIter SourceId = AllSources.BegI(); SourceId < AllSources.EndI(); SourceId++) {

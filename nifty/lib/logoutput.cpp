@@ -155,6 +155,7 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
       fprintf(H, "<tr><td>%d</td><td>%s</td><td>%d</td><td>%d</td><td>%s</td></tr>\n", Rank, OldRankStr.CStr(), Cluster.GetNumQuotes().Val, QuotesInCluster.Len(), URLLink.CStr());
       TStr ClusterFileName = WebDirectory + TimeStamp + "/cluster_" + CurDateString + "/" + TInt(Rank).GetStr() + ".html";
       TStr ImageFileName = WebDirectory + TimeStamp + "/cluster_" + CurDateString + "/" + TInt(Rank).GetStr();
+      //fprintf(stderr, "Cluster: %s\n", RepQuoteStr.CStr());
       Cluster.GraphFreqOverTime(DB, QB, ImageFileName, 2, 1, PresentTime);
       FILE *C = fopen(ClusterFileName.CStr(), "w");
       fprintf(C, "<html>\n");
@@ -217,7 +218,7 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
 
   //Close files
   fclose(F);
-  fclose(H);
+  //fclose(H);
 }
 
 void LogOutput::ComputeOldRankString(THash<TInt, TInt>& OldRankings, TInt& ClusterId, TInt CurRank, TStr& OldRankStr) {
@@ -236,14 +237,14 @@ void LogOutput::ComputeOldRankString(THash<TInt, TInt>& OldRankings, TInt& Clust
   }
 }
 
-void LogOutput::OutputDiscardedClusters(TQuoteBase *QB, TVec<TCluster>& DiscardedClusters, TSecTm& Date) {
+void LogOutput::OutputDiscardedClusters(TQuoteBase *QB, TVec<TPair<TCluster, TInt> >& DiscardedClusters, TSecTm& Date) {
   TStr DiscardedFileName = WebDirectory + TimeStamp + "/discarded_clusters_" + Date.GetDtYmdStr() + ".txt";
   FILE *D = fopen(DiscardedFileName.CStr(), "w");
 
   for (int i = 0; i < DiscardedClusters.Len(); ++i) {
     TStr RepQuoteStr;
-    DiscardedClusters[i].GetRepresentativeQuoteString(RepQuoteStr, QB);
-    fprintf(D, "%d\t%s\n", 0, RepQuoteStr.CStr()); // TODO: Add num clusters somehow
+    DiscardedClusters[i].Val1.GetRepresentativeQuoteString(RepQuoteStr, QB);
+    fprintf(D, "%d\t%s\n", DiscardedClusters[i].Val2.Val, RepQuoteStr.CStr()); // TODO: Add num clusters somehow
   }
 
   fclose(D);
