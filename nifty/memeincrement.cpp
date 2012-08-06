@@ -12,10 +12,10 @@ int main(int argc, char *argv[]) {
 
   TStr StartString, EndString, OutputDirectory;
   if (!Arguments.IsKeyGetDat("start", StartString)) {
-    StartString = "2012-07-08";
+    StartString = "2012-07-01";
   }
   if (!Arguments.IsKeyGetDat("end", EndString)) {
-    EndString = "2012-07-09";
+    EndString = "2012-07-08";
   }
   if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
     Log.SetupNewOutputDirectory();
@@ -68,9 +68,9 @@ int main(int argc, char *argv[]) {
 
     // ## POSTCLUSTERING STEP AND OUTPUT?
     TIntV TopFilteredClusters;
-    //CB.GetAllClusterIdsSortByFreq(TopFilteredClusters);
     PostCluster::GetTopFilteredClusters(&NewCB, &DB, &QB, Log, TopFilteredClusters, CurrentDate);
-    Log.OutputClusterInformation(&DB, &QB, &NewCB, SortedClusters, CurrentDate, OldTopClusters);
+    
+    Log.OutputClusterInformation(&DB, &QB, &NewCB, TopFilteredClusters, CurrentDate, OldTopClusters);
     Log.WriteClusteringOutputToFile(CurrentDate);
 
     // ## SAVE CLUSTERS OR SAVE THEM TO VARIABLES.
