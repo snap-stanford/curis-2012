@@ -5,10 +5,11 @@ const int LSH::BandSize = 3;
 const int LSH::NumBands = 20;
 const int LSH::ShingleLen = 4;  // In characters
 const int LSH::ShingleWordLen = 2;
+const int LSH::WordWindow = 5;
 
 /// For every quote, add it to corresponding bucket for each hashed x-character shingle of the quote
 // (Shingles by characters)
-void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TIntSet>& ShingleToQuoteIds) {
+void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TShingleIdSet>& ShingleToQuoteIds) {
   fprintf(stderr, "Hashing shingles...\n");
   TIntV QuoteIds;
   QuoteBase->GetAllQuoteIds(QuoteIds);
@@ -24,6 +25,8 @@ void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TI
     Q.GetParsedContentString(QContentStr);
     TChA QContentChA = TChA(QContentStr);
     
+    int CurWord = 0;
+
     for (int i = 0; i < QContentChA.Len()-ShingleLen+1; i++) {
       TChA ShingleChA = TChA();
       for (int j = 0; j < ShingleLen; j++) {
@@ -31,12 +34,21 @@ void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TI
       }
       TStr Shingle = TStr(ShingleChA);
       const TMd5Sig ShingleMd5(Shingle);
-      TIntSet ShingleQuoteIds;
+      TShingleIdSet ShingleQuoteIds;
       if (ShingleToQuoteIds.IsKey(ShingleMd5)) {
         ShingleQuoteIds = ShingleToQuoteIds.GetDat(ShingleMd5);
       }
-      ShingleQuoteIds.AddKey(QuoteIds[qt]);
+
+      for (int j = CurWord; j > CurWord - WordWindow && j >= 0; j--) {
+        ShingleQuoteIds.AddKey(TShingleId(QuoteIds[qt], j));
+      }
+
       ShingleToQuoteIds.AddDat(ShingleMd5, ShingleQuoteIds);
+
+      // up the current word index if we see a space
+      if (QContentChA.GetCh(i + ShingleLen - 1) == ' ') {
+        CurWord++;
+      }
     }
   }
   fprintf(stderr, "Done hashing!\n");
@@ -92,10 +104,10 @@ void LSH::HashShinglesOfClusters(TQuoteBase *QuoteBase, TClusterBase *ClusterBas
   fprintf(stderr, "Done hashing!\n");
 }
 
-void  LSH::MinHash(THash<TMd5Sig, TIntSet>& ShingleToQuoteIds, TVec<THash<TIntV, TIntSet> >& SignatureBandBuckets) {
+void  LSH::MinHash(THash<TMd5Sig, TShingleIdSet>& ShingleToQuoteIds, TVec<THash<TIntV, TIntSet> >& SignatureBandBuckets) {
   TRnd RandomGenerator; // TODO: make this "more random" by incorporating time
   for(int i = 0; i < NumBands; ++i) {
-    THash<TInt, TIntV> Inverted; // (QuoteID, QuoteSignatureForBand)
+    THash<TShingleId, TIntV> Inverted; // (QuoteID, QuoteSignatureForBand)
     THash<TIntV, TIntSet> BandBuckets; // (BandSignature, QuoteIDs)
     for (int j = 0; j < BandSize; ++j) {
       // Create new signature
@@ -106,9 +118,9 @@ void  LSH::MinHash(THash<TMd5Sig, TIntSet>& ShingleToQuoteIds, TVec<THash<TIntV,
       // Place in bucket - not very efficient
       int SigLen = Signature.Len();
       for (int k = 0; k < SigLen; ++k) {
-        TIntSet CurSet = ShingleToQuoteIds.GetDat(Signature[k]);
-        for (TIntSet::TIter l = CurSet.BegI(); l < CurSet.EndI(); l++) {
-          TInt Key = l.GetKey();
+        TShingleIdSet CurSet = ShingleToQuoteIds.GetDat(Signature[k]);
+        for (TShingleIdSet::TIter l = CurSet.BegI(); l < CurSet.EndI(); l++) {
+          TShingleId Key = l.GetKey();
           if (Inverted.IsKey(Key)) {
             TIntV CurSignature = Inverted.GetDat(Key);
             if (CurSignature.Len() <= j) {
@@ -124,7 +136,7 @@ void  LSH::MinHash(THash<TMd5Sig, TIntSet>& ShingleToQuoteIds, TVec<THash<TIntV,
       }
     }
 
-    TIntV InvertedKeys;
+    TVec<TShingleId> InvertedKeys;
     Inverted.GetKeyV(InvertedKeys);
     TInt InvertedLen = InvertedKeys.Len();
     for (int k = 0; k < InvertedLen; ++k) {
@@ -133,7 +145,7 @@ void  LSH::MinHash(THash<TMd5Sig, TIntSet>& ShingleToQuoteIds, TVec<THash<TIntV,
       if (BandBuckets.IsKey(Signature)) {
         Bucket = BandBuckets.GetDat(Signature);
       }
-      Bucket.AddKey(InvertedKeys[k]);
+      Bucket.AddKey(InvertedKeys[k].Val1);
       BandBuckets.AddDat(Signature, Bucket);
     }
 

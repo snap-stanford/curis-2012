@@ -29,7 +29,7 @@ void QuoteGraph::CreateNodes() {
 }
 
 void QuoteGraph::CreateEdges() {
-  THash<TMd5Sig, TIntSet> Shingles;
+  THash<TMd5Sig, TShingleIdSet> Shingles;
   LSH::HashShingles(QB, LSH::ShingleLen, Shingles);
   TVec<THash<TIntV, TIntSet> > BucketsVector;
   LSH::MinHash(Shingles, BucketsVector);
@@ -115,7 +115,8 @@ bool QuoteGraph::EdgeShouldBeCreated(TQuote& Quote1, TQuote& Quote2) {
   TStrV Content2V;
   Content1.SplitOnWs(Content1V);
   Content2.SplitOnWs(Content2V);
-  TInt LDistance = QuoteGraph::WordLevenshteinDistance(Content1V, Content2V);
+  //TInt LDistance = QuoteGraph::WordLevenshteinDistance(Content1V, Content2V);
+  TInt LDistance = TQuoteBase::SubWordListEditDistance(Content1V, Content2V);
 
   // Decision tree from clustering methods paper
   int MinStopLen = min(Content1V.Len(), Content2V.Len());

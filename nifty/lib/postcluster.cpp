@@ -12,8 +12,8 @@ const int PostCluster::QuoteThreshold = 20;
 void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm PresentTime) {
   RemoveOldClusters(QB, DB, CB, PresentTime);
   CB->GetTopClusterIdsByFreq(TopFilteredClusters);
-  MergeAllClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
-  MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
+  //MergeAllClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
+  //MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
   //MergeClustersWithCommonSources(QB, TopFilteredClusters, CB);
   FilterAndCacheClusterPeaks(DB, QB, CB, Log, TopFilteredClusters, PresentTime);
   fprintf(stderr, "Number of top clusters: %d\n", TopFilteredClusters.Len());

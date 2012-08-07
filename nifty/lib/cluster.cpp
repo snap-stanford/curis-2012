@@ -4,7 +4,7 @@
 #include "peaks.h"
 #include "clustering.h"
 
-const int TClusterBase::FrequencyCutoff = 300;
+const int TClusterBase::FrequencyCutoff = 100;
 
 TCluster::TCluster() {
 }
