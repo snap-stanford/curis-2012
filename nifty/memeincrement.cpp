@@ -22,6 +22,7 @@ int main(int argc, char *argv[]) {
   } else {
     Log.SetDirectory(OutputDirectory);
   }
+  Log.SetupQBDBCBSizeFile();
 
   TSecTm StartDate = TSecTm::GetDtTmFromYmdHmsStr(StartString);
   TSecTm EndDate = TSecTm::GetDtTmFromYmdHmsStr(EndString);
@@ -62,7 +63,7 @@ int main(int argc, char *argv[]) {
     GraphCreator.GetAffectedNodes(AffectedNodes);
     TIncrementalClustering ClusterJob(&QB, NewQuotes, QGraph, AffectedNodes);
     TClusterBase NewCB(CB.GetCounter());
-    ClusterJob.BuildClusters(&NewCB, &QB, &DB, Log, &CB);
+    ClusterJob.BuildClusters(&NewCB, &QB, &DB, Log, CurrentDate, &CB);
     TIntV SortedClusters;
     NewCB.GetAllClusterIdsSortByFreq(SortedClusters);
 
@@ -72,6 +73,7 @@ int main(int argc, char *argv[]) {
     
     Log.OutputClusterInformation(&DB, &QB, &NewCB, TopFilteredClusters, CurrentDate, OldTopClusters);
     Log.WriteClusteringOutputToFile(CurrentDate);
+    Log.LogQBDBCBSize(&DB, &QB, &CB);
 
     // ## SAVE CLUSTERS OR SAVE THEM TO VARIABLES.
     OldQGraph = QGraph;
@@ -99,6 +101,7 @@ int main(int argc, char *argv[]) {
   system(Command.CStr());
   TFOut FOut2("output/cumulativeclusters" + NewDayDate.CStr() + ".bin");
   MergedClusterSummaries.Save(FOut2);*/
+  Log.ShutDown();
   printf("Done with EVERYTHING!\n");
   return 0;
 }

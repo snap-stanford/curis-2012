@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
   Clustering ClusterJob(QGraph);
-  ClusterJob.BuildClusters(&CB, &QB, &DB, Log);
+  ClusterJob.BuildClusters(&CB, &QB, &DB, Log, PresentTime);
 
   // #### SAVE THE DOLPHINS! I MEAN CLUSTERS
   TStr FileName = TStr(QBDBC_DIRECTORY) + "QBDBC" + PresentTime.GetDtYmdStr() + ".bin";

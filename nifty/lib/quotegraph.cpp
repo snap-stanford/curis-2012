@@ -34,6 +34,8 @@ void QuoteGraph::CreateEdges() {
   TVec<THash<TIntV, TIntSet> > BucketsVector;
   LSH::MinHash(Shingles, BucketsVector);
 
+  THash<TIntPr, TBool> EdgeCache;
+
   printf("Beginning edge creation step...\n");
   for (int i = 0; i < BucketsVector.Len(); i++) {
     printf("Processing band signature %d of %d\n", i+1, BucketsVector.Len());
@@ -46,7 +48,9 @@ void QuoteGraph::CreateEdges() {
         TIntSet::TIter Quote1Copy = Quote1;
         Quote1Copy++;
         for (TIntSet::TIter Quote2 = Quote1Copy; Quote2 < Bucket.EndI(); Quote2++) {
-          AddEdgeIfSimilar(Quote1.GetKey(), Quote2.GetKey());
+          if (!EdgeCache.IsKey(TIntPr(Quote1.GetKey(), Quote2.GetKey())) && !EdgeCache.IsKey(TIntPr(Quote2.GetKey(), Quote1.GetKey()))) {
+            AddEdgeIfSimilar(Quote1.GetKey(), Quote2.GetKey());
+          }
         }
       }
     }
@@ -138,7 +142,7 @@ bool QuoteGraph::EdgeShouldBeCreated(TQuote& Quote1, TQuote& Quote2) {
   //printf("L Distance: %d\tMinStopLen: %d\n", LDistance.Val, MinStopLen);
   //printf("%s\n", Content1.CStr());
   //printf("%s\n", Content2.CStr());
-  if (LDistance == 0) {
+  if (LDistance == 0 && MinStopLen >= 2) {
     return true;
   } else if (MinLen == 4 && LDistance <= 1 && MinStopLen == 4) {
     return true;

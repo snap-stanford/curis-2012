@@ -9,7 +9,7 @@ const int TClusterBase::FrequencyCutoff = 100;
 TCluster::TCluster() {
 }
 
-TCluster::TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB) {
+TCluster::TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB, TSecTm BirthDate) {
   // TODO: Check that URLs are not repeated
   this->RepresentativeQuoteIds = RepresentativeQuoteIds;
   TIntV UniqueSources;
@@ -17,6 +17,7 @@ TCluster::TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds
   this->NumQuotes = UniqueSources.Len();
   this->QuoteIds = QuoteIds;
   this->Id = 1;
+  this->BirthDate = BirthDate;
   /*this->RepresentativeQuoteIds = RepresentativeQuoteIds;
   this->NumQuotes = NumQuotes;
   this->QuoteIds = QuoteIds;
@@ -30,6 +31,7 @@ void TCluster::Save(TSOut& SOut) const {
   Id.Save(SOut);
   PeakTimesV.Save(SOut);
   FreqV.Save(SOut);
+  BirthDate.Save(SOut);
 }
 
 void TCluster::Load(TSIn& SIn) {
@@ -39,6 +41,15 @@ void TCluster::Load(TSIn& SIn) {
   Id.Load(SIn);
   PeakTimesV.Load(SIn);
   FreqV.Load(SIn);
+  BirthDate.Load(SIn);
+}
+
+void TCluster::SetBirthDate(TSecTm& BirthDate) {
+  this->BirthDate = BirthDate;
+}
+
+void TCluster::GetBirthDate(TSecTm& BirthDate) {
+  BirthDate = this->BirthDate;
 }
 
 TInt TCluster::GetNumRepresentativeQuoteIds() const {
@@ -50,7 +61,6 @@ void TCluster::GetRepresentativeQuoteIds(TIntV& RepQuoteIds) const {
 }
 
 void TCluster::GetRepresentativeQuoteString(TStr& RepStr, TQuoteBase *QB) const {
-  if (RepresentativeQuoteIds.Len() <= 0) return;
   TQuote FirstQuote;
   QB->GetQuote(RepresentativeQuoteIds[0], FirstQuote);
   TStr FirstContentString;
@@ -63,6 +73,10 @@ void TCluster::GetRepresentativeQuoteString(TStr& RepStr, TQuoteBase *QB) const 
     Quote.GetContentString(ContentString);
     RepStr += " / " + ContentString;
   }
+}
+
+void TCluster::GetRepresentativeQuoteURL(TQuoteBase *QB, TDocBase *DB, TStr& RepURL) const {
+  QB->GetRepresentativeUrl(DB, RepresentativeQuoteIds[0], RepURL);
 }
 
 TInt TCluster::GetNumQuotes() const {
