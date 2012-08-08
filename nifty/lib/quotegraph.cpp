@@ -51,7 +51,21 @@ void QuoteGraph::CreateEdges() {
       }
     }
   }
-  printf("Edge creation complete! %d edges created.\n", EdgeCount.Val);
+  /*printf("Edge creation complete! %d edges created.\n", EdgeCount.Val);
+
+  THash<TMd5Sig, TIntSet> Shingles;
+  LSH::ElCheapoHashing(QB, LSH::ShingleLen, Shingles);
+  int Count = 0;
+  TVec<TMd5Sig> ShingleKeys;
+  Shingles.GetKeyV(ShingleKeys);
+  for (int i = 0; i < ShingleKeys.Len(); i++) {
+    TIntSet CurSet;
+    Shingles.IsKeyGetDat(ShingleKeys[i], CurSet);
+    int Len = CurSet.Len();
+    Count += Len;
+  }
+  fprintf(stderr, "NUMBER OF COMPARES: %d\n", Count);
+  exit(0);*/
 }
 
 void QuoteGraph::AddEdgeIfSimilar(TInt Id1, TInt Id2) {

@@ -5,7 +5,42 @@ const int LSH::BandSize = 3;
 const int LSH::NumBands = 20;
 const int LSH::ShingleLen = 4;  // In characters
 const int LSH::ShingleWordLen = 2;
-const int LSH::WordWindow = 5;
+const int LSH::WordWindow = 4;
+
+void LSH::ElCheapoHashing(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TIntSet>& ShingleToQuoteIds) {
+  fprintf(stderr, "Hashing shingles the el cheapo way...\n");
+  TIntV QuoteIds;
+  QuoteBase->GetAllQuoteIds(QuoteIds);
+  for (int qt = 0; qt < QuoteIds.Len(); qt++) {
+    if (qt % 1000 == 0) {
+      fprintf(stderr, "%d out of %d completed\n", qt, QuoteIds.Len());
+    }
+    TQuote Q;
+    QuoteBase->GetQuote(QuoteIds[qt], Q);
+
+    // Put x-character (or x-word) shingles into hash table; x is specified by ShingleLen parameter
+    TStr QContentStr;
+    Q.GetParsedContentString(QContentStr);
+    TChA QContentChA = TChA(QContentStr);
+
+    for (int i = 0; i < QContentChA.Len()-ShingleLen+1; i++) {
+      TChA ShingleChA = TChA();
+      for (int j = 0; j < ShingleLen; j++) {
+        ShingleChA.AddCh(QContentChA.GetCh(i + j));
+      }
+      TStr Shingle = TStr(ShingleChA);
+      const TMd5Sig ShingleMd5(Shingle);
+      TIntSet ShingleQuoteIds;
+      if (ShingleToQuoteIds.IsKey(ShingleMd5)) {
+        ShingleQuoteIds = ShingleToQuoteIds.GetDat(ShingleMd5);
+      }
+
+      ShingleQuoteIds.AddKey(QuoteIds[qt]);
+      ShingleToQuoteIds.AddDat(ShingleMd5, ShingleQuoteIds);
+    }
+  }
+  fprintf(stderr, "Done with el cheapo hashing!\n");
+}
 
 /// For every quote, add it to corresponding bucket for each hashed x-character shingle of the quote
 // (Shingles by characters)

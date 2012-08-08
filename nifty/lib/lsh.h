@@ -24,6 +24,7 @@ public:
   static void MinHash(THash<TMd5Sig, TShingleIdSet>& ShingleToQuoteIds, TVec<THash<TIntV, TIntSet> >& SignatureBandBuckets);
   static void GetHashedShinglesOfCluster(TQuoteBase *QuoteBase, TCluster& C, TInt ShingleLen,
                                          THashSet<TMd5Sig>& HashedShingles);
+  static void ElCheapoHashing(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TIntSet>& ShingleToQuoteIds);
 };
 
 #endif
