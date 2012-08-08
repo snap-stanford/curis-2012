@@ -249,3 +249,17 @@ void LogOutput::OutputDiscardedClusters(TQuoteBase *QB, TVec<TPair<TCluster, TIn
 
   fclose(D);
 }
+
+void LogOutput::SetupQBDBCBSizeFile() {
+  TStr QBDBCB = WebDirectory + TimeStamp + "/QBDBCB_info.txt";
+  QBDBCBSizeFile = fopen(QBDBCB.CStr(), "w");
+}
+
+void LogOutput::LogQBDBCBSize(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB) {
+  fprintf(QBDBCBSizeFile, "DB\t%d\tQB\t%d\tCB\t%d\n", DB->Len(), QB->Len(), CB->Len());
+  fprintf(stderr, "DB\t%d\tQB\t%d\tCB\t%d\n", DB->Len(), QB->Len(), CB->Len());
+}
+
+void LogOutput::ShutDown() {
+  fclose(QBDBCBSizeFile);
+}

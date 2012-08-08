@@ -28,11 +28,11 @@ void Clustering::GetRootNodes(TIntSet& RootNodes) {
   }
 }
 
-void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log) {
-  BuildClusters(CB, QB, DB, log, NULL);
+void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TSecTm& PresentTime) {
+  BuildClusters(CB, QB, DB, log, PresentTime, NULL);
 }
 
-void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TClusterBase *OldCB) {
+void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TSecTm& PresentTime, TClusterBase *OldCB) {
   // currently deletes all edges but the one leading to phrase that is most frequently cited.
   // TODO: Make more efficient? At 10k nodes this is ok
 
@@ -72,6 +72,7 @@ void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, L
   fprintf(stderr, "percent edges deleted, not from subgraphs: %f\n", TFlt(100 - NumEdgesInducedSubgraphs * 100.0 / NumEdgesOriginal).Val);
   log.LogValue(LogOutput::PercentEdgesDeletedNotFromSubgraphs, TFlt(100 - NumEdgesInducedSubgraphs * 100.0 / NumEdgesOriginal));
 
+  fprintf(stderr, "generating random graph for comparison\n");
   // Calculate baseline percentage of edges deleted
   PNGraph RandomQGraph;
   RandomQGraph = TSnap::GenRewire(QGraph);
@@ -91,6 +92,7 @@ void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, L
   }
   
   log.LogValue(LogOutput::PercentEdgesDeletedNFSBaseline, TFlt(100 - NumEdgesInducedSubgraphs * 100.0 / NumEdgesOriginal));
+  fprintf(stderr, "random graph generation complete!\n");
   
   // Add clusters to CB
   for (int i = 0; i < Clusters.Len(); i++) {
@@ -133,11 +135,16 @@ TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB) {
 TInt Clustering::CalcRepresentativeQuote(TQuote& RepQuote, TIntV& Cluster, TQuoteBase *QuoteBase) {
   TInt NumQuotes = 0;
   QuoteBase->GetQuote(Cluster[0], RepQuote);  // Initialize RepQuote
+  TInt MaxSources = 0;
   for (int j = 0; j < Cluster.Len(); j++) {
     TInt QId = Cluster[j];
     TQuote Q;
     QuoteBase->GetQuote(QId, Q);
-    if (!QuoteGraph::EdgeShouldBeFromOneToTwo(Q, RepQuote)) {
+    //if (!QuoteGraph::EdgeShouldBeFromOneToTwo(Q, RepQuote)) {
+    //  RepQuote = Q;
+    //}
+    if (Q.GetNumSources() > MaxSources) {
+      MaxSources = Q.GetNumSources();
       RepQuote = Q;
     }
     NumQuotes += Q.GetNumSources();
