@@ -44,6 +44,10 @@ void TCluster::Load(TSIn& SIn) {
   BirthDate.Load(SIn);
 }
 
+void TCluster::SetBirthDate(TSecTm& BirthDate) {
+  this->BirthDate = BirthDate;
+}
+
 void TCluster::GetBirthDate(TSecTm& BirthDate) {
   BirthDate = this->BirthDate;
 }

@@ -21,7 +21,8 @@ public:
   TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), PeakTimesV(SIn), FreqV(SIn), BirthDate(SIn) { }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
-  void GetBirthDate(TSecTm& GetBirthDate);
+  void SetBirthDate(TSecTm& BirthDate);
+  void GetBirthDate(TSecTm& BirthDate);
   void GetRepresentativeQuoteIds(TIntV& RepQuoteIds) const;
   TInt GetNumRepresentativeQuoteIds() const;
   void GetRepresentativeQuoteString(TStr& RepStr, TQuoteBase *QB) const;

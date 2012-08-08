@@ -94,7 +94,7 @@ void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, L
   log.LogValue(LogOutput::PercentEdgesDeletedNFSBaseline, TFlt(100 - NumEdgesInducedSubgraphs * 100.0 / NumEdgesOriginal));
   fprintf(stderr, "random graph generation complete!\n");
   
-  // Add clusters to CB
+  // Add clusters to CB. keep track of cluster birth time (aka today)
   for (int i = 0; i < Clusters.Len(); i++) {
     TCluster Cluster;
     Cluster.AddQuote(QB, Clusters[i]);
@@ -103,6 +103,7 @@ void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, L
     TIntV ClusterRepQuoteIds;
     ClusterRepQuoteIds.Add(ClusterRepQuote.GetId());
     Cluster.SetRepresentativeQuoteIds(ClusterRepQuoteIds);
+    Cluster.SetBirthDate(PresentTime);
     CB->AddCluster(Cluster, OldCB);
   }
 }
