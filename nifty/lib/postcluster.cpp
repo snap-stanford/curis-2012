@@ -338,9 +338,11 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
     if (NumRecentSources < QuoteThreshold) {
       //Uniq  Freq  RepQuote  RepQuoteURL
       TStr RepStr, RepURL;
+      TSecTm BirthDate;
+      C.GetBirthDate(BirthDate);
       C.GetRepresentativeQuoteString(RepStr, QB);
       C.GetRepresentativeQuoteURL(QB, DB, RepURL);
-      fprintf(F, "%d\t%d\t%s\t%s\n", C.GetNumUniqueQuotes().Val, C.GetNumQuotes().Val, RepStr.CStr(), RepURL.CStr());
+      fprintf(F, "%s\t%s\t%d\t%d\t%s\t%s\n", BirthDate.GetDtYmdStr().CStr(), CurDateString.CStr(), C.GetNumUniqueQuotes().Val, C.GetNumQuotes().Val, RepStr.CStr(), RepURL.CStr());
       fprintf(F2, "%d\t%d\t%s\t%s\n", C.GetNumUniqueQuotes().Val, C.GetNumQuotes().Val, RepStr.CStr(), RepURL.CStr());
       for (int j = 0; j < ClusterQuoteIds.Len(); j++) {
         TQuote Q;
