@@ -21,8 +21,6 @@ void Peaks::GetPeaks(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& PeakTimesV
 
   Peaks::GetFrequencyVector(DocBase, Sources, FreqV, BucketSize, SlidingWindowSize, PresentTime);
 
-  //fprintf(stderr, "Length of frequency vector: %d\n", FreqV.Len());
-
   TFltV FreqFltV;
   Peaks::GetPeaksEquationFunction(FreqV, FreqFltV);
 
@@ -84,7 +82,8 @@ void Peaks::GetPeaksEquationFunction(TFreqTripleV& FreqV, TFltV& FreqFltV) {
   }
 }
 
-/* Sources = Sources that we want to calculate the distribution for.
+/* IMPORTANT: Pass in TSecTm(0) for PresentTime if you are not passing in the actual time
+ * Sources = Sources that we want to calculate the distribution for.
  * FreqV = (X, Y, time) triple vector.
  * BucketSize = number of hours that will be lumped together
  * SlidingWindowSize = number of hours that a sliding window will occur.
@@ -126,26 +125,24 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
   //fprintf(stderr, "555555555555555\n");
 
   for (int i = 0; i < SourcesSorted.Len(); ++i) {
-
-    //fprintf(stderr, "666666666666666\n");
+    if (PresentTimeI > 0 && StartTime >= PresentTimeI) { break; }
     TDoc CurDoc;
     if (DocBase->GetDoc(SourcesSorted[i], CurDoc)) {
       TUInt CurTime = TUInt(CurDoc.GetDate().GetAbsSecs());
       if (CurTime < StartTime) { continue; }  // Ignore sources outside the X-day window
       if (CurTime - StartTime < BucketSizeSecs) { // still the same bucket? keep on incrementing.
-        Frequency++;
+        Frequency += 1;
       } else {
-        //fprintf(stderr, "7777777777777777\n");
         RawFrequencyCounts.Add(Frequency);
         FreqV.Add(TFreqTriple(HourStart + HourNum * BucketSize, CalcWindowAvg(RawFrequencyCounts, SlidingWindowSize), TSecTm(StartTime)));
         TInt NumHoursAhead = (CurTime - StartTime) / BucketSizeSecs;
         //fprintf(stderr, "Num Hours Ahead: %d\n", NumHoursAhead.Val);
         //printf("PrevDoc Date: %s, CurrDoc Date: %s, NumHoursAhead: %d\n", PrevDoc.GetDate().GetYmdTmStr().GetCStr(), CurrDoc.GetDate().GetYmdTmStr().GetCStr(), NumHoursAhead.Val);
         // Add frequencies of 0 if there are hours in between the two occurrences
-        //fprintf(stderr, "88888888888888\n");
         for (int j = 1; j < NumHoursAhead; ++j) {
           //fprintf(stderr, "9999999999999999999\n");
           TUInt NewStartTime = StartTime + j * BucketSizeSecs;
+          if (PresentTimeI > 0 && NewStartTime >= PresentTimeI) { break; }
           RawFrequencyCounts.Add(TInt(0));
           FreqV.Add(TFreqTriple(HourStart + (HourNum + j) * BucketSize, CalcWindowAvg(RawFrequencyCounts, SlidingWindowSize), TSecTm(NewStartTime)));
         }
@@ -157,14 +154,17 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
     }
   }
 
-  RawFrequencyCounts.Add(Frequency);
-  FreqV.Add(TFreqTriple(HourStart + HourNum * BucketSize, CalcWindowAvg(RawFrequencyCounts, SlidingWindowSize), TSecTm(StartTime)));
+  if (PresentTimeI == 0 || StartTime < PresentTimeI) {
+    RawFrequencyCounts.Add(Frequency);
+    FreqV.Add(TFreqTriple(HourStart + HourNum * BucketSize, CalcWindowAvg(RawFrequencyCounts, SlidingWindowSize), TSecTm(StartTime)));
+  }
 
   if (PresentTime.GetAbsSecs() > 0 && PresentTimeI > StartTime) {
     TInt NumHoursAhead = (PresentTimeI - StartTime) / BucketSizeSecs;
     //fprintf(stderr, "Number of Hours Ahead: %d\n", NumHoursAhead.Val);
     for (int j = 1; j <= NumHoursAhead; j++) {
-        StartTime = StartTime + j * BucketSizeSecs;
+        StartTime = StartTime + BucketSizeSecs;
+        TSecTm ToPrint(StartTime);
         RawFrequencyCounts.Add(TInt(0));
         FreqV.Add(TFreqTriple(HourStart + (HourNum + j) * BucketSize, CalcWindowAvg(RawFrequencyCounts, SlidingWindowSize), TSecTm(StartTime)));
     }
