@@ -271,7 +271,7 @@ void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClus
     CB->GetCluster(TopClusters[i], C);
     TFreqTripleV PeakTimesV;
     TFreqTripleV FreqV;
-    C.GetPeaks(DB, QB, PeakTimesV, FreqV, BucketSize, SlidingWindowSize, TSecTm(0), true);
+    C.GetPeaks(DB, QB, PeakTimesV, FreqV, BucketSize, SlidingWindowSize, PresentTime, true);
 
     // Add clusters with too many peaks to the discard list.
     if (PeakTimesV.Len() > PeakThreshold) {
