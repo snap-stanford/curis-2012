@@ -13,13 +13,16 @@ private:
   TInt Id;
   TFreqTripleV PeakTimesV;
   TFreqTripleV FreqV;
+  TSecTm BirthDate;
 
 public:
   TCluster();
-  TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB);
-  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), PeakTimesV(SIn), FreqV(SIn){ }
+  TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB, TSecTm BirthDate);
+  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), PeakTimesV(SIn), FreqV(SIn), BirthDate(SIn) { }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
+  void SetBirthDate(TSecTm& BirthDate);
+  void GetBirthDate(TSecTm& BirthDate);
   void GetRepresentativeQuoteIds(TIntV& RepQuoteIds) const;
   TInt GetNumRepresentativeQuoteIds() const;
   void GetRepresentativeQuoteString(TStr& RepStr, TQuoteBase *QB) const;
@@ -28,6 +31,7 @@ public:
   void GetQuoteIds(TIntV &QuoteIds) const;
   TInt GetId() const;
   TFlt GetPopularity(TQuoteBase *QuoteBase, TDocBase *DocBase, TSecTm CurrentTime);
+  void GetRepresentativeQuoteURL(TQuoteBase *QB, TDocBase *DB, TStr& RepURL) const;
   void SetId(TInt Id);
 
   void AddQuote(TQuoteBase *QB, const TIntV &QuoteIds);

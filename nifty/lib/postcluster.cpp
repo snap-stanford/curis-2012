@@ -9,11 +9,11 @@ const int PostCluster::PeakThreshold = 5;
 const int PostCluster::DayThreshold = 3;
 const int PostCluster::QuoteThreshold = 20;
 
-void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm PresentTime) {
-  RemoveOldClusters(QB, DB, CB, PresentTime);
+void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm& PresentTime) {
+  RemoveOldClusters(QB, DB, CB, Log, PresentTime);
   CB->GetTopClusterIdsByFreq(TopFilteredClusters);
-  MergeAllClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
-  MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
+  //MergeAllClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
+  //MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
   //MergeClustersWithCommonSources(QB, TopFilteredClusters, CB);
   FilterAndCacheClusterPeaks(DB, QB, CB, Log, TopFilteredClusters, PresentTime);
   fprintf(stderr, "Number of top clusters: %d\n", TopFilteredClusters.Len());
@@ -271,7 +271,7 @@ void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClus
     CB->GetCluster(TopClusters[i], C);
     TFreqTripleV PeakTimesV;
     TFreqTripleV FreqV;
-    C.GetPeaks(DB, QB, PeakTimesV, FreqV, BucketSize, SlidingWindowSize, TSecTm(0), true);
+    C.GetPeaks(DB, QB, PeakTimesV, FreqV, BucketSize, SlidingWindowSize, PresentTime, true);
 
     // Add clusters with too many peaks to the discard list.
     if (PeakTimesV.Len() > PeakThreshold) {
@@ -299,23 +299,25 @@ void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClus
 }
 
 /// Remove clusters whose quotes have fewer than QuoteThreshold sources (total) for the last three days
-void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, TSecTm PresentTime) {
+void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, LogOutput& Log, TSecTm& PresentTime) {
   TIntV AllClusterIds;
   CB->GetAllClusterIds(AllClusterIds);
+
+  TStr CurDateString = PresentTime.GetDtYmdStr();
+  TStr TimeStamp;
+  Log.GetDirectory(TimeStamp);
+  TStr DeleteClustersFile = LogOutput::WebDirectory + TimeStamp + "/deleted_clusters_" + CurDateString + ".txt";
+  TStr DeleteClustersFile2 = LogOutput::WebDirectory + TimeStamp + "/deleted_clusters_detailed_" + CurDateString + ".txt";
+  FILE *F = fopen(DeleteClustersFile.CStr(), "w");
+  FILE *F2 = fopen(DeleteClustersFile.CStr(), "w");
 
   for (int i = 0; i < AllClusterIds.Len(); i++) {
     TCluster C;
     CB->GetCluster(AllClusterIds[i], C);
     TIntV ClusterQuoteIds;
     C.GetQuoteIds(ClusterQuoteIds);
-    TIntSet AllSources;
-    for (int j = 0; j < ClusterQuoteIds.Len(); j++) {
-      TQuote Q;
-      QB->GetQuote(ClusterQuoteIds[j], Q);
-      TIntV QSources;
-      Q.GetSources(QSources);
-      AllSources.AddKeyV(QSources);
-    }
+    TIntV AllSources;
+    TCluster::GetUniqueSources(AllSources, ClusterQuoteIds, QB);
 
     TInt NumRecentSources = 0;
     // Round PresentTime to the nearest day afterward
@@ -323,9 +325,10 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
     PresentTimeI = TUInt(uint(PresentTimeI / Peaks::NumSecondsInDay + 1) * Peaks::NumSecondsInDay);  // round to next 12am
 
     TUInt ThresholdTime = PresentTimeI - DayThreshold * Peaks::NumSecondsInDay;
-    for (TIntSet::TIter SourceId = AllSources.BegI(); SourceId < AllSources.EndI(); SourceId++) {
+    TInt NumSources = AllSources.Len();
+    for (int j = 0; j < NumSources; ++j) {
       TDoc Doc;
-      DB->GetDoc(*SourceId, Doc);
+      DB->GetDoc(AllSources[j], Doc);
       if (Doc.GetDate().GetAbsSecs() >= ThresholdTime) {
         NumRecentSources += 1;
       }
@@ -333,11 +336,29 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
 
     // If the number of recent sources does not pass the threshold, remove that cluster and all its quotes
     if (NumRecentSources < QuoteThreshold) {
+      //Uniq  Freq  RepQuote  RepQuoteURL
+      TStr RepStr, RepURL;
+      TSecTm BirthDate;
+      C.GetBirthDate(BirthDate);
+      C.GetRepresentativeQuoteString(RepStr, QB);
+      C.GetRepresentativeQuoteURL(QB, DB, RepURL);
+      fprintf(F, "%s\t%s\t%d\t%d\t%s\t%s\n", BirthDate.GetDtYmdStr().CStr(), CurDateString.CStr(), C.GetNumUniqueQuotes().Val, C.GetNumQuotes().Val, RepStr.CStr(), RepURL.CStr());
+      fprintf(F2, "%d\t%d\t%s\t%s\n", C.GetNumUniqueQuotes().Val, C.GetNumQuotes().Val, RepStr.CStr(), RepURL.CStr());
       for (int j = 0; j < ClusterQuoteIds.Len(); j++) {
+        TQuote Q;
+        QB->GetQuote(ClusterQuoteIds[j], Q);
+        Q.GetContentString(RepStr);
+        QB->GetRepresentativeUrl(DB, ClusterQuoteIds[j], RepURL);
+        fprintf(F2, "\t%d\t%s\t%s\n", Q.GetNumSources().Val, RepStr.CStr(), RepURL.CStr());
         QB->RemoveQuote(ClusterQuoteIds[j]);
       }
       CB->RemoveCluster(AllClusterIds[i]);
     }
   }
+  fclose(F);
+  fclose(F2);
+
+  fprintf(stderr, "Deleting extra documents (slow)...\n");
+  DB->RemoveNullDocs(QB);
   return;
 }

@@ -29,10 +29,12 @@ void QuoteGraph::CreateNodes() {
 }
 
 void QuoteGraph::CreateEdges() {
-  THash<TMd5Sig, TIntSet> Shingles;
+  THash<TMd5Sig, TShingleIdSet> Shingles;
   LSH::HashShingles(QB, LSH::ShingleLen, Shingles);
   TVec<THash<TIntV, TIntSet> > BucketsVector;
   LSH::MinHash(Shingles, BucketsVector);
+
+  THash<TIntPr, TBool> EdgeCache;
 
   printf("Beginning edge creation step...\n");
   for (int i = 0; i < BucketsVector.Len(); i++) {
@@ -46,12 +48,28 @@ void QuoteGraph::CreateEdges() {
         TIntSet::TIter Quote1Copy = Quote1;
         Quote1Copy++;
         for (TIntSet::TIter Quote2 = Quote1Copy; Quote2 < Bucket.EndI(); Quote2++) {
-          AddEdgeIfSimilar(Quote1.GetKey(), Quote2.GetKey());
+          if (!EdgeCache.IsKey(TIntPr(Quote1.GetKey(), Quote2.GetKey())) && !EdgeCache.IsKey(TIntPr(Quote2.GetKey(), Quote1.GetKey()))) {
+            AddEdgeIfSimilar(Quote1.GetKey(), Quote2.GetKey());
+          }
         }
       }
     }
   }
-  printf("Edge creation complete! %d edges created.\n", EdgeCount.Val);
+  /*printf("Edge creation complete! %d edges created.\n", EdgeCount.Val);
+
+  THash<TMd5Sig, TIntSet> Shingles;
+  LSH::ElCheapoHashing(QB, LSH::ShingleLen, Shingles);
+  int Count = 0;
+  TVec<TMd5Sig> ShingleKeys;
+  Shingles.GetKeyV(ShingleKeys);
+  for (int i = 0; i < ShingleKeys.Len(); i++) {
+    TIntSet CurSet;
+    Shingles.IsKeyGetDat(ShingleKeys[i], CurSet);
+    int Len = CurSet.Len();
+    Count += Len;
+  }
+  fprintf(stderr, "NUMBER OF COMPARES: %d\n", Count);
+  exit(0);*/
 }
 
 void QuoteGraph::AddEdgeIfSimilar(TInt Id1, TInt Id2) {
@@ -115,7 +133,8 @@ bool QuoteGraph::EdgeShouldBeCreated(TQuote& Quote1, TQuote& Quote2) {
   TStrV Content2V;
   Content1.SplitOnWs(Content1V);
   Content2.SplitOnWs(Content2V);
-  TInt LDistance = QuoteGraph::WordLevenshteinDistance(Content1V, Content2V);
+  //TInt LDistance = QuoteGraph::WordLevenshteinDistance(Content1V, Content2V);
+  TInt LDistance = TQuoteBase::SubWordListEditDistance(Content1V, Content2V);
 
   // Decision tree from clustering methods paper
   int MinStopLen = min(Content1V.Len(), Content2V.Len());
@@ -123,7 +142,7 @@ bool QuoteGraph::EdgeShouldBeCreated(TQuote& Quote1, TQuote& Quote2) {
   //printf("L Distance: %d\tMinStopLen: %d\n", LDistance.Val, MinStopLen);
   //printf("%s\n", Content1.CStr());
   //printf("%s\n", Content2.CStr());
-  if (LDistance == 0) {
+  if (LDistance == 0 && MinStopLen >= 2) {
     return true;
   } else if (MinLen == 4 && LDistance <= 1 && MinStopLen == 4) {
     return true;

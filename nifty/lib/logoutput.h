@@ -9,6 +9,7 @@ private:
   THash<TStr, TStr> OutputValues;
   TStr TimeStamp;
   TBool ShouldLog;
+  FILE *QBDBCBSizeFile;
 public:
   static const TStr OutputDirectory;
   static const TStr PercentEdgesDeleted;
@@ -36,6 +37,9 @@ public:
   void OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV &ClusterIds, TSecTm PresentTime, TIntV &OldTopClusters);
   void ComputeOldRankString(THash<TInt, TInt>& OldRankings, TInt& ClusterId, TInt CurRank, TStr& OldRankStr);
   void OutputDiscardedClusters(TQuoteBase *QB, TVec<TPair<TCluster, TInt> >& DiscardedClusters, TSecTm& Date);
+  void SetupQBDBCBSizeFile();
+  void LogQBDBCBSize(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB);
+  void ShutDown();
 };
 
 #endif

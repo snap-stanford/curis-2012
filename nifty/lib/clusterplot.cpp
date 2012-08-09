@@ -24,7 +24,6 @@ void ClusterPlot::PlotClusterSizeUnique(TClusterBase *CB) {
 
   ClusterUniqueSize.Sort(false);
   TIntPrV Coordinates;
-  TInt LastFrequency = -1;
   for (int i = 0; i < ClusterUniqueSize.Len(); ++i) {
     int j = i;
     while (j < ClusterUniqueSize.Len() && ClusterUniqueSize[j] == ClusterUniqueSize[i]) {
@@ -57,7 +56,6 @@ void ClusterPlot::PlotClusterSize(TClusterBase *CB) {
 
   ClusterSize.Sort(false);
   TIntPrV Coordinates;
-  TInt LastFrequency = -1;
   for (int i = 0; i < ClusterSize.Len(); ++i) {
     int j = i;
     while (j < ClusterSize.Len() && ClusterSize[j] == ClusterSize[i]) {
@@ -80,7 +78,6 @@ void ClusterPlot::PlotQuoteFrequencies(TQuoteBase* QB) {
   QB->GetAllQuoteIds(QuoteIds);
 
   THash<TInt, TInt> QuoteFrequencies;
-  TInt NumQuotes = QuoteIds.Len();
   for (int i = 0; i < QuoteIds.Len(); ++i) {
     TQuote CurQuote; // TODO: Iterator
     QB->GetQuote(QuoteIds[i], CurQuote);
