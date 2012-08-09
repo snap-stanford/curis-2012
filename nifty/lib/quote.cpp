@@ -207,6 +207,19 @@ void TQuote::RemovePunctuation(const TStr& OrigString, TStr& NewString) {
   NewString = TStr(NewChA);
 }
 
+bool TQuoteBase::IsContainNullQuote() {
+  TIntV QuoteIds;
+  GetAllQuoteIds(QuoteIds);
+  for (int i = 0; i < QuoteIds.Len(); i++) {
+    TQuote Q;
+    GetQuote(QuoteIds[i], Q);
+    if (Q.GetNumSources() == 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
 TQuoteBase::TQuoteBase() {
   QuoteIdCounter = 0;
 }
