@@ -296,11 +296,13 @@ void TClusterBase::GetAllClusterIds(TIntV &ClusterIds) {
 /// Sorts clusters in decreasing order, and finds representative quote for each cluster
 //  RepQuotesAndFreq is a vector of cluster results, represented by TClusters
 void TClusterBase::GetAllClusterIdsSortByFreq(TIntV &ClusterIds) {
+  fprintf(stderr, "Sorting cluster id's by size frequency...\n");
   IdToTCluster.GetKeyV(ClusterIds);
   ClusterIds.SortCmp(TCmpTClusterIdByNumQuotes(false, this));
 }
 
 void TClusterBase::GetTopClusterIdsByFreq(TIntV &TopClusterIds) {
+  fprintf(stderr, "Sorting cluster id's by size frequency and returning top ones...\n");
   TIntV ClusterIds;
   GetAllClusterIdsSortByFreq(ClusterIds);
   for (int i = 0; i < ClusterIds.Len(); i++) {

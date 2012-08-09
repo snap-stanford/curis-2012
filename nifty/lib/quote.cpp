@@ -509,19 +509,19 @@ void TQuoteBase::GetRepresentativeUrl(TDocBase *DocBase, TInt QuoteId, TStr& Rep
     Doc.GetUrl(DocUrl);
     if (IsUrlTopNewsSource(DocUrl)) {
       RepUrl = DocUrl;
-      fprintf(stderr, "URL matched news source on whitelist!\n");
+      //fprintf(stderr, "URL matched news source on whitelist!\n");
       return;
     }
   }
 
   // If no url qualifies, pick the first one within the time period of the first peak
-  fprintf(stderr, "No match :(\n");
+  //fprintf(stderr, "No match :(\n");
 
   TVec<TSecTm> PeakTimesV;
   Q.GetPeaks(DocBase, PeakTimesV, 2, 1, TSecTm(0));
 
   // If there are no peaks, return the first document
-  if (PeakTimesV.Len() == 0) {
+  if (PeakTimesV.Len() <= 0 && SourcesSorted.Len() > 0) {
     TDoc Doc;
     DocBase->GetDoc(SourcesSorted[0], Doc);
     Doc.GetUrl(RepUrl);

@@ -87,7 +87,7 @@ void PostCluster::MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TIntV& TopCl
             TStr RepQuoteStr1, RepQuoteStr2;
             TopCluster.GetRepresentativeQuoteString(RepQuoteStr1, QB);
             CurrCluster.GetRepresentativeQuoteString(RepQuoteStr2, QB);
-            fprintf(stderr, "Merged cluster %s INTO %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
+            //fprintf(stderr, "Merged cluster %s INTO %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
             break;
           }
           AlreadyCompared.AddKey(*Id);
@@ -150,7 +150,7 @@ void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV &TopClust
         TStr RepQuoteStr1, RepQuoteStr2;
         Ci.GetRepresentativeQuoteString(RepQuoteStr1, QB);
         Cj.GetRepresentativeQuoteString(RepQuoteStr2, QB);
-        fprintf(stderr, "Merged cluster %s INTO %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
+        //fprintf(stderr, "Merged cluster %s INTO %s\n", RepQuoteStr2.CStr(), RepQuoteStr1.CStr());
         break;
       }
     }
@@ -300,6 +300,7 @@ void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClus
 
 /// Remove clusters whose quotes have fewer than QuoteThreshold sources (total) for the last three days
 void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, LogOutput& Log, TSecTm& PresentTime) {
+  fprintf(stderr, "Removing old clusters from the CB...\n");
   TIntV AllClusterIds;
   CB->GetAllClusterIds(AllClusterIds);
 
@@ -309,7 +310,7 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
   TStr DeleteClustersFile = LogOutput::WebDirectory + TimeStamp + "/deleted_clusters_" + CurDateString + ".txt";
   TStr DeleteClustersFile2 = LogOutput::WebDirectory + TimeStamp + "/deleted_clusters_detailed_" + CurDateString + ".txt";
   FILE *F = fopen(DeleteClustersFile.CStr(), "w");
-  FILE *F2 = fopen(DeleteClustersFile.CStr(), "w");
+  FILE *F2 = fopen(DeleteClustersFile2.CStr(), "w");
 
   for (int i = 0; i < AllClusterIds.Len(); i++) {
     TCluster C;
@@ -325,7 +326,8 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
     PresentTimeI = TUInt(uint(PresentTimeI / Peaks::NumSecondsInDay + 1) * Peaks::NumSecondsInDay);  // round to next 12am
 
     TUInt ThresholdTime = PresentTimeI - DayThreshold * Peaks::NumSecondsInDay;
-    TInt NumSources = AllSources.Len();
+    int NumSources = AllSources.Len();
+
     for (int j = 0; j < NumSources; ++j) {
       TDoc Doc;
       DB->GetDoc(AllSources[j], Doc);
@@ -358,7 +360,7 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
   fclose(F);
   fclose(F2);
 
-  fprintf(stderr, "Deleting extra documents (slow)...\n");
+  Err("Removing old documents...\n");
   DB->RemoveNullDocs(QB);
   return;
 }

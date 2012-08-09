@@ -4,6 +4,8 @@
 #include "../../snap/snap-core/Snap.h"
 #include "lib/niftylib.h"
 
+#define Err(format, args...) fprintf(stderr, format, ## args)
+
 #define TWITTER_BOOTSTRAP "../../../bootstrap/css/bootstrap.css"
 #define TWITTER_BOOTSTRAP2 "../../../../bootstrap/css/bootstrap.css"
 #define TWITTER_BOOTSTRAP_JS "../../../../bootstrap/js/bootstrap.js"
