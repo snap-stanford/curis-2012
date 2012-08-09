@@ -495,10 +495,16 @@ bool TQuoteBase::IsUrlTopNewsSource(TStr Url) {
 void TQuoteBase::GetRepresentativeUrl(TDocBase *DocBase, TInt QuoteId, TStr& RepUrl) {
   TQuote Q;
   if (!IdToTQuotes.IsKeyGetDat(QuoteId, Q)) { return; }
+  TStr QContentStr;
+  Q.GetContentString(QContentStr);
 
   // Sort the sources by time (ascending)
   TIntV SourcesSorted;
   Q.GetSources(SourcesSorted);
+  if (SourcesSorted.Len() == 0) {
+    fprintf(stderr, "Warning: Quote \"%s\" has 0 sources\n", QContentStr.CStr());
+    return;
+  }
   SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
 
   // Pick the first url with the domain in the whitelist
@@ -509,13 +515,13 @@ void TQuoteBase::GetRepresentativeUrl(TDocBase *DocBase, TInt QuoteId, TStr& Rep
     Doc.GetUrl(DocUrl);
     if (IsUrlTopNewsSource(DocUrl)) {
       RepUrl = DocUrl;
-      fprintf(stderr, "URL matched news source on whitelist!\n");
+      //fprintf(stderr, "URL matched news source on whitelist!\n");
       return;
     }
   }
 
   // If no url qualifies, pick the first one within the time period of the first peak
-  fprintf(stderr, "No match :(\n");
+  //fprintf(stderr, "No match :(\n");
 
   TVec<TSecTm> PeakTimesV;
   Q.GetPeaks(DocBase, PeakTimesV, 2, 1, TSecTm(0));
