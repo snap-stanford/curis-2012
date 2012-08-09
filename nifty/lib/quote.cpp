@@ -207,6 +207,19 @@ void TQuote::RemovePunctuation(const TStr& OrigString, TStr& NewString) {
   NewString = TStr(NewChA);
 }
 
+bool TQuoteBase::IsContainNullQuote() {
+  TIntV QuoteIds;
+  GetAllQuoteIds(QuoteIds);
+  for (int i = 0; i < QuoteIds.Len(); i++) {
+    TQuote Q;
+    GetQuote(QuoteIds[i], Q);
+    if (Q.GetNumSources() == 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
 TQuoteBase::TQuoteBase() {
   QuoteIdCounter = 0;
 }
@@ -527,7 +540,7 @@ void TQuoteBase::GetRepresentativeUrl(TDocBase *DocBase, TInt QuoteId, TStr& Rep
   Q.GetPeaks(DocBase, PeakTimesV, 2, 1, TSecTm(0));
 
   // If there are no peaks, return the first document
-  if (PeakTimesV.Len() == 0) {
+  if (PeakTimesV.Len() <= 0 && SourcesSorted.Len() > 0) {
     TDoc Doc;
     DocBase->GetDoc(SourcesSorted[0], Doc);
     Doc.GetUrl(RepUrl);

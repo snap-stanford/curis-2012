@@ -106,6 +106,7 @@ void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, L
     Cluster.SetBirthDate(PresentTime);
     CB->AddCluster(Cluster, OldCB);
   }
+  fprintf(stderr, "cluster generation complete!\n");
 }
 
 TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB) {

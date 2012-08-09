@@ -72,6 +72,7 @@ public:
   bool Exists(TInt QuoteId1);
   TInt GetCurCounterValue();
   void GetRepresentativeUrl(TDocBase *DocBase, TInt QuoteId, TStr& RepUrl);
+  bool IsContainNullQuote();
 
   static TInt LongestSubSequenceOfWords(const TStrV& Content1, const TStrV& Content2);
   static TInt SubWordListEditDistance(const TStrV& Content1, const TStrV& Content2);

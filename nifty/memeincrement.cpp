@@ -64,6 +64,7 @@ int main(int argc, char *argv[]) {
     TIncrementalClustering ClusterJob(&QB, NewQuotes, QGraph, AffectedNodes);
     TClusterBase NewCB(CB.GetCounter());
     ClusterJob.BuildClusters(&NewCB, &QB, &DB, Log, CurrentDate, &CB);
+    fprintf(stderr, "Done building clusters!\n");
     TIntV SortedClusters;
     NewCB.GetAllClusterIdsSortByFreq(SortedClusters);
 
@@ -102,6 +103,6 @@ int main(int argc, char *argv[]) {
   TFOut FOut2("output/cumulativeclusters" + NewDayDate.CStr() + ".bin");
   MergedClusterSummaries.Save(FOut2);*/
   Log.ShutDown();
-  printf("Done with EVERYTHING!\n");
+  printf("Done with POST CLUSTERING!\n");
   return 0;
 }
