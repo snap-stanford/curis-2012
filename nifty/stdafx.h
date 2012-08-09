@@ -14,5 +14,6 @@
 
 #define QBDB_DIRECTORY "/lfs/1/tmp/curis/QBDB/"
 #define QBDBC_DIRECTORY "/lfs/1/tmp/curis/QBDBC/"
+//#define QBDBC_DIRECTORY "/lfs/1/tmp/curis/QBDBC-P/"
 
 #endif
