@@ -139,8 +139,15 @@ TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &Q
 
     TStrV QContentVectorString;
     TQuote::ParseContentString(QContentString, QContentVectorString);
+
+    bool ContainDoc = false;
+    for (int j = 0; j < Sources.Len(); j++) {
+      if (!SeenDocSet.IsKey(Sources[j])) {
+        ContainDoc = true;
+      }
+    }
     // Make note if the quote does not exist in QB1
-    if (QB1.GetQuoteId(QContentVectorString) < 0) {
+    if (ContainDoc && QB1.GetQuoteId(QContentVectorString) < 0) {
       TInt QId = QB1.AddQuote(QContentString);
       NewQuoteIds.Add(QId);
     }
@@ -155,23 +162,18 @@ TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &Q
       }
     }
   }
-
+  IAssert(!QB1.IsContainNullQuote());
   return NewQuoteIds;
 }
 
 void TDataLoader::LoadCumulative(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, PNGraph& P) {
   TStr CurFileName = "QBDBC" + Date + ".bin";
-  fprintf(stderr, "1: %s\n", (Prefix+CurFileName).CStr());
   TFIn CurFile(Prefix + CurFileName);
-  fprintf(stderr, "2\n");
   QB.Load(CurFile);
-  fprintf(stderr, "3\n");
   DB.Load(CurFile);
-  fprintf(stderr, "4\n");
   CB.Load(CurFile);
-  fprintf(stderr, "5\n");
   P = TNGraph::Load(CurFile);
-  fprintf(stderr, "6\n");
+  IAssert(!QB.IsContainNullQuote());
 }
 
 void TDataLoader::LoadQBDB(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB) {
@@ -179,6 +181,7 @@ void TDataLoader::LoadQBDB(const TStr &Prefix, const TStr &Date, TQuoteBase &QB,
   TFIn CurFile(Prefix + CurFileName);
   QB.Load(CurFile);
   DB.Load(CurFile);
+  IAssert(!QB.IsContainNullQuote());
 }
 
 TSecTm TDataLoader::LoadBulkQBDB(const TStr &Prefix, const TStr &InFileName, TQuoteBase &QB, TDocBase &DB) {

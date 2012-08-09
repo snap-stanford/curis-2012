@@ -81,8 +81,9 @@ int main(int argc, char *argv[]) {
     CB = NewCB;
     OldTopClusters = TopFilteredClusters;
     TStr FileName = TStr(QBDBC_DIRECTORY) + "QBDBC" + CurrentDate.GetDtYmdStr() + ".bin";
-    fprintf(stderr, "Saving Cluster information to file: %s", FileName.CStr());
+    fprintf(stderr, "Saving Cluster information to file: %s\n", FileName.CStr());
     TFOut FOut(FileName);
+    IAssert(!QB.IsContainNullQuote());
     QB.Save(FOut);
     DB.Save(FOut);
     CB.Save(FOut);
