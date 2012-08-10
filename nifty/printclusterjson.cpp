@@ -15,9 +15,9 @@ int main(int argc, char *argv[]) {
 
   TStr StartString;
   if (!Arguments.IsKeyGetDat("start", StartString)) {
-    StartString = "2012-06-30";
+    StartString = "2012-07-07";
   }
-  TStr EndString = "2012-07-01";
+  TStr EndString = "2012-07-08";
 
   /*TStr StartString, EndString, OutputDirectory;
   if (!Arguments.IsKeyGetDat("start", StartString)) {
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
       TIntV CSources;
       TCluster::GetUniqueSources(CSources, CQuoteIds, &QB);
       TFreqTripleV CFreqV;
-      Peaks::GetFrequencyVector(&DB, CSources, CFreqV, 2, 1, CurrentDate);
+      Peaks::GetFrequencyVector(&DB, CSources, CFreqV, 24, 1, CurrentDate);
 
       if (FreqOverTime.Len() == 0) {  // Initialize the values in the hash table
         for (int j = 0; j < CFreqV.Len(); j++) {
@@ -87,19 +87,21 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Writing JSON to file\n");
 
     TStr OutputFilename = "../../../public_html/curis/output/clustering/visualization-test/data/clusterinfo-" +
-                          StartDate.GetDtYmdStr() + ".json";
+                          StartDate.GetDtYmdStr() + "-fix.json";
     FILE *F = fopen(OutputFilename.CStr(), "w");
     fprintf(F, "{\"values\": [");
-    for (int i = 0; i < Times.Len(); i++) {
-      if (Times[i].GetAbsSecs() % (Peaks::NumSecondsInDay) != 0) { continue; }
+    TInt NumTimesToPrint = Times.Len() - 1;  // Skip the last time stamp, because it is all zeroes and will 
+                                             // mess up the visualizer
+    for (int i = 0; i < NumTimesToPrint; i++) {
+      //if (Times[i].GetAbsSecs() % (Peaks::NumSecondsInDay) != 0) { continue; }
       fprintf(F, "{\"values\": [");
       TFltV Freqs = FreqOverTime.GetDat(Times[i]);
       for (int j = 0; j < Freqs.Len(); j++) {
-        if (j < Freqs.Len() - 1) { fprintf(F, "%f, ", Freqs[j].Val); }
-        else { fprintf(F, "%f", Freqs[j].Val); }
+        if (j < Freqs.Len() - 1) { fprintf(F, "%d, ", TFlt::Round(Freqs[j].Val)); }
+        else { fprintf(F, "%d", TFlt::Round(Freqs[j].Val)); }
       }
       fprintf(F, "], \"label\": \"%s\"}", Times[i].GetYmdTmStr().CStr());
-      if (i < Times.Len() - 1) { fprintf(F, ","); }
+      if (i < NumTimesToPrint - 1) { fprintf(F, ","); }
     }
     fprintf(F, "], \"label\": [");
     for (int i = 0; i < NumQuotesToDisplay; i++) {
