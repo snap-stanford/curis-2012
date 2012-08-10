@@ -88,7 +88,7 @@ void Peaks::GetPeaksEquationFunction(TFreqTripleV& FreqV, TFltV& FreqFltV) {
  * BucketSize = number of hours that will be lumped together
  * SlidingWindowSize = number of hours that a sliding window will occur.
  */
-void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime) {
+void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, TInt NumDays) {
   // Sort the given document sources by time (ascending).
   TIntV SourcesSorted(Sources);
   SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
@@ -104,10 +104,10 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& 
     // Round PresentTimeI up to the nearest 12am (if it's already at 12am, round to the **next** one)
     PresentTimeI = TUInt(uint(PresentTimeI / NumSecondsInDay + 1) * NumSecondsInDay);
 
-    HourStart = -1 * NumHoursInDay * NumDaysToGraph;
+    HourStart = -1 * NumHoursInDay * NumDays;
 
-    // Start time at 12am NumDaysToGraph before
-    StartTime = PresentTimeI - (NumDaysToGraph * NumSecondsInDay);
+    // Start time at 12am NumDays before
+    StartTime = PresentTimeI - (NumDays * NumSecondsInDay);
     
   } else {
     // Start time at first doc

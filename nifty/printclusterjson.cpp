@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include <stdio.h>
 
-const int MaxNumQuotesToDisplay = 50;
+const int MaxNumQuotesToDisplay = 20;
 
 int main(int argc, char *argv[]) {
   // Parse Arguments
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 
     // Get top filtered clusters
     TIntV TopClusters;
-    PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopClusters, CurrentDate);
+    CB.GetTopClusterIdsByFreq(TopClusters);
 
     int NumQuotesToDisplay = MaxNumQuotesToDisplay;
     if (TopClusters.Len() < MaxNumQuotesToDisplay) { NumQuotesToDisplay = TopClusters.Len(); }
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
       TIntV CSources;
       TCluster::GetUniqueSources(CSources, CQuoteIds, &QB);
       TFreqTripleV CFreqV;
-      Peaks::GetFrequencyVector(&DB, CSources, CFreqV, 24, 1, CurrentDate);
+      Peaks::GetFrequencyVector(&DB, CSources, CFreqV, 12, 1, CurrentDate);
 
       if (FreqOverTime.Len() == 0) {  // Initialize the values in the hash table
         for (int j = 0; j < CFreqV.Len(); j++) {
