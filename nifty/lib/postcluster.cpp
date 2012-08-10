@@ -9,8 +9,8 @@ const int PostCluster::PeakThreshold = 5;
 const int PostCluster::DayThreshold = 3;
 const int PostCluster::QuoteThreshold = 20;
 
-void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm& PresentTime) {
-  RemoveOldClusters(QB, DB, CB, Log, PresentTime);
+void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm& PresentTime, PNGraph& QGraph) {
+  RemoveOldClusters(QB, DB, CB, Log, PresentTime, QGraph);
   CB->GetTopClusterIdsByFreq(TopFilteredClusters);
   //MergeAllClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
   //MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
@@ -299,7 +299,7 @@ void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClus
 }
 
 /// Remove clusters whose quotes have fewer than QuoteThreshold sources (total) for the last three days
-void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, LogOutput& Log, TSecTm& PresentTime) {
+void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, LogOutput& Log, TSecTm& PresentTime, PNGraph& QGraph) {
   fprintf(stderr, "Removing old clusters from the CB...\n");
   TIntV AllClusterIds;
   CB->GetAllClusterIds(AllClusterIds);
@@ -353,6 +353,7 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
         QB->GetRepresentativeUrl(DB, ClusterQuoteIds[j], RepURL);
         fprintf(F2, "\t%d\t%s\t%s\n", Q.GetNumSources().Val, RepStr.CStr(), RepURL.CStr());
         QB->RemoveQuote(ClusterQuoteIds[j]);
+        QGraph->DelNode(ClusterQuoteIds[j]);
       }
       CB->RemoveCluster(AllClusterIds[i]);
     }

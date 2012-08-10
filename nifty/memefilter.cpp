@@ -117,6 +117,8 @@ int main(int argc, char *argv[]) {
     return 0;
   }
   TStr Date = argv[1];
+  TStr MonDir = Date.GetSubStr(0, 6);
+
   printf("Loading data from Spinn3r dataset to QuoteBase...\n");
 
   TQuoteBase TmpQB;
@@ -132,7 +134,7 @@ int main(int argc, char *argv[]) {
   TDataLoader Memes;
   for (int j = 0; j < 24; j++) {
     TStr CurFile = "web-" + Date + TStr::Fmt("T%02d-00-00Z.rar", j);
-    if(!Memes.LoadFile("/lfs/1/tmp/curis/spinn3r/new/", CurFile)) {continue;}
+    if(!Memes.LoadFile("/lfs/1/tmp/curis/spinn3r/" + MonDir + "/", CurFile)) {continue;}
     while (Memes.LoadNextEntry()) {
       if (IsUrlInBlackList(Memes.PostUrlStr)) { NSkipBlackList++;continue; }
       TMd5Sig UrlSig = TMd5Sig(Memes.PostUrlStr);

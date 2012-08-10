@@ -6,6 +6,7 @@
 class QuoteGraph {
 public:
   QuoteGraph();
+  virtual ~QuoteGraph();
   QuoteGraph(TQuoteBase *QB);
   void CreateGraph(PNGraph& QGraph);
   static TInt WordLevenshteinDistance(TStrV& Content1, TStrV& Content2);

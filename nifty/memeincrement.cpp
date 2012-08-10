@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
 
   // #### GET TOP FILTERED CLUSTERS FROM PREVIOUS DAY WHYY
   TIntV OldTopClusters;
-  PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, OldTopClusters, OldDate);
+  PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, OldTopClusters, OldDate, OldQGraph);
 
   // #### MAIN CLUSTERING STEP.
   TSecTm CurrentDate = StartDate;
@@ -52,6 +52,8 @@ int main(int argc, char *argv[]) {
     TDataLoader::LoadQBDB(QBDB_DIRECTORY, CurrentDate.GetDtYmdStr(), NewQB, NewDB);
     fprintf(stderr, "Done loading new QBDB!\n");
 
+    int OldGraphSize = OldQGraph->GetNodes();
+
     // ## MERGE AND GET NEW QUOTES
     TIntSet NewQuotes(TDataLoader::MergeQBDB(QB, DB, NewQB, NewDB));
 
@@ -61,6 +63,7 @@ int main(int argc, char *argv[]) {
     GraphCreator.UpdateGraph(QGraph);
     TIntSet AffectedNodes;
     GraphCreator.GetAffectedNodes(AffectedNodes);
+
     TIncrementalClustering ClusterJob(&QB, NewQuotes, QGraph, AffectedNodes);
     TClusterBase NewCB(CB.GetCounter());
     ClusterJob.BuildClusters(&NewCB, &QB, &DB, Log, CurrentDate, &CB);
@@ -70,7 +73,7 @@ int main(int argc, char *argv[]) {
 
     // ## POSTCLUSTERING STEP AND OUTPUT?
     TIntV TopFilteredClusters;
-    PostCluster::GetTopFilteredClusters(&NewCB, &DB, &QB, Log, TopFilteredClusters, CurrentDate);
+    PostCluster::GetTopFilteredClusters(&NewCB, &DB, &QB, Log, TopFilteredClusters, CurrentDate, QGraph);
     
     Log.OutputClusterInformation(&DB, &QB, &NewCB, TopFilteredClusters, CurrentDate, OldTopClusters);
     Log.WriteClusteringOutputToFile(CurrentDate);

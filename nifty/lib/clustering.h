@@ -16,6 +16,7 @@ protected:
 
 public:
   Clustering(PNGraph QGraph);
+  virtual ~Clustering();
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   void GetRootNodes(TIntSet& RootNodes);

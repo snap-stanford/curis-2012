@@ -4,7 +4,9 @@
 #include "lsh.h"
 
 QuoteGraph::QuoteGraph() {
+}
 
+QuoteGraph::~QuoteGraph() {
 }
 
 QuoteGraph::QuoteGraph(TQuoteBase *QB) {

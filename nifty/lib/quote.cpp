@@ -213,7 +213,9 @@ bool TQuoteBase::IsContainNullQuote() {
   for (int i = 0; i < QuoteIds.Len(); i++) {
     TQuote Q;
     GetQuote(QuoteIds[i], Q);
-    if (Q.GetNumSources() == 0) {
+    TStrV Content;
+    Q.GetContent(Content);
+    if (Q.GetNumSources() == 0 || Content.Len() == 0) {
       return true;
     }
   }

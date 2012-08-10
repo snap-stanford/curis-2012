@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 int main(int argc, char *argv[]) {
-  TQuoteBase QB;
+  /*TQuoteBase QB;
   TDocBase DB;
   TClusterBase CB;
   LogOutput Log;
@@ -40,5 +40,5 @@ int main(int argc, char *argv[]) {
   Plotter.PlotQuoteFrequencies(&QB);
 
   printf("Done!\n");
-  return 0;
+  return 0;*/
 }

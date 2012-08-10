@@ -63,7 +63,7 @@ public:
   TClusterBase(TInt OldCounter);
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
-  TInt AddCluster(TCluster& Cluster, TClusterBase  *OldCB);
+  TInt AddCluster(TCluster& Cluster, TClusterBase  *OldCB, TSecTm& PresentTime);
   bool AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterId);
   void RemoveCluster(TInt ClusterId);
 
@@ -76,6 +76,7 @@ public:
   int Len();
   void MergeCluster2Into1(TInt Id1, TInt Id2, TQuoteBase *QB, bool KeepOneRepId);
   TInt GetCounter();
+  TStr ContainsEmptyClusters();
 };
 
 // Compares TClusters by sum of quote frequencies
