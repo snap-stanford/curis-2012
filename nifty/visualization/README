@@ -1,0 +1,22 @@
+***Important***
+
+These files must be in the correct places for visualization to work properly as-is.
+(Feel free to change path names instead, if that's more convenient!)
+The files committed to Github are those that are being frequently changed and added to.
+
+Here are the basic set-up steps:
+
+1) Create the folders ~/public_html/curis/resources/js and ~/public_html/curis/resources/css
+2) To resources/js, add the following:
+   i. 'jit.cc.js' and 'quotes.cc.js' (which can be found in this folder on Github).
+   ii. 'mootools-core-1.4.5.cc.js' and 'mootools-more-1.4.0.1.cc.js'
+       (which can be found at /u/shhuang/public_html/curis/resources/js/)
+3) To resources/css, add 'quotes.css' (which can be found at /u/shhuang/public_html/curis/resources/css/)
+4) Create a folder under ~/public_html/curis/output/clustering/. Feel free to call it anything.
+5) To this new folder, add the HTML page(s) found in this folder on Github.
+6) Also add any JSON files to this folder, or a subfolder - depending on how you want to organize the code.
+
+Things that will likely have to be changed:
+- the output directory that printclusterjson prints to (you can change this in printclusterjson.cpp)
+- the path to the JSON file (outputted by printclusterjson) that quotes.cc.js accesses
+- perhaps the paths in the HTML pages that link to the .js and .css files, depending on your directory structure
