@@ -52,24 +52,10 @@ int main(int argc, char *argv[]) {
     TDataLoader::LoadQBDB(QBDB_DIRECTORY, CurrentDate.GetDtYmdStr(), NewQB, NewDB);
     fprintf(stderr, "Done loading new QBDB!\n");
 
-    TIntV Affected;
-    int OldCount = 0;
-    //QB.GetAllQuoteIds(Affected);
-    OldQGraph->GetNIdV(Affected);
-    for (int i = 0; i < Affected.Len(); i++) {
-      TQuote Quote;
-      QB.GetQuote(Affected[i], Quote);
-      if (Quote.GetNumSources() < 1) {
-        OldCount++;
-      }
-    }
-    Affected.Clr();
     int OldGraphSize = OldQGraph->GetNodes();
-    Err("OLD QB SIZE: %d\n", QB.Len());
 
     // ## MERGE AND GET NEW QUOTES
     TIntSet NewQuotes(TDataLoader::MergeQBDB(QB, DB, NewQB, NewDB));
-    Err("NEW QB SIZE: %d\n", QB.Len());
 
     // ## CLUSTERING STEP
     IncrementalQuoteGraph GraphCreator(&QB, NewQuotes, OldQGraph);
@@ -78,36 +64,16 @@ int main(int argc, char *argv[]) {
     TIntSet AffectedNodes;
     GraphCreator.GetAffectedNodes(AffectedNodes);
 
-    int Count = 0;
-    QGraph->GetNIdV(Affected);
-    for (int i = 0; i < Affected.Len(); i++) {
-      TQuote Quote;
-      QB.GetQuote(Affected[i], Quote);
-      if (Quote.GetNumSources() < 1) {
-        Count++;
-      }
-    }
-
-    Affected.Clr();
-
-    Err("Old Size: %d\t New Size: %d\n", OldGraphSize, QGraph->GetNodes());
-    Err("HEATHCLIFF ITS ME YOUR KATHYYY NEW: %d\n", Count);
-    Err("HEATHCLIFF ITS ME YOUR KATHYYY: %d\n", OldCount);
-
     TIncrementalClustering ClusterJob(&QB, NewQuotes, QGraph, AffectedNodes);
     TClusterBase NewCB(CB.GetCounter());
-    Err("OLD: %s\n", CB.ContainsEmptyClusters().CStr());
     ClusterJob.BuildClusters(&NewCB, &QB, &DB, Log, CurrentDate, &CB);
-    Err("%s\n", NewCB.ContainsEmptyClusters().CStr());
     fprintf(stderr, "Done building clusters!\n");
     TIntV SortedClusters;
     NewCB.GetAllClusterIdsSortByFreq(SortedClusters);
-    Err("%s\n", NewCB.ContainsEmptyClusters().CStr());
 
     // ## POSTCLUSTERING STEP AND OUTPUT?
     TIntV TopFilteredClusters;
     PostCluster::GetTopFilteredClusters(&NewCB, &DB, &QB, Log, TopFilteredClusters, CurrentDate, QGraph);
-    Err("%s\n", NewCB.ContainsEmptyClusters().CStr());
     
     Log.OutputClusterInformation(&DB, &QB, &NewCB, TopFilteredClusters, CurrentDate, OldTopClusters);
     Log.WriteClusteringOutputToFile(CurrentDate);
