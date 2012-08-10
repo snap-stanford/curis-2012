@@ -24,6 +24,7 @@ public:
   TInt GetId() const;
   TInt GetNumQuotes() const;
   void GetUrl(TStr &Ref);
+  void GetDomainName(TStr &DomainName);
   TSecTm GetDate() const;
   void GetContent(TStr &Ref);
   void GetLinks(TStrV &RefL);
