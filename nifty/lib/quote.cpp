@@ -86,9 +86,9 @@ TInt TQuote::GetNumDomains(TDocBase &DocBase) {
   for (int u = 0; u < Sources.Len(); u++) {
     TDoc Doc;
     if(DocBase.GetDoc(Sources[u], Doc)) {
-      TStr DocUrl;
-      Doc.GetUrl(DocUrl);
-      DomSet.AddKey(TStrUtil::GetDomNm(DocUrl));
+      TStr DomainName;
+      Doc.GetDomainName(DomainName);
+      DomSet.AddKey(DomainName);
     }
   }
   return DomSet.Len();
