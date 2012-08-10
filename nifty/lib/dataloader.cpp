@@ -195,7 +195,7 @@ TSecTm TDataLoader::LoadBulkQBDB(const TStr &Prefix, const TStr &InFileName, TQu
     MergeQBDB(QB, DB, TmpQB, TmpDB);
     CurrentDate = Date;
   }
-  return TSecTm::GetDtTmFromYmdHmsStr(CurrentDate + " 00:00:00");
+  return TSecTm::GetDtTmFromYmdHmsStr(CurrentDate);
 }
 
 TSecTm TDataLoader::LoadQBDBByWindow(const TStr& Prefix, const TStr& StartDate, const TInt WindowSize, TQuoteBase& QB, TDocBase& DB) {
