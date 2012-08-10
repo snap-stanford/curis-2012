@@ -34,6 +34,12 @@ int main(int argc, char *argv[]) {
   Clustering ClusterJob(QGraph);
   ClusterJob.BuildClusters(&CB, &QB, &DB, Log, PresentTime);
 
+  // #### POST CLUSTERING STEP YO
+  Log.SetupNewOutputDirectory(); // safe to make files now.
+  TIntV TopFilteredClusters;
+  //CB.GetAllClusterIdsSortByFreq(TopFilteredClusters);
+  PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, PresentTime, QGraph);
+
   // #### SAVE THE DOLPHINS! I MEAN CLUSTERS
   TStr FileName = TStr(QBDBC_DIRECTORY) + "QBDBC" + PresentTime.GetDtYmdStr() + ".bin";
   fprintf(stderr, "Saving Cluster information to file: %s", FileName.CStr());
@@ -42,12 +48,6 @@ int main(int argc, char *argv[]) {
   DB.Save(FOut);
   CB.Save(FOut);
   QGraph->Save(FOut);
-
-  // #### POST CLUSTERING STEP YO
-  Log.SetupNewOutputDirectory(); // safe to make files now.
-  TIntV TopFilteredClusters;
-  //CB.GetAllClusterIdsSortByFreq(TopFilteredClusters);
-  PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, PresentTime);
 
   // TODO: consider if quote is dead?
   Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime);

@@ -230,8 +230,9 @@ void TClusterBase::Load(TSIn& SIn) {
   QuoteIdToClusterId.Load(SIn);
 }
 
-TInt TClusterBase::AddCluster(TCluster &Cluster, TClusterBase *OldCB) {
+TInt TClusterBase::AddCluster(TCluster &Cluster, TClusterBase *OldCB, TSecTm& PresentTime) {
   // setup to determine cluster id number
+  Cluster.SetBirthDate(PresentTime);
   TIntV QuoteIds;
   Cluster.GetQuoteIds(QuoteIds);
   TInt CurCounter = -1;
@@ -244,6 +245,12 @@ TInt TClusterBase::AddCluster(TCluster &Cluster, TClusterBase *OldCB) {
   if (CurCounter < 0) {
     CurCounter = ClusterIdCounter;
     ClusterIdCounter++;
+  } else {
+    TCluster OldCluster;
+    OldCB->GetCluster(CurCounter, OldCluster);
+    TSecTm TrueBirthDate;
+    OldCluster.GetBirthDate(TrueBirthDate);
+    Cluster.SetBirthDate(TrueBirthDate);
   }
 
   // set cluster counter to quoteidtoclusterid mapping
@@ -370,4 +377,18 @@ void TClusterBase::MergeCluster2Into1(TInt Id1, TInt Id2, TQuoteBase *QB, bool K
     Cluster1.SetRepresentativeQuoteIds(RepQuoteIds1);
     IdToTCluster.AddDat(Id1, Cluster1);
   }
+}
+
+TStr TClusterBase::ContainsEmptyClusters() {
+  TIntV AllClusters;
+  IdToTCluster.GetKeyV(AllClusters);
+  TInt NumClusters = AllClusters.Len();
+  for (int i = 0; i < NumClusters; ++i) {
+    TCluster CurCluster;
+    IdToTCluster.IsKeyGetDat(AllClusters[i], CurCluster);
+    if (CurCluster.GetNumQuotes() < 1) {
+      return "EMPTY CLUSTERS";
+    }
+  }
+  return "safe!";
 }
