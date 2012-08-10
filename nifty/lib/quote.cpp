@@ -510,10 +510,16 @@ bool TQuoteBase::IsUrlTopNewsSource(TStr Url) {
 void TQuoteBase::GetRepresentativeUrl(TDocBase *DocBase, TInt QuoteId, TStr& RepUrl) {
   TQuote Q;
   if (!IdToTQuotes.IsKeyGetDat(QuoteId, Q)) { return; }
+  TStr QContentStr;
+  Q.GetContentString(QContentStr);
 
   // Sort the sources by time (ascending)
   TIntV SourcesSorted;
   Q.GetSources(SourcesSorted);
+  if (SourcesSorted.Len() == 0) {
+    fprintf(stderr, "Warning: Quote \"%s\" has 0 sources\n", QContentStr.CStr());
+    return;
+  }
   SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
 
   // Pick the first url with the domain in the whitelist
