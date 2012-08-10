@@ -14,6 +14,7 @@ private:
 
 public:
   TIncrementalClustering(TQuoteBase *QB, TIntSet& NewQuotes, PNGraph QGraph, TIntSet& AffectedNodes);
+  virtual ~TIncrementalClustering();
   void KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase *DB);
   static void RemoveOldClusters(TVec<TIntV>& NewMergedClusters, TVec<TIntV>& MergedClusters,
                                 TQuoteBase& QB, TDocBase& DB, TSecTm PresentTime);

@@ -11,6 +11,9 @@ TIncrementalClustering::TIncrementalClustering(TQuoteBase *QB, TIntSet& NewQuote
   this->AffectedNodes = AffectedNodes;
 }
 
+TIncrementalClustering::~TIncrementalClustering() {
+}
+
 void TIncrementalClustering::KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase *DB) {
   TIntSet::TIter EndNode = AffectedNodes.EndI();
   for (TIntSet::TIter NodeId = AffectedNodes.BegI(); NodeId < EndNode; NodeId++) {

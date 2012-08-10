@@ -175,11 +175,14 @@ void TDocBase::RemoveNullDocs(TQuoteBase *QB) {
     }
   }
 
+  TInt Count = 0;
   TIntV DocIds;
   for (int i = 0; i < DocIds.Len(); i++) {
     if(!ValidDocs.IsKey(DocIds[i])) {
       RemoveDoc(DocIds[i]);
+      Count++;
     }
   }
+  Err("Removed %d documents.\n", Count.Val);
 }
 

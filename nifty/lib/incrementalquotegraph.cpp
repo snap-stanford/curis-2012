@@ -11,6 +11,9 @@ IncrementalQuoteGraph::IncrementalQuoteGraph(TQuoteBase *QB, TIntSet& NewQuotes,
   EdgeCount = 0;
 }
 
+IncrementalQuoteGraph::~IncrementalQuoteGraph() {
+}
+
 void IncrementalQuoteGraph::UpdateGraph(PNGraph& QGraph) {
   AddNodes();
   CreateEdges();

@@ -7,6 +7,9 @@ Clustering::Clustering(PNGraph QGraph) {
   this->QGraph = QGraph;
 }
 
+Clustering::~Clustering() {
+}
+
 void Clustering::Save(TSOut &SOut) const {
   //QuoteIdCounter.Save(SOut);
   //IdToTQuotes.Save(SOut);
@@ -103,8 +106,7 @@ void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, L
     TIntV ClusterRepQuoteIds;
     ClusterRepQuoteIds.Add(ClusterRepQuote.GetId());
     Cluster.SetRepresentativeQuoteIds(ClusterRepQuoteIds);
-    Cluster.SetBirthDate(PresentTime);
-    CB->AddCluster(Cluster, OldCB);
+    CB->AddCluster(Cluster, OldCB, PresentTime);
   }
   fprintf(stderr, "cluster generation complete!\n");
 }

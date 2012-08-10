@@ -278,6 +278,14 @@ bool TClusterBase::AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterI
 //  doesn't update the quote id to cluster id mappings
 void TClusterBase::RemoveCluster(TInt ClusterId) {
   if (IdToTCluster.IsKey(ClusterId)) {
+    TCluster C = IdToTCluster.GetDat(ClusterId);
+    TIntV QuoteIds;
+    C.GetQuoteIds(QuoteIds);
+    for (int i = 0; i < QuoteIds.Len(); ++i) {
+      if (QuoteIdToClusterId.IsKey(QuoteIds[i])) {
+        QuoteIdToClusterId.DelKey(QuoteIds[i]);
+      }
+    }
     IdToTCluster.DelKey(ClusterId);
   }
 }
