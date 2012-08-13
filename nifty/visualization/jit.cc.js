@@ -4595,7 +4595,11 @@
                 ctx.fillStyle = ctx.strokeStyle = "black";
                 //alert(j);
                 var key = filters[i].trim();
-                ctx.fillText(quotes[key], pos[0], pos[1])
+                var quoteWords = quotes[key].split(" ");
+                var shortenedQuote = quoteWords[0] + " " + quoteWords[1] + " " + quoteWords[2];
+                if (quoteWords.length > 3) { shortenedQuote += "..."; }
+                ctx.fillStyle = "#5C5858";
+                ctx.fillText(shortenedQuote, pos[0], pos[1])
             }
         },
         select: function (a, c, b) {
