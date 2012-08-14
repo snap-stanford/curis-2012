@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
     TIntSet NewQuotes(TDataLoader::MergeQBDB(QB, DB, NewQB, NewDB));
 
     // ## CLUSTERING STEP
-    IncrementalQuoteGraph GraphCreator(&QB, NewQuotes, OldQGraph);
+    IncrementalQuoteGraph GraphCreator(&QB, &CB, NewQuotes, OldQGraph);
     PNGraph QGraph;
     GraphCreator.UpdateGraph(QGraph);
     TIntSet AffectedNodes;

@@ -44,7 +44,7 @@ void LSH::ElCheapoHashing(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig,
 
 /// For every quote, add it to corresponding bucket for each hashed x-character shingle of the quote
 // (Shingles by characters)
-void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TShingleIdSet>& ShingleToQuoteIds) {
+void LSH::HashShingles(TQuoteBase *QuoteBase, TClusterBase *CB, TInt ShingleLen, THash<TMd5Sig, TShingleIdSet>& ShingleToQuoteIds) {
   fprintf(stderr, "Hashing shingles...\n");
   TIntV QuoteIds;
   QuoteBase->GetAllQuoteIds(QuoteIds);
@@ -52,6 +52,8 @@ void LSH::HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig, TS
     if (qt % 1000 == 0) {
       fprintf(stderr, "%d out of %d completed\n", qt, QuoteIds.Len());
     }
+
+    if (CB->IsQuoteInArchivedCluster(QuoteIds[qt])) continue;
     TQuote Q;
     QuoteBase->GetQuote(QuoteIds[qt], Q);
 

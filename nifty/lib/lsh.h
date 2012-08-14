@@ -17,7 +17,7 @@ public:
   static const int ShingleWordLen;
   static const int WordWindow;
 
-  static void HashShingles(TQuoteBase *QuoteBase, TInt ShingleLen, THash<TMd5Sig,
+  static void HashShingles(TQuoteBase *QuoteBase, TClusterBase *CB, TInt ShingleLen, THash<TMd5Sig,
       TShingleIdSet>& ShingleToQuoteIds);
   static void HashShinglesOfClusters(TQuoteBase *QuoteBase, TClusterBase *ClusterBase,
               TIntV& ClusterIds, TInt ShingleLen, THash<TMd5Sig, TIntV>& ShingleToClusterIds);
