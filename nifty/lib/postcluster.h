@@ -25,6 +25,7 @@ public:
   static void MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV& TopClusters, TClusterBase *CB);
   static void MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClusters, TClusterBase *CB);
   static void FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV &TopClusters, TSecTm& PresentTime);
+  static void FilterAndCacheClusterSize(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV& TopClusters, TSecTm& PresentTime);
   static void RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, LogOutput& Log, TSecTm& PresentTime, PNGraph& QGraph);
 };
 

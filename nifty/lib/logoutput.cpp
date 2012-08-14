@@ -250,6 +250,19 @@ void LogOutput::OutputDiscardedClusters(TQuoteBase *QB, TVec<TPair<TCluster, TIn
   fclose(D);
 }
 
+void LogOutput::OutputDiscardedClustersBySize(TQuoteBase *QB, TVec<TCluster>& DiscardedClusters, TSecTm& Date) {
+  TStr DiscardedFileName = WebDirectory + TimeStamp + "/discarded_clusters_by_size_" + Date.GetDtYmdStr() + ".txt";
+  FILE *D = fopen(DiscardedFileName.CStr(), "w");
+
+  for (int i = 0; i < DiscardedClusters.Len(); ++i) {
+    TStr RepQuoteStr;
+    DiscardedClusters[i].GetRepresentativeQuoteString(RepQuoteStr, QB);
+    fprintf(D, "%d\t%s\n", DiscardedClusters[i].GetNumQuotes().Val, RepQuoteStr.CStr()); // TODO: Add num clusters somehow
+  }
+
+  fclose(D);
+}
+
 void LogOutput::SetupQBDBCBSizeFile() {
   TStr QBDBCB = WebDirectory + TimeStamp + "/QBDBCB_info.txt";
   QBDBCBSizeFile = fopen(QBDBCB.CStr(), "w");

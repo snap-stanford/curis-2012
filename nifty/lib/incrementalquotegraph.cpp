@@ -3,8 +3,9 @@
 #include "quote.h"
 #include "lsh.h"
 
-IncrementalQuoteGraph::IncrementalQuoteGraph(TQuoteBase *QB, TIntSet& NewQuotes, PNGraph& ExistingGraph) {
+IncrementalQuoteGraph::IncrementalQuoteGraph(TQuoteBase *QB, TClusterBase *CB, TIntSet& NewQuotes, PNGraph& ExistingGraph) {
   this->QB = QB;
+  this->CB = CB;
   fprintf(stderr, "QG creater Merged Quote Counter: %d\n", this->QB->GetCurCounterValue().Val);
   this->NewQuotes = NewQuotes;
   QGraph = ExistingGraph;

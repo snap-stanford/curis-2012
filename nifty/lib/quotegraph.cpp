@@ -9,8 +9,9 @@ QuoteGraph::QuoteGraph() {
 QuoteGraph::~QuoteGraph() {
 }
 
-QuoteGraph::QuoteGraph(TQuoteBase *QB) {
+QuoteGraph::QuoteGraph(TQuoteBase *QB, TClusterBase *CB) {
   this->QB = QB;
+  this->CB = CB;
   EdgeCount = 0;
 }
 
@@ -32,7 +33,7 @@ void QuoteGraph::CreateNodes() {
 
 void QuoteGraph::CreateEdges() {
   THash<TMd5Sig, TShingleIdSet> Shingles;
-  LSH::HashShingles(QB, LSH::ShingleLen, Shingles);
+  LSH::HashShingles(QB, CB, LSH::ShingleLen, Shingles);
   TVec<THash<TIntV, TIntSet> > BucketsVector;
   LSH::MinHash(Shingles, BucketsVector);
 

@@ -15,6 +15,7 @@ void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteB
   //MergeAllClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
   //MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
   //MergeClustersWithCommonSources(QB, TopFilteredClusters, CB);
+  FilterAndCacheClusterSize(DB, QB, CB, Log, TopFilteredClusters, PresentTime);
   FilterAndCacheClusterPeaks(DB, QB, CB, Log, TopFilteredClusters, PresentTime);
   fprintf(stderr, "Number of top clusters: %d\n", TopFilteredClusters.Len());
 
@@ -298,6 +299,43 @@ void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClus
   fprintf(stderr, "Done!\n");
 }
 
+void PostCluster::FilterAndCacheClusterSize(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV& TopClusters, TSecTm& PresentTime) {
+  Err("Filtering clusters that only have one cluster variant if they are too short...\n");
+  TIntSet DiscardedClusterIds;  // Contains id's of clusters to be discarded
+  TVec<TCluster> DiscardedClusters;
+  for (int i = 0; i < TopClusters.Len(); ++i) {
+    TCluster C;
+    CB->GetCluster(TopClusters[i], C);
+    if (C.GetNumUniqueQuotes() < 2) {
+      TStr RepStr;
+      C.GetRepresentativeQuoteString(RepStr, QB);
+      TStrV Words;
+      RepStr.SplitOnStr(" ", Words);
+      if (Words.Len() < 4) {
+        DiscardedClusterIds.AddKey(TopClusters[i]);
+        DiscardedClusters.Add(C);
+      }
+    }
+  }
+
+  // delete the discarded clusters from the top clusters list.
+  TIntV FilteredTopClusters;
+  for (int i = 0; i < TopClusters.Len(); ++i) {
+    if (!DiscardedClusterIds.IsKey(TopClusters[i])) {
+      FilteredTopClusters.Add(TopClusters[i]);
+    }
+  }
+  fprintf(stderr, "Number of top clusters (1): %d\n", TopClusters.Len());
+  TopClusters = FilteredTopClusters;
+
+  fprintf(stderr, "Logging deleted clusters by size...\n");
+  fprintf(stderr, "Number of top clusters (2): %d\n", TopClusters.Len());
+
+  // log the discarded clusters in a log file.
+  Log.OutputDiscardedClustersBySize(QB, DiscardedClusters, PresentTime);
+  fprintf(stderr, "Done!\n");
+}
+
 /// Remove clusters whose quotes have fewer than QuoteThreshold sources (total) for the last three days
 void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, LogOutput& Log, TSecTm& PresentTime, PNGraph& QGraph) {
   fprintf(stderr, "Removing old clusters from the CB...\n");
@@ -311,6 +349,9 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
   TStr DeleteClustersFile2 = LogOutput::WebDirectory + TimeStamp + "/deleted_clusters_detailed_" + CurDateString + ".txt";
   FILE *F = fopen(DeleteClustersFile.CStr(), "w");
   FILE *F2 = fopen(DeleteClustersFile2.CStr(), "w");
+
+  TInt NumArchived = 0;
+  TInt TotalRemainingQuotes = 0;
 
   for (int i = 0; i < AllClusterIds.Len(); i++) {
     TCluster C;
@@ -356,8 +397,34 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
         QGraph->DelNode(ClusterQuoteIds[j]);
       }
       CB->RemoveCluster(AllClusterIds[i]);
+    } else {
+      TotalRemainingQuotes++;
+      // peak detection
+      TFlt MaxSources = -1;
+      TFreqTripleV PeakTimesV, FreqV;
+      C.GetPeaks(DB, QB, PeakTimesV, FreqV, 2, 1, PresentTime);
+      for (int i = 0; i < PeakTimesV.Len(); i++) {
+        if (PeakTimesV[i].Val2 > MaxSources) {
+          MaxSources = PeakTimesV[i].Val2;
+        }
+      }
+      TFlt AvgFreq = 0;
+      TInt Count = 0;
+      int stop = FreqV.Len() - 12;
+      for (int i = FreqV.Len() - 1; i >= stop && i >= 0; --i) {
+        AvgFreq += FreqV[i].Val2;
+        Count++;
+      }
+
+      // TODO: generalize and optimize! this is crappy code
+      if (AvgFreq * 5 / Count < MaxSources) {
+        C.Archive(); // won't be included.
+        NumArchived++;
+      }
     }
   }
+
+  Err("Number of clusters archived: %d out of %d\n", NumArchived.Val, TotalRemainingQuotes.Val);
   fclose(F);
   fclose(F2);
 

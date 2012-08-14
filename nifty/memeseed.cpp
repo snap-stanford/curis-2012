@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
   // #### CLUSTERING STEP
   fprintf(stderr, "Creating clusters\n");
   TClusterBase CB;
-  QuoteGraph GraphCreator(&QB);
+  QuoteGraph GraphCreator(&QB, &CB);
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
   Clustering ClusterJob(QGraph);

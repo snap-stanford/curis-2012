@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
   // create clusters and save!
   fprintf(stderr, "Creating clusters\n");
   TClusterBase CB;
-  QuoteGraph GraphCreator(&QB);
+  QuoteGraph GraphCreator(&QB, &CB);
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
   Clustering ClusterJob(QGraph);
