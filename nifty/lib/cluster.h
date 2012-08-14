@@ -14,13 +14,16 @@ private:
   TFreqTripleV PeakTimesV;
   TFreqTripleV FreqV;
   TSecTm BirthDate;
+  TBool Archived;
 
 public:
   TCluster();
   TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB, TSecTm BirthDate);
-  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), PeakTimesV(SIn), FreqV(SIn), BirthDate(SIn) { }
+  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), PeakTimesV(SIn), FreqV(SIn), BirthDate(SIn) , Archived(SIn) { }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
+  void Archive();
+  bool IsArchived();
   void SetBirthDate(TSecTm& BirthDate);
   void GetBirthDate(TSecTm& BirthDate);
   void GetRepresentativeQuoteIds(TIntV& RepQuoteIds) const;
@@ -77,6 +80,7 @@ public:
   void MergeCluster2Into1(TInt Id1, TInt Id2, TQuoteBase *QB, bool KeepOneRepId);
   TInt GetCounter();
   TStr ContainsEmptyClusters();
+  bool IsQuoteInArchivedCluster(TInt& QuoteId);
 };
 
 // Compares TClusters by sum of quote frequencies

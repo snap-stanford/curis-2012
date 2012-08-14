@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include "../../snap/snap-core/Snap.h"
-#include "../nifty/niftylib.h"
+#include "../nifty/lib/niftylib.h"
+
+#define Err(format, args...) fprintf(stderr, format, ## args)
 
 #endif
