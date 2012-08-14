@@ -1,250 +1,80 @@
+var JSONFilePrefix = "data/clusterinfo-";
 var Quotes = {};
 var Colors = {};
 var Ranking = [];
-var TeamData = {};
 
 // Colors are from kuler.adobe.com; "Hey Mr. Grey Rainbow" by stephenmweathers
 var SetColors = ["#CC5C54", "#F69162", "#FFFFCD", "#85A562", "#7AB5DB"];
+// "Fairgrounds"
+//var SetColors = ["#FFF6C9", "#C8E8C7", "#A4DEAB", "#85CC9F", "#499E8D"];
+var StartDate = new Date(2012, 6, 1, 0, 0, 0, 0); // Note that month is zero-based
+var CurrDate;
+var a;
 
-function init() {
-    function v(a) {
-        0 === i && (i = 1 + a, n = this, r(a))
-    }
-    function j(a) {
-        j.show = a;
-        u.style.display = a ? "" : "none";
-        c.style.display = a ? "" : "none";
-        w[a ? "addClass" : "removeClass"]("filtered");
-        a && (c.style.top = (window.getHeight() - c.offsetHeight) / 2 + "px", c.style.left = (window.getWidth() - c.offsetWidth) / 2 + "px")
-    }
-    function x(a, c, h) {
-        var b = $("goals"),
-            g = 0,
-            f = 0,
-            d;
-        b || (b = window.G_vmlCanvasManager ? G_vmlCanvasManager.initElement(document.body.appendChild(document.createElement("canvas"))) : document.createElement("canvas"), b.id = "goals",
-        setTimeout(function () {
-            $("goals-canvas-wrapper").appendChild(b)
-        }, 10));
-        b.width = 900;
-        b.height = 300;
-        d = b.getContext("2d");
-        d.clearRect(0, 0, 900, 300);
-        d.font = "bold 12px 'Helvetica Neue'";
-        d.fillStyle = d.strokeStyle = "#555";
-        h.each(function (e) {
-            var b = (e.minute < 48 ? e.minute + (e.offset || 0) : e.minute + (e.offset || 0) + 17) / 120 * 900;
-            d.beginPath();
-            if (e.country == a) {
-                d.moveTo(b, 150);
-                d.lineTo(b, 0);
-                g++
-            } else {
-                d.moveTo(b, 150);
-                d.lineTo(b, 300);
-                f++
-            }
-            d.stroke();
-            d.closePath();
-            e.country == a ? d.fillText("'" + e.minute + " " + e.player, b + 5, 12 * g) : d.fillText("'" + e.minute + " " + e.player, b + 5, 300 - 12 * (f - 1))
-        })
-    }
-    function r(a) {
-        alert(a.name);
-        /*var l = n.id,
-            h = TeamData[l].matches[a],
-            b = h.result,
-            g = h.against,
-            f = $(l + "_name"),
-            d = $(g + "_name"),
-            e = c.getElement(".team1.name"),
-            k = c.getElement(".team2.name"),
-            a = n.getElements(".match")[a],
-            o = [f.innerHTML, d.innerHTML];
-        e.innerHTML = b[0] + " - " + o[0];
-        k.innerHTML = b[1] + " - " + o[1];*/
-        (new Request.JSON({
-            url: "data/matches/" + "2012-06-10_ES_IT" + ".json",
-            method: "get",
-            onSuccess: function (a) {
-                alert(a);
-                var b = {
-                    label: ["One", "Two"],
-                    color: [SetColors[0], SetColors[1]],
-                    values: a
-                }, e = 0,
-                    d = c.getElement(".name-wrapper.team1"),
-                    f = c.getElement(".name-wrapper.team2");
-                d.addEvent("click", function () {
-                    c.chart.filter(b.label[0])
-                });
-                f.addEvent("click", function () {
-                    c.chart.filter(b.label[1])
-                });
-                $$("#main-panel .name-wrapper .color").each(function (a) {
-                    a.style.background = b.color[e++]
-                });
-                if (c.chart) e = 0, c.chart.delegate.graph.eachNode(function (b) {
-                    0 < e && (b.name = a[e - 1].label, b.getData("next") && (a[e] ? b.setData("next", a[e].label) : b.setData("next", !1)));
-                    e++
-                }), c.chart.updateJSON(b);
-                else {
-                    var k = new $jit.AreaChart({
-                        injectInto: "infovis",
-                        width: 900,
-                        height: 300,
-                        animate: !0,
-                        Margin: {
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0
-                        },
-                        Events: {
-                            enable: !0,
-                            onClick: function (a) {
-                                a || k.restore()
-                            }
-                        },
-                        showAggregates: !1,
-                        showLabels: !1,
-                        type: "stacked",
-                        Label: {
-                            type: "Native",
-                            size: 8,
-                            family: "Arial",
-                            color: "black"
-                        },
-                        Tips: {
-                            enable: !0,
-                            onShow: function (a, b) {
-                                var e = +b.value;
-                                1E6 <= e ? e = Math.round(e / 1E5) / 10 + "M" : 1E3 <= e && (e = Math.round(e / 100) / 10 + "K");
-                                a.innerHTML = "<b>" + e + "</b> tweets for <b>" + b.name + "</b>"
-                            }
-                        },
-                        filterOnClick: !1,
-                        restoreOnRightClick: !1
-                    });
-                    k.loadJSON(b);
-                    c.canvas = k.canvas.canvases[0].canvas;
-                    c.chart = k
-                }
-                d = {};
-                d[l] = b.color[0];
-                d[h.against] = b.color[1];
-                x(l, h.against, h.goals, d);
-                j(!0);
-                c.chart.canvas.getPos(!0)
-            }
-        })).send();
-        s()
-    }
-    function s() {
-        var a = n.getElements(".match").length,
-            c = i;
-        c == a ? p.addClass("disabled") : p.removeClass("disabled");
-        1 == c ? q.addClass("disabled") : q.removeClass("disabled");
-        1 <= c ? m.removeClass("hidden") : m.addClass("hidden")
-    }
+// Taken from http://stackoverflow.com/questions/3066586/get-string-in-yyyymmdd-format-from-js-date-object
+Date.prototype.yyyymmdd = function() {
+   var yyyy = this.getFullYear().toString();
+   var mm = (this.getMonth() + 1).toString();  // month is zero-based
+   var dd  = this.getDate().toString();
+   return yyyy + "-" + (mm[1]?mm:"0"+mm[0]) + "-" + (dd[1]?dd:"0"+dd[0]); // padding
+};
 
+Date.prototype.mmddyyyy = function() {
+   var yyyy = this.getFullYear().toString();
+   var mm = (this.getMonth() + 1).toString();  // month is zero-based
+   var dd  = this.getDate().toString();
+   return  (mm[1]?mm:"0"+mm[0]) + "-" + (dd[1]?dd:"0"+dd[0]) + "-" + yyyy; // padding
+};
 
-    var u = $("background"),
-        c = $("main-panel");
-    $$("div.row");
-    $$("div.country-name");
-    var m = $$(".navigation")[0],
-        w = $("container"),
-        q = m.getElement(".previous"),
-        p = m.getElement(".next"),
-        t = m.getElement(".back"),
-        i = 0,
-        n;
-    u.addEvent("click", function (a) {
-        t.fireEvent("click", a)
-    });
-    t.addEvent("click", function () {
-        this.hasClass("disabled") || (j(!1), i = 0)
-    }, !1);
-    q.addEvent("click", function () {
-        !this.hasClass("disabled") && !c.chart.busy && (i--, r(i - 1), s())
-    }, !1);
-    p.addEvent("click", function () {
-        !this.hasClass("disabled") && !c.chart.busy && (i++, r(i - 1), s())
-    }, !1);
-    window.addEvent("resize", function () {
-        j.show && j(!0)
-    });
-    window.addEvent("keyup", function (a) {
-        if (j.show) switch (a.key) {
-        case "right":
-            p.fireEvent("click", a);
-            break;
-        case "left":
-            q.fireEvent("click",
-            a);
-            break;
-        case "esc":
-            t.fireEvent("click", a)
-        }
-    });
-    $$(".row-wrapper > .color").each(function (a) {
-        a.style.background = TeamData[a.getParent().getElement(".country-name").id.split("_")[0]].color
-    });
-    /*(function () {
-        for (var a in TeamData) $(a).innerHTML = TeamData[a].matches.map(function (a, c) {
-            var b = c.date + "_" + a + "_" + c.against,
-                g = c.result,
-                g = g[0] - g[1],
-                g = 0 == g ? "Tie" : 0 < g ? "Win" : "Loss";
-            return "<div id='" + b + "' class='match'><div class='image-match' style='background-image:url(https://euro2012.twitter.com/data/matches/" + b + "/match.png)'></div><div class='against-name'><span class='" + g.toLowerCase() + "'>" + g + "</span> vs. " + $(c.against + "_name").innerHTML + "</div></div>"
-        }.bind(this, a)).join("")
-    })();*/
-    $$(".match").addEvent("click", function () {
-        v.call(this.getParent(), this.getParent().getElements(".match").indexOf(this))
-    });
-    (function () {
-        var a, c = $$(".stream-nav a");
-        $("all-top-quotes").addEvent("click", function (b) {
-            b.stop();
-            a.busy || (c.removeClass("selected"), this.addClass("selected"), a.filter(Ranking, {
-                onComplete: function () {
-                    a.setupLabels()
-                }
-            }))
-        });
-        $("top-20-quotes").addEvent("click",
+// Taken from http://stackoverflow.com/questions/3646914/how-do-i-check-if-file-exists-in-jquery-or-javascript
+function UrlExists(url)
+{
+    var http = new XMLHttpRequest();
+    http.open('HEAD', url, false);
+    http.send();
+    return http.status!=404;
+}
 
-        function (b) {
-            a.busy || (b.stop(), c.removeClass("selected"), this.addClass("selected"), filteredQuotes = Ranking.filter(function (a) {
-                return Ranking.indexOf(a) > -1 && Ranking.indexOf(a) < 20
-            }), a.filter(filteredQuotes, {
-                onComplete: function () {
-                    a.setupLabels()
-                }
-            }))
-        });
-        $("top-10-quotes").addEvent("click", function (b) {
-            a.busy || (b.stop(), c.removeClass("selected"), this.addClass("selected"), filteredQuotes = Ranking.filter(function (a) {
-                return Ranking.indexOf(a) > -1 && Ranking.indexOf(a) < 10
-            }), a.filter(filteredQuotes, {
-                onComplete: function () {
-                    a.setupLabels()
-                }
-            }))
-        });
-        var h = new Fx.Scroll(window, {
-            onComplete: function () {
-                $$(".row-wrapper.selected").removeClass("selected")
-            }
-        });
-        $$(".row-wrapper > a").addEvent("click", function (a) {
-            a.stop();
-            h.toElement($("container"))
-        });
+function graphPrevDay() {
+    CurrDate.setDate(CurrDate.getDate() - 1);
+    var CurrDateStr = CurrDate.yyyymmdd();
+    var NewUrl = JSONFilePrefix + CurrDateStr + ".json";
+    if (UrlExists(NewUrl)) {
+      createGraph(CurrDate);
+    } else {
+      $("currdate-error").innerHTML = "Sorry, there is no quote frequency data available for " + CurrDate.mmddyyyy() + ".";
+      CurrDate.setDate(CurrDate.getDate() + 1);  // restore the previous, working date
+    }
+}
+
+function graphNextDay() {
+    CurrDate.setDate(CurrDate.getDate() + 1);
+    var CurrDateStr = CurrDate.yyyymmdd();
+    var NewUrl = JSONFilePrefix + CurrDateStr + ".json";
+    if (UrlExists(NewUrl)) {
+      createGraph(CurrDate);
+    } else {
+      $("currdate-error").innerHTML = "Sorry, there is no quote frequency data available for " + CurrDate.mmddyyyy() + ".";
+      CurrDate.setDate(CurrDate.getDate() - 1);  // restore the previous, working date
+    }
+}
+
+function createGraph(GraphDate) {
+        // Clear StreamGraph, in case it is not already; and reset the global variables
+        var tmpDiv = new Element('div', {html:'<div id="stream-viz"></div>'});
+        tmpDiv.getFirst().replaces($('stream-viz'));
+        Quotes = {};
+        Colors = {};
+        Ranking = [];
+
+        var GraphDateStr = GraphDate.yyyymmdd();
+        var GraphDateArr = GraphDateStr.split("-");
+        var GraphDateMDY = GraphDateArr[1] + "-" + GraphDateArr[2] + "-" + GraphDateArr[0];
+        $("quote-graph-currdate").innerHTML = "Current Date: " + GraphDate.mmddyyyy();
+        $("currdate-error").innerHTML = "";
         (new Request.JSON({
             //url: "data/match-summary.json",
-            url: "data/clusterinfo-2012-07-07-fix.json",
+            url: JSONFilePrefix + GraphDateStr + ".json",
             method: "get",
             onSuccess: function (b) {
                 var quotes = b.quote;
@@ -256,10 +86,10 @@ function init() {
                 b.color = b.label.map(function (a) {
                     // Hack, since all the colors must be different in order for JIT to determine which
                     // quote graph is being hovered over
-                    var colorStr = SetColors[Ranking.indexOf(a) % 5];
+                    var colorStr = SetColors[Ranking.indexOf(a) % SetColors.length];
                     colorStr = colorStr.slice(1, colorStr.length);
                     var color = parseInt(colorStr, 16);
-                    var offset = Math.floor(Ranking.indexOf(a) / 5);
+                    var offset = Math.floor(Ranking.indexOf(a) / SetColors.length);
                     var newColorStr = (color + offset).toString(16).toUpperCase();
                     Colors[a] = '#000000'.slice(0, -newColorStr.length) + newColorStr;
                     return Colors[a];
@@ -319,7 +149,10 @@ function init() {
                     }
                 };
                 a.config.animate = !0;
-                a.filter(Ranking, {
+                var filteredQuotes = Ranking.filter(function (a) {
+                    return Ranking.indexOf(a) > -1 && Ranking.indexOf(a) < 20
+                });
+                a.filter(filteredQuotes, {
                     onComplete: function () {
                         a.setupLabels()
                     }
@@ -351,6 +184,52 @@ function init() {
                 })
             }
         })).send()
+}
+
+
+function init() {
+    (function () {
+        CurrDate = StartDate;
+        var c = $$(".stream-nav a");
+        /*$("top-20-quotes").addEvent("click", function (b) {
+            b.stop();
+            a.busy || (c.removeClass("selected"), this.addClass("selected"), a.filter(Ranking, {
+                onComplete: function () {
+                    a.setupLabels()
+                }
+            }))
+        });*/
+        $("top-20-quotes").addEvent("click",
+
+        function (b) {
+            a.busy || (b.stop(), c.removeClass("selected"), this.addClass("selected"), filteredQuotes = Ranking.filter(function (a) {
+                return Ranking.indexOf(a) > -1 && Ranking.indexOf(a) < 20
+            }), a.filter(filteredQuotes, {
+                onComplete: function () {
+                    a.setupLabels()
+                }
+            }))
+        });
+        $("top-10-quotes").addEvent("click", function (b) {
+            a.busy || (b.stop(), c.removeClass("selected"), this.addClass("selected"), filteredQuotes = Ranking.filter(function (a) {
+                return Ranking.indexOf(a) > -1 && Ranking.indexOf(a) < 10
+            }), a.filter(filteredQuotes, {
+                onComplete: function () {
+                    a.setupLabels()
+                }
+            }))
+        });
+        var h = new Fx.Scroll(window, {
+            onComplete: function () {
+                $$(".row-wrapper.selected").removeClass("selected")
+            }
+        });
+        $$(".row-wrapper > a").addEvent("click", function (a) {
+            a.stop();
+            h.toElement($("container"))
+        });
+
+        createGraph(StartDate);
     })()
 }
 window.addEvent("domready", init);

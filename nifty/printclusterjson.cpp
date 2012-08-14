@@ -15,22 +15,9 @@ int main(int argc, char *argv[]) {
 
   TStr StartString;
   if (!Arguments.IsKeyGetDat("start", StartString)) {
-    StartString = "2012-07-07";
+    StartString = "2012-06-30";
   }
   TStr EndString = "2012-07-08";
-
-  /*TStr StartString, EndString, OutputDirectory;
-  if (!Arguments.IsKeyGetDat("start", StartString)) {
-    StartString = "2012-07-01";
-  }
-  if (!Arguments.IsKeyGetDat("end", EndString)) {
-    EndString = "2012-07-08";
-  }
-  if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
-    Log.SetupNewOutputDirectory();
-  } else {
-    Log.SetDirectory(OutputDirectory);
-  }*/
 
   TSecTm StartDate = TSecTm::GetDtTmFromYmdHmsStr(StartString);
   TSecTm EndDate = TSecTm::GetDtTmFromYmdHmsStr(EndString);
@@ -48,7 +35,8 @@ int main(int argc, char *argv[]) {
 
     // Get top filtered clusters
     TIntV TopClusters;
-    CB.GetTopClusterIdsByFreq(TopClusters);
+    //CB.GetTopClusterIdsByFreq(TopClusters);
+    PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopClusters, CurrentDate, QGraph);
 
     int NumQuotesToDisplay = MaxNumQuotesToDisplay;
     if (TopClusters.Len() < MaxNumQuotesToDisplay) { NumQuotesToDisplay = TopClusters.Len(); }
@@ -87,7 +75,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Writing JSON to file\n");
 
     TStr OutputFilename = "../../../public_html/curis/output/clustering/visualization-test/data/clusterinfo-" +
-                          StartDate.GetDtYmdStr() + "-fix.json";
+                          CurrentDate.GetDtYmdStr() + ".json";
     FILE *F = fopen(OutputFilename.CStr(), "w");
     fprintf(F, "{\"values\": [");
     TInt NumTimesToPrint = Times.Len() - 1;  // Skip the last time stamp, because it is all zeroes and will 

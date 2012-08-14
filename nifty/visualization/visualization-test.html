@@ -17,6 +17,8 @@
       <div id="title">
         <div class='main-title'>NIFTY</div>
         <div id='links' class="description">A preliminary visualization of NIFTY output. (Inspiration: https://euro2012.twitter.com/)</div>
+        <div id='quote-graph-currdate' class="description"></div>
+        <div id='currdate-error' class="description"></div>
         <!--[if lte IE 8]>
           <div class='warning'>
             Warning: Your browser is only partially supported. Please use either <a href='http://www.google.com/chrome/'>Google Chrome</a>, <a href='http://www.opera.com/download/'>Opera</a>, <a href='http://www.apple.com/safari/'>Safari</a>, <a href='http://www.mozilla.org/en-US/firefox/new/'>Firefox</a> or <a href='http://windows.microsoft.com/en-us/internet-explorer/products/ie/home'>IE 9+</a>.
@@ -25,16 +27,22 @@
       </div>
 
       <div class='stream'>
-        <div class='stream-title'>
-          The Streamgraph below shows quote popularity over time, from 6-17-2012 to 6-30-2012 (inclusive). <b>Click on a quote to see details.</b>
+        <div class='stream-title' id='quote-graph-desc'>
+          The Streamgraph below shows quote popularity over time, for two weeks up until the current date.
+          <br />
+          <b>Hover over an area to see the full quote, and click on an area to see only that quote's graph.</b>
         </div>
         <div id='stream-viz'>
         </div>
         <div class='stream-nav'>
-          <a href='#' class='selected' id='all-top-quotes'>All Top Quotes</a>
-          <a href='#' id='top-20-quotes'>Top 20 Quotes</a>
+          <a href='#' id='top-20-quotes' class='selected' id='top-20-quotes'>Top 20 Quotes</a>
           <a href='#' id='top-10-quotes'>Top 10 Quotes</a>
+          <!--<a href='#' id='top-10-quotes'>Top 10 Quotes</a> -->
         </div>
+      </div>
+      <div class='nav-buttons'>
+          <button onclick='graphPrevDay()' id='prev-day'>Previous Day</a>
+          <button onclick='graphNextDay()' id='next-day'>Next Day</a>
       </div>
 
     </div>
