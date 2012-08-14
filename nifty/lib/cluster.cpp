@@ -7,6 +7,7 @@
 const int TClusterBase::FrequencyCutoff = 100;
 
 TCluster::TCluster() {
+  Archived = true;
 }
 
 TCluster::TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB, TSecTm BirthDate) {
@@ -18,6 +19,7 @@ TCluster::TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds
   this->QuoteIds = QuoteIds;
   this->Id = 1;
   this->BirthDate = BirthDate;
+  this->Archived = true;
   /*this->RepresentativeQuoteIds = RepresentativeQuoteIds;
   this->NumQuotes = NumQuotes;
   this->QuoteIds = QuoteIds;
@@ -32,6 +34,7 @@ void TCluster::Save(TSOut& SOut) const {
   PeakTimesV.Save(SOut);
   FreqV.Save(SOut);
   BirthDate.Save(SOut);
+  Archived.Save(SOut);
 }
 
 void TCluster::Load(TSIn& SIn) {
@@ -42,6 +45,15 @@ void TCluster::Load(TSIn& SIn) {
   PeakTimesV.Load(SIn);
   FreqV.Load(SIn);
   BirthDate.Load(SIn);
+  Archived.Load(SIn);
+}
+
+void TCluster::Archive() {
+  Archived = true;
+}
+
+bool TCluster::IsArchived() {
+  return Archived;
 }
 
 void TCluster::SetBirthDate(TSecTm& BirthDate) {
@@ -343,6 +355,15 @@ int TClusterBase::Len() {
 
 TInt TClusterBase::GetCounter() {
   return ClusterIdCounter;
+}
+
+bool TClusterBase::IsQuoteInArchivedCluster(TInt& QuoteId) {
+  TInt ClusterId;
+  if (QuoteIdToClusterId.IsKeyGetDat(QuoteId, ClusterId)) {
+    TCluster Cluster = IdToTCluster.GetDat(ClusterId);
+    return Cluster.IsArchived();
+  }
+  return false;
 }
 
 /// Merges the second cluster into the first. For the quotes in the second cluster, updates
