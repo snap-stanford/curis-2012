@@ -2,11 +2,11 @@ var JSONFilePrefix = "data/clusterinfo-";
 var Daily = "daily";
 var Weekly = "weekly";
 var Monthly = "monthly";
+var NumDaysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 var Quotes = {};
 var Colors = {};
 var Ranking = [];
 var Type;  // "daily", "weekly", or "monthly"; determined by $("main-desc")
-var NumDaysToChange;
 
 // Colors are from kuler.adobe.com; "Hey Mr. Grey Rainbow" by stephenmweathers
 var SetColors = ["#CC5C54", "#F69162", "#FFFFCD", "#85A562", "#7AB5DB"];
@@ -41,8 +41,35 @@ function UrlExists(url)
     return http.status!=404;
 }
 
+function IsLeapYear(Year) {
+    if (Year % 4 != 0) return false;
+    if (Year % 100 != 0 || Year % 400 == 0) return true;
+    return false;
+}
+
+function NumDaysToChange(DateToChange, IsForward) {
+    if (Type == "weekly") {
+        return 7;
+    } else if (Type == "monthly") {
+        var Month = DateToChange.getMonth();
+        if (!IsForward) {  // In this case, we want the number of the previous month
+          Month -= 1;
+          if (Month == -1) { Month = 11; }
+        }
+
+        if (Month == 1 && IsLeapYear(DateToChange.getFullYear())) {
+            return 29;
+        } else {
+            return NumDaysInMonth[Month];
+        }
+    } else {
+      return 1;
+    }
+}
+
 function graphPrevDay() {
-    CurrDate.setDate(CurrDate.getDate() - NumDaysToChange);
+    var OrigNumDaysToChange = NumDaysToChange(CurrDate, false);
+    CurrDate.setDate(CurrDate.getDate() - OrigNumDaysToChange);
       
     var CurrDateStr = CurrDate.yyyymmdd();
     var NewUrl = JSONFilePrefix + CurrDateStr + ".json";
@@ -52,16 +79,17 @@ function graphPrevDay() {
       if (Type == Daily) {
         $("currdate-error").innerHTML = "Sorry, there is no quote frequency data available for " + CurrDate.mmddyyyy() + ".";
       } else {
-        var StartGraphDate = new Date(CurrDate);
-        StartGraphDate.setDate(CurrDate.getDate() - NumDaysToChange);
-        $("currdate-error").innerHTML = "Sorry, there is no quote frequency data available for the range " + StartGraphDate.mmddyyyy() + " to " + CurrDate.mmddyyyy();
+        var EndGraphDate = new Date(CurrDate);
+        EndGraphDate.setDate(CurrDate.getDate() + NumDaysToChange(CurrDate, true) - 1);
+        $("currdate-error").innerHTML = "Sorry, there is no quote frequency data available for the range " + CurrDate.mmddyyyy() + " to " + EndGraphDate.mmddyyyy();
       }
-      CurrDate.setDate(CurrDate.getDate() + NumDaysToChange);  // restore the previous, working date
+      CurrDate.setDate(CurrDate.getDate() + OrigNumDaysToChange);  // restore the previous, working date
     }
 }
 
 function graphNextDay() {
-    CurrDate.setDate(CurrDate.getDate() + NumDaysToChange);
+    var OrigNumDaysToChange = NumDaysToChange(CurrDate, true);
+    CurrDate.setDate(CurrDate.getDate() + OrigNumDaysToChange);
     var CurrDateStr = CurrDate.yyyymmdd();
     var NewUrl = JSONFilePrefix + CurrDateStr + ".json";
     if (UrlExists(NewUrl)) {
@@ -70,11 +98,11 @@ function graphNextDay() {
       if (Type == Daily) {
         $("currdate-error").innerHTML = "Sorry, there is no quote frequency data available for " + CurrDate.mmddyyyy() + ".";
       } else {
-        var StartGraphDate = new Date(CurrDate);
-        StartGraphDate.setDate(CurrDate.getDate() - NumDaysToChange);
-        $("currdate-error").innerHTML = "Sorry, there is no quote frequency data available for the range " + StartGraphDate.mmddyyyy() + " to " + CurrDate.mmddyyyy();
+        var EndGraphDate = new Date(CurrDate);
+        EndGraphDate.setDate(CurrDate.getDate() + NumDaysToChange(CurrDate, true) - 1);
+        $("currdate-error").innerHTML = "Sorry, there is no quote frequency data available for the range " + CurrDate.mmddyyyy() + " to " + EndGraphDate.mmddyyyy();
       }
-      CurrDate.setDate(CurrDate.getDate() - NumDaysToChange);  // restore the previous, working date
+      CurrDate.setDate(CurrDate.getDate() - OrigNumDaysToChange);  // restore the previous, working date
     }
 }
 
@@ -92,9 +120,9 @@ function createGraph(GraphDate) {
         if (Type == Daily) {
           $("quote-graph-currdate").innerHTML = "Current Date: " + GraphDate.mmddyyyy();
         } else {
-          var StartGraphDate = new Date(GraphDate);
-          StartGraphDate.setDate(GraphDate.getDate() - NumDaysToChange + 1);
-          $("quote-graph-currdate").innerHTML = "Date Range: " + StartGraphDate.mmddyyyy() + " to " + GraphDate.mmddyyyy();
+          var EndGraphDate = new Date(GraphDate);
+          EndGraphDate.setDate(GraphDate.getDate() + NumDaysToChange(GraphDate, true) - 1);
+          $("quote-graph-currdate").innerHTML = "Date Range: " + GraphDate.mmddyyyy() + " to " + EndGraphDate.mmddyyyy();
         }
         $("currdate-error").innerHTML = "";
         (new Request.JSON({
@@ -219,15 +247,12 @@ function init() {
         var MainDesc = $("main-desc").innerHTML;
         if (MainDesc.indexOf(Weekly) != -1) {
           Type = Weekly;
-          NumDaysToChange = 7;
-          StartDate = new Date(2012, 5, 7, 0, 0, 0, 0);
+          StartDate = new Date(2012, 5, 1, 0, 0, 0, 0);
         } else if (MainDesc.indexOf(Monthly) != -1) {
           Type = Monthly;
-          NumDaysToChange = 28;
-          StartDate = new Date(2012, 1, 28, 0, 0, 0, 0);
+          StartDate = new Date(2012, 1, 1, 0, 0, 0, 0);
         } else {
           Type = Daily;
-          NumDaysToChange = 1;
           StartDate = new Date(2012, 6, 1, 0, 0, 0, 0); // Note that month is zero-based
         }
 
