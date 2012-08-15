@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 const int MaxNumQuotesToDisplay = 20;
-const int TopClustersPerDay = 5;
+int TopClustersPerDay = 5;
 
 // For testing
 void PrintFreqOverTime(THash<TSecTm, TFltV>& FreqOverTime) {
@@ -80,6 +80,9 @@ void PrepareForJsonPrinting(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, THas
       if (Freqs.Len() < i + 1) {
         Freqs.Add(CFreqV[j].Val2);
         FreqOverTime.AddDat(CFreqV[j].Val3, Freqs);
+      } else if (CFreqV[j].Val2 > Freqs[i]) {
+        Freqs[i] = CFreqV[j].Val2;
+        FreqOverTime.AddDat(CFreqV[j].Val3, Freqs);
       }
     }
   }
@@ -135,8 +138,9 @@ int main(int argc, char *argv[]) {
 
   TStr StartString;
   if (!Arguments.IsKeyGetDat("start", StartString)) {
+    StartString = "2012-02-01";
     //StartString = "2012-06-01";
-    StartString = "2012-06-30";
+    //StartString = "2012-06-30";
   }
   TStr EndString = "2012-07-08";
 
@@ -154,6 +158,7 @@ int main(int argc, char *argv[]) {
   } else if (Type == "month") {
     // TODO: Make this an actual month, instead of 4 weeks
     NumDaysAhead = 28;
+    TopClustersPerDay = 2;  // To make the number of quotes more manageable
   }
 
   TSecTm StartDate = TSecTm::GetDtTmFromYmdHmsStr(StartString);
