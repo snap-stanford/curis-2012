@@ -311,7 +311,7 @@ void PostCluster::FilterAndCacheClusterSize(TDocBase *DB, TQuoteBase *QB, TClust
       C.GetRepresentativeQuoteString(RepStr, QB);
       TStrV Words;
       RepStr.SplitOnStr(" ", Words);
-      if (Words.Len() < 4) {
+      if (Words.Len() <= 4) {
         DiscardedClusterIds.AddKey(TopClusters[i]);
         DiscardedClusters.Add(C);
       }
