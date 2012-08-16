@@ -46,25 +46,7 @@ void TDoc::GetUrl(TStr &Ref) {
 }
 
 void TDoc::GetDomainName(TStr &DomainName) {
-  TChA UrlChA = TChA(Url);
-
-  int EndSlash = UrlChA.SearchCh('/', 7)-1; // skip starting http://
-  if (EndSlash > 0) {
-    const int BegSlash = UrlChA.SearchChBack('/', EndSlash);
-    if (BegSlash > 0) { DomainName = UrlChA.GetSubStr(BegSlash+1, EndSlash).ToLc(); }
-    else { DomainName = UrlChA.GetSubStr(0, UrlChA.SearchCh('/', 0)-1).ToLc(); }
-  } else {
-    if (UrlChA.IsPrefix("http://")) { DomainName = UrlChA.GetSubStr(7, UrlChA.Len()-1).ToLc(); }
-    EndSlash = UrlChA.SearchCh('/', 0);
-    if (EndSlash > 0) { DomainName = UrlChA.GetSubStr(0, EndSlash-1).ToLc(); }
-    else { DomainName = TChA(UrlChA).ToLc(); }
-  }
-
-  // Get rid of www
-  if (DomainName.IsPrefix("www.")) { DomainName = DomainName.GetSubStr(4, TInt::Mx); }
-
-  // Handle Special Domains
-  if (DomainName.IsSuffix("blog.fc2.com")) { DomainName = "blog.fc2.com"; }
+  DomainName = TStringUtil::GetDomainName(Url);
 }
 
 TSecTm TDoc::GetDate() const {
