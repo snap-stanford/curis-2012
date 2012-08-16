@@ -8,12 +8,13 @@ class TStringUtil {
 private:
   static TInt LevenshteinDistance(TStr& Content1, TStr& Content2);
   static void LoadCommonEnglishWords();
+  static void LoadPublicSuffixList();
+  static THashSet<TStr> CommonEnglishWordsList;
+  static TStrSet PublicSuffixSet;
 
 public:
   static PSwSet StopWordSet;
-  static THashSet<TStr> CommonEnglishWordsList;
   static const double MinCommonEnglishRatio;
-  static TStrSet PublicSuffixSet;
 
   static void ParseStringIntoWords(const TStr& OriginalString, TStrV& ParsedString);
   static void FilterSpacesAndSetLowercase(TStr& QtStr);
@@ -28,7 +29,6 @@ public:
   static bool IsRobustlyEnglish(TStr& Quote);
   static void RemoveEndPunctuations(TChA& Quote);
 
-  static TStrSet LoadPublicSuffixList();
   static TStr GetDomainName(const TStr &Url);
 };
 

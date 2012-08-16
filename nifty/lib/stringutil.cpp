@@ -3,8 +3,8 @@
 
 const double TStringUtil::MinCommonEnglishRatio = 0.25;
 PSwSet TStringUtil::StopWordSet = new TSwSet(swstEnMsdn);
-THashSet<TStr> TStringUtil::CommonEnglishWordsList = THashSet<TStr>();
-TStrSet TStringUtil::PublicSuffixSet = TStringUtil::LoadPublicSuffixList();
+TStrSet TStringUtil::CommonEnglishWordsList = THashSet<TStr>();
+TStrSet TStringUtil::PublicSuffixSet = THashSet<TStr>();
 
 // TODO: Rename to ParseStringIntoWords
 void TStringUtil::ParseStringIntoWords(const TStr& OriginalString, TStrV& ParsedString) {
@@ -210,7 +210,7 @@ TInt TStringUtil::LevenshteinDistance(TStr& Content1, TStr& Content2) {
 }
 
 void TStringUtil::LoadCommonEnglishWords() {
-  PSIn EnglishWords = TFIn::New("../resources/common_english_words.txt");
+  PSIn EnglishWords = TFIn::New("resources/common_english_words.txt");
   TStr Word;
   while (!EnglishWords->Eof() && EnglishWords->GetNextLn(Word)) {
     TStringUtil::CommonEnglishWordsList.AddKey(Word);
@@ -238,7 +238,7 @@ bool TStringUtil::IsRobustlyEnglish(TStr& Quote) {
 
 void TStringUtil::RemoveEndPunctuations(TChA& Quote) {
   for (int i = Quote.Len() - 1; i >= 0; i--) {
-    if (isalpha(Quote[i]) || Quote[i] == '\'') {
+    if (isalpha(Quote[i]) || Quote[i] == '\'' || Quote[i] == ')') {
       break;
     } else {
       Quote[i] = ' ';
@@ -246,17 +246,16 @@ void TStringUtil::RemoveEndPunctuations(TChA& Quote) {
   }
 }
 
-TStrSet TStringUtil::LoadPublicSuffixList() {
-  TStrSet WordSet;
+void TStringUtil::LoadPublicSuffixList() {
   PSIn EnglishWords = TFIn::New("resources/public_suffix.txt");
   TStr Word;
   while (!EnglishWords->Eof() && EnglishWords->GetNextLn(Word)) {
-    WordSet.AddKey(Word);
+    TStringUtil::PublicSuffixSet.AddKey(Word);
   }
-  return WordSet;
 }
 
 TStr TStringUtil::GetDomainName(const TStr &Url) {
+  if (TStringUtil::PublicSuffixSet.Len() == 0) { LoadPublicSuffixList(); }
   TStr DomainName;
   TChA UrlChA = TChA(Url);
 
