@@ -118,6 +118,7 @@ int main(int argc, char *argv[]) {
   }
   TStr Date = argv[1];
   TStr MonDir = Date.GetSubStr(0, 6);
+  TSecTm CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(Date + " 08:00:00");
 
   printf("Loading data from Spinn3r dataset to QuoteBase...\n");
 
@@ -133,14 +134,14 @@ int main(int argc, char *argv[]) {
   fprintf(FLog, "Initial Filtering:\n");
   TDataLoader Memes;
   for (int j = 0; j < 24; j++) {
-    TStr CurFile = "web-" + Date + TStr::Fmt("T%02d-00-00Z.rar", j);
+    TStr CurFile = "web-" + CurrentDate.GetDtYmdStr() + TStr::Fmt("T%02d-00-00Z.rar", CurrentDate.GetHourN());
     if(!Memes.LoadFile("/lfs/1/tmp/curis/spinn3r/" + MonDir + "/", CurFile)) {continue;}
     while (Memes.LoadNextEntry()) {
       if (IsUrlInBlackList(Memes.PostUrlStr)) { NSkipBlackList++;continue; }
       TMd5Sig UrlSig = TMd5Sig(Memes.PostUrlStr);
       if (SeenUrlSet.IsKey(UrlSig)) { NSkipDuplicate++;continue; }
       SeenUrlSet.AddKey(UrlSig);
-      if (!IsPostTimeValid(Memes.PubTm, TDataLoader::GetFileTime(CurFile))) { NSkipInvalidTime++;continue; }
+      if (!IsPostTimeValid(Memes.PubTm, CurrentDate)) { NSkipInvalidTime++;continue; }
       bool ContainValidQuote = false;
       for (int m = 0; m < Memes.MemeV.Len(); m++) {
         // Change Memes.MemeV[m] to a space separated sequence of words, so CountWords works correctly
@@ -172,6 +173,7 @@ int main(int argc, char *argv[]) {
         NSkipNoValidQuote++;
       }
     }
+    CurrentDate.AddHours(1);
   }
 
   fprintf(FLog, "Number of quotes inserted into QuoteBase: %d\n", TmpQB.Len());
@@ -199,8 +201,7 @@ int main(int argc, char *argv[]) {
     TStr QContentString;
     Q.GetContentString(QContentString);
     if (Q.GetNumSources() >= MinMemeFreq &&
-       (Q.GetNumSources() <= 20 || Q.GetNumSources() <= 6 * Q.GetNumDomains(TmpDB)) &&
-       Q.GetNumDomains(TmpDB) >= 2 &&
+       (Q.GetNumSources() <= 20 || (Q.GetNumSources() <= 6 * Q.GetNumDomains(TmpDB) && Q.GetNumDomains(TmpDB) >= 2)) &&
        IsRobustlyEnglish(QContentString)) {
       TIntV Sources;
       Q.GetSources(Sources);
