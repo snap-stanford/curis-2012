@@ -78,7 +78,6 @@ int main(int argc, char *argv[]) {
     return 0;
   }
   TStr Date = argv[1];
-  TStr MonDir = Date.GetSubStr(0, 6);
   TSecTm CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(Date + " 08:00:00");
 
   printf("Loading data from Spinn3r dataset to QuoteBase...\n");
@@ -95,6 +94,7 @@ int main(int argc, char *argv[]) {
   fprintf(FLog, "Initial Filtering:\n");
   TDataLoader Memes;
   for (int j = 0; j < 24; j++) {
+    TStr MonDir = CurrentDate.GetDtYmdStr().GetSubStr(0, 6);
     TStr CurFile = "web-" + CurrentDate.GetDtYmdStr() + TStr::Fmt("T%02d-00-00Z.rar", CurrentDate.GetHourN());
     if(!Memes.LoadFile("/lfs/1/tmp/curis/spinn3r/" + MonDir + "/", CurFile)) {continue;}
     while (Memes.LoadNextEntry()) {
