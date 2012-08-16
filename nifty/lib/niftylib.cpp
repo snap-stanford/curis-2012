@@ -4,6 +4,7 @@
 #include "niftylib.h"
 
 // general
+#include "stringutil.cpp"
 #include "argumentparser.cpp"
 
 // data structures
