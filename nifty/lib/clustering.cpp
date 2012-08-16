@@ -116,7 +116,7 @@ TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB) {
   TStrV Content1, Content2;
   Source.GetParsedContent(Content1);
   Dest.GetParsedContent(Content2);
-  TInt EditDistance = QuoteGraph::WordLevenshteinDistance(Content1, Content2);
+  TInt EditDistance = TStringUtil::WordLevenshteinDistance(Content1, Content2);
 
   TVec<TSecTm> SourcePeakVectors, DestPeakVectors;
   Source.GetPeaks(DB, SourcePeakVectors);

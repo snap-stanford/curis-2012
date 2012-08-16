@@ -2,7 +2,6 @@
 #include "doc.h"
 #include "peaks.h"
 
-PSwSet TQuote::StopWordSet = new TSwSet(swstEnMsdn);
 const TStr TQuoteBase::TopNewsSourcesFile = TStr("resources/ranked_news_sources.txt");
 
 TQuote::TQuote() {
@@ -16,17 +15,17 @@ TQuote::TQuote(TInt Id, const TStrV& Content) {
 
 TQuote::TQuote(TInt Id, const TStr &ContentString) {
   this->Id = Id;
-	ParseContentString(ContentString, Content);
-	Init();
+  TStringUtil::ParseStringIntoWords(ContentString, Content);
+  Init();
 }
 
 void TQuote::Init() {
   TStr FilteredContentString;
   GetContentString(FilteredContentString);
-  FilterSpacesAndSetLowercase(FilteredContentString);
+  TStringUtil::FilterSpacesAndSetLowercase(FilteredContentString);
   TStrV FilteredContent;
-  ParseContentString(FilteredContentString, FilteredContent);
-  StemAndStopWordsContentString(FilteredContent, ParsedContent);
+  TStringUtil::ParseStringIntoWords(FilteredContentString, FilteredContent);
+  TStringUtil::RemoveStemAndStopWords(FilteredContent, ParsedContent);
   for (int i = 0; i < ParsedContent.Len(); ++i) {
     if (i > 0) this->ParsedContentString.InsStr(ParsedContentString.Len()," ");
     this->ParsedContentString.InsStr(ParsedContentString.Len(), ParsedContent[i]);
@@ -48,7 +47,6 @@ void TQuote::Load(TSIn& SIn) {
   ParsedContentString.Load(SIn);
   Sources.Load(SIn);
 }
-
 
 void TQuote::GetContent(TStrV &Ref) {
   Ref = Content;
@@ -117,38 +115,6 @@ void TQuote::RemoveDuplicateSources() {
   Sources = UniqueSources;
 }
 
-void TQuote::ParseContentString(const TStr &ContentString, TStrV &ParsedString) {
-  ContentString.SplitOnAllAnyCh(" ", ParsedString);
-}
-
-void TQuote::FilterSpacesAndSetLowercase(TStr &QtStr) {
-  // Three passes...hopefully this isn't too slow.
-  TChA QtChA = TChA(QtStr);
-  for (int i = 0; i < QtChA.Len(); i++) {
-    if (!(isalpha(QtChA[i]) || QtChA[i] == '\'')) {
-      QtChA[i] = ' ';
-    } else {
-      QtChA[i] = tolower(QtChA[i]);
-    }
-  }
-  QtStr = TStr(QtChA);
-  TStrV WordV;
-  QtStr.SplitOnAllAnyCh(" ", WordV);
-  QtStr.Clr();
-  for (int i = 0; i < WordV.Len(); ++i) {
-    if (i > 0)  QtStr.InsStr(QtStr.Len()," ");
-    QtStr.InsStr(QtStr.Len(), WordV[i]);
-  }
-}
-
-void TQuote::StemAndStopWordsContentString(const TStrV &ContentV, TStrV &NewContent) {
-  for (int i = 0; i < ContentV.Len(); ++i) {
-    if (!StopWordSet->IsIn(ContentV[i], false)) {
-      NewContent.Add(TPorterStemmer::StemX(ContentV[i]).GetLc());
-    }
-  }
-}
-
 void TQuote::GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV) {
   GetPeaks(DocBase, PeakTimesV, TInt(1), TInt(1), TSecTm(0));
 }
@@ -195,18 +161,6 @@ void TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize
   GP.SavePng("./plots/" + Filename + ".png", 1000, 800, TStr(), SetXTic);
 }
 
-/// Removes all punctuation (i.e. non-alphanumeric/whitespace characters) from the string
-void TQuote::RemovePunctuation(const TStr& OrigString, TStr& NewString) {
-  TChA OrigChA(OrigString);
-  TChA NewChA;
-  for (int i = 0; i < OrigChA.Len(); i++) {
-    if (TCh::IsAlNum(OrigChA[i]) || TCh::IsWs(OrigChA[i])) {
-      NewChA.AddCh(OrigChA[i]);
-    }
-  }
-  NewString = TStr(NewChA);
-}
-
 bool TQuoteBase::IsContainNullQuote() {
   TIntV QuoteIds;
   GetAllQuoteIds(QuoteIds);
@@ -229,7 +183,7 @@ TQuoteBase::TQuoteBase() {
 /// Adds quote string to quote base; returns quote's quote id
 TInt TQuoteBase::AddQuote(const TStr &ContentString) {
   TStrV ContentVectorString;
-  TQuote::ParseContentString(ContentString, ContentVectorString);
+  TStringUtil::ParseStringIntoWords(ContentString, ContentVectorString);
   TInt QuoteId = GetNewQuoteId(ContentVectorString);
   if (IdToTQuotes.IsKey(QuoteId)) {
     return QuoteId; // nothing to do here; quote is already in database
@@ -248,7 +202,7 @@ TInt TQuoteBase::AddQuote(const TStr &ContentString, TInt DocId) {
   //return NewQuote;
 
   TStrV ContentVectorString;
-  TQuote::ParseContentString(ContentString, ContentVectorString);
+  TStringUtil::ParseStringIntoWords(ContentString, ContentVectorString);
   TInt QuoteId = GetNewQuoteId(ContentVectorString);
   if (IdToTQuotes.IsKey(QuoteId)) {
     TQuote CurQuote =  IdToTQuotes.GetDat(QuoteId); // nothing to do here; quote is already in database
@@ -350,109 +304,18 @@ bool TQuoteBase::IsSubstring(TInt QuoteId1, TInt QuoteId2) {
   TStr ContentStr1, ContentStr2, ContentStrNoPunc1, ContentStrNoPunc2;
   Quote1.GetContentString(ContentStr1);
   Quote2.GetContentString(ContentStr2);
-  TQuote::RemovePunctuation(ContentStr1, ContentStrNoPunc1);
-  TQuote::RemovePunctuation(ContentStr2, ContentStrNoPunc2);
+  TStringUtil::RemovePunctuation(ContentStr1, ContentStrNoPunc1);
+  TStringUtil::RemovePunctuation(ContentStr2, ContentStrNoPunc2);
 
   TStrV Content1V, Content2V;
   ContentStrNoPunc1.SplitOnWs(Content1V);
   ContentStrNoPunc2.SplitOnWs(Content2V);
 
-  TInt Overlap = LongestSubSequenceOfWords(Content1V, Content2V);
+  TInt Overlap = TStringUtil::LongestSubsequenceOfWords(Content1V, Content2V);
   if ((ShortLen == 4 || ShortLen == 5) && Overlap == ShortLen) { fprintf(stderr, "reason A\n"); return true; } // full overlap, no skip
   else if ((ShortLen == 6 && Overlap >= 5 )) { fprintf(stderr, "reason B\n"); return true; }
   else if (Overlap/double(ShortLen+3) > 0.5 || Overlap > 10) { fprintf(stderr, "reason C\n"); return true; }
   return false;
-}
-
-TInt TQuoteBase::SubWordListEditDistance(const TStrV& Content1, const TStrV& Content2) {
-  const TStrV& V1 = Content1.Len() > Content2.Len() ? Content1:Content2; // longer quote
-  const TStrV& V2 = Content1.Len() > Content2.Len() ? Content2:Content1; // shorter quote
-
-  // We assume that the quotes are less than 50 words
-  IAssert(V1.Len() < 50 && V2.Len() < 50);
-  int lcs[50][50];
-
-  THash<TStr, TInt> WordToId;
-  TIntV IdV1, IdV2;
-  lcs[V1.Len()][0] = 0;
-  lcs[0][V2.Len()] = V2.Len();
-  for (int i = 0; i < V1.Len(); i++) {
-    TInt Id;
-    if(!WordToId.IsKeyGetDat(V1[i], Id)) {
-      Id = WordToId.Len();
-      WordToId.AddDat(V1[i], WordToId.Len());
-    }
-    IdV1.Add(Id);
-    lcs[i][0] = 0;
-  }
-  for (int i = 0; i < V2.Len(); i++) {
-    TInt Id;
-    if(!WordToId.IsKeyGetDat(V2[i], Id)) {
-      Id = WordToId.Len();
-      WordToId.AddDat(V2[i], WordToId.Len());
-    }
-    IdV2.Add(Id);
-    lcs[0][i] = i;
-  }
-
-  for (int i = 1; i <= IdV1.Len(); i++) {
-    for (int j = 1; j <= IdV2.Len(); j++) {
-      if (IdV1[i - 1] == IdV2[j - 1]) {
-        lcs[i][j] = lcs[i - 1][j - 1];
-      } else {
-        lcs[i][j] = min(lcs[i - 1][j] + 1, lcs[i][j - 1] + 1);
-        lcs[i][j] = min(lcs[i][j], lcs[i - 1][j - 1] + 1);
-      }
-    }
-  }
-  int MinDist = -1;
-  for (int i = 0; i <= IdV1.Len(); i++) {
-    if (MinDist == -1 || MinDist > lcs[i][IdV2.Len()]) MinDist = lcs[i][IdV2.Len()];
-  }
-  return MinDist;
-}
-
-/// Finds the length of the longest common subsequence of words
-//  Based off the method TQuoteBs::LongestCmnSubSq(const TIntV& WIdV1, const TIntV& WIdV2,
-//  int& WIdV1Start, int& WIdV2Start, int& SkipId) in memes.cpp of memecluster
-TInt TQuoteBase::LongestSubSequenceOfWords(const TStrV& Content1, const TStrV& Content2) {
-  const TStrV& V1 = Content1.Len() > Content2.Len() ? Content1:Content2; // longer quote
-  const TStrV& V2 = Content1.Len() > Content2.Len() ? Content2:Content1; // shorter quote
-
-  THash<TStr, TInt> WordToId;
-  TIntV IdV1, IdV2;
-  for (int i = 0; i < V1.Len(); i++) {
-    TInt Id;
-    if(!WordToId.IsKeyGetDat(V1[i], Id)) {
-      Id = WordToId.Len();
-      WordToId.AddDat(V1[i], WordToId.Len());
-    }
-    IdV1.Add(Id);
-  }
-  for (int i = 0; i < V2.Len(); i++) {
-    TInt Id;
-    if(!WordToId.IsKeyGetDat(V2[i], Id)) {
-      Id = WordToId.Len();
-      WordToId.AddDat(V2[i], WordToId.Len());
-    }
-    IdV2.Add(Id);
-  }
-
-  // We assume that the quotes are less than 50 words
-  IAssert(IdV1.Len() < 50 && IdV2.Len() < 50);
-  int lcs[50][50];
-  for (int i = 0; i < IdV1.Len(); i++) {
-    for (int j = 0; j < IdV2.Len(); j++) {
-      lcs[i][j] = 0;
-      if (i > 0) lcs[i][j] = max(lcs[i][j], lcs[i - 1][j]);
-      if (j > 0) lcs[i][j] = max(lcs[i][j], lcs[i][j - 1]);
-      if (IdV1[i] == IdV2[j]) {
-        if (i == 0 || j == 0) lcs[i][j] = max(lcs[i][j], 1);
-        else lcs[i][j] = max(lcs[i][j], lcs[i-1][j-1] + 1);
-      }
-    }
-  }
-  return lcs[IdV1.Len() - 1][IdV2.Len() - 1];
 }
 
 bool TQuoteBase::Exists(TInt QuoteId) {
