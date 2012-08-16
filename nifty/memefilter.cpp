@@ -72,7 +72,6 @@ int main(int argc, char *argv[]) {
 
   // Initialize
   LoadURLBlackList();
-  //LoadCommonEnglishWords();
 
   if (argc != 2) {
     printf("Please specify date in the format yyyy-mm-dd\n");
