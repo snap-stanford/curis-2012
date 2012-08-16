@@ -13,6 +13,7 @@ public:
   static PSwSet StopWordSet;
   static THashSet<TStr> CommonEnglishWordsList;
   static const double MinCommonEnglishRatio;
+  static TStrSet PublicSuffixSet;
 
   static void ParseStringIntoWords(const TStr& OriginalString, TStrV& ParsedString);
   static void FilterSpacesAndSetLowercase(TStr& QtStr);
@@ -26,6 +27,9 @@ public:
   static bool IsEnglish(const TChA& Quote);
   static bool IsRobustlyEnglish(TStr& Quote);
   static void RemoveEndPunctuations(TChA& Quote);
+
+  static TStrSet LoadPublicSuffixList();
+  static TStr GetDomainName(const TStr &Url);
 };
 
 #endif
