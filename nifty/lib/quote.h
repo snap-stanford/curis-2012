@@ -36,12 +36,6 @@ public:
   void GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
   void GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TSecTm PresentTime);
   void GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
-
-  static PSwSet StopWordSet;
-  static void ParseContentString(const TStr& ContentString, TStrV& ParsedString);
-  static void FilterSpacesAndSetLowercase(TStr& QtStr);
-  static void StemAndStopWordsContentString(const TStrV &ContentV, TStrV& NewContent);
-  static void RemovePunctuation(const TStr& OrigString, TStr& NewString);
 };
 
 class TQuoteBase {
@@ -73,9 +67,6 @@ public:
   TInt GetCurCounterValue();
   void GetRepresentativeUrl(TDocBase *DocBase, TInt QuoteId, TStr& RepUrl);
   bool IsContainNullQuote();
-
-  static TInt LongestSubSequenceOfWords(const TStrV& Content1, const TStrV& Content2);
-  static TInt SubWordListEditDistance(const TStrV& Content1, const TStrV& Content2);
 };
 
 // Compares two quotes by their frequency

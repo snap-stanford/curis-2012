@@ -138,7 +138,7 @@ TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &Q
     Q.GetSources(Sources);
 
     TStrV QContentVectorString;
-    TQuote::ParseContentString(QContentString, QContentVectorString);
+    TStringUtil::ParseStringIntoWords(QContentString, QContentVectorString);
 
     bool ContainDoc = false;
     for (int j = 0; j < Sources.Len(); j++) {

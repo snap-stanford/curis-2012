@@ -5,36 +5,8 @@
 const int MinMemeFreq = 5;
 const int MinQtWrdLen = 3;
 const int MaxQtWrdLen = 30;
-const double MinCommonEnglishRatio = 0.25;
 
 THashSet<TStr> URLBlackList;
-THashSet<TStr> CommonEnglishWordsList;
-
-void LoadCommonEnglishWords() {
-  PSIn EnglishWords = TFIn::New("resources/common_english_words.txt");
-  TStr Word;
-  while (!EnglishWords->Eof() && EnglishWords->GetNextLn(Word)) {
-    CommonEnglishWordsList.AddKey(Word);
-  }
-}
-
-bool IsEnglish(const TChA &quote) {
-  return quote.CountCh('?') <= quote.Len()/2;
-}
-
-/// Assumes lower case characters only format
-bool IsRobustlyEnglish(TStr Quote) {
-  TStrV Parsed;
-  TQuote::ParseContentString(Quote, Parsed);
-  TInt EnglishCount = 0;
-  for (int i = 0; i < Parsed.Len(); ++i) {
-    if (CommonEnglishWordsList.IsKey(Parsed[i])) {
-      EnglishCount++;
-    }
-  }
-  //printf("%f: %s\n", EnglishCount * 1.0 / Parsed.Len(), Quote.CStr());
-  return EnglishCount * 1.0 / Parsed.Len() >= MinCommonEnglishRatio;
-}
 
 void LoadURLBlackList() {
   PSIn BlackListFile = TFIn::New("resources/URLBlacklist");
@@ -91,16 +63,6 @@ void OutputQuoteInformation(TQuoteBase &QuoteBase, TStr FileName) {
   fclose(F);
 }
 
-void RemoveEndPunctuations(TChA &Quote) {
-  for (int i = Quote.Len() - 1; i >= 0; i--) {
-    if (isalpha(Quote[i]) || Quote[i] == '\'') {
-      break;
-    } else {
-      Quote[i] = ' ';
-    }
-  }
-}
-
 // usage filelist directory
 int main(int argc, char *argv[]) {
   printf("File name must be in the form: web-{year}-{month}-{day}T{hour}-{minute}-{second}Z.rar\n");
@@ -110,7 +72,6 @@ int main(int argc, char *argv[]) {
 
   // Initialize
   LoadURLBlackList();
-  LoadCommonEnglishWords();
 
   if (argc != 2) {
     printf("Please specify date in the format yyyy-mm-dd\n");
@@ -118,6 +79,7 @@ int main(int argc, char *argv[]) {
   }
   TStr Date = argv[1];
   TStr MonDir = Date.GetSubStr(0, 6);
+  TSecTm CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(Date + " 08:00:00");
 
   printf("Loading data from Spinn3r dataset to QuoteBase...\n");
 
@@ -133,25 +95,25 @@ int main(int argc, char *argv[]) {
   fprintf(FLog, "Initial Filtering:\n");
   TDataLoader Memes;
   for (int j = 0; j < 24; j++) {
-    TStr CurFile = "web-" + Date + TStr::Fmt("T%02d-00-00Z.rar", j);
+    TStr CurFile = "web-" + CurrentDate.GetDtYmdStr() + TStr::Fmt("T%02d-00-00Z.rar", CurrentDate.GetHourN());
     if(!Memes.LoadFile("/lfs/1/tmp/curis/spinn3r/" + MonDir + "/", CurFile)) {continue;}
     while (Memes.LoadNextEntry()) {
       if (IsUrlInBlackList(Memes.PostUrlStr)) { NSkipBlackList++;continue; }
       TMd5Sig UrlSig = TMd5Sig(Memes.PostUrlStr);
       if (SeenUrlSet.IsKey(UrlSig)) { NSkipDuplicate++;continue; }
       SeenUrlSet.AddKey(UrlSig);
-      if (!IsPostTimeValid(Memes.PubTm, TDataLoader::GetFileTime(CurFile))) { NSkipInvalidTime++;continue; }
+      if (!IsPostTimeValid(Memes.PubTm, CurrentDate)) { NSkipInvalidTime++;continue; }
       bool ContainValidQuote = false;
       for (int m = 0; m < Memes.MemeV.Len(); m++) {
         // Change Memes.MemeV[m] to a space separated sequence of words, so CountWords works correctly
-        RemoveEndPunctuations(Memes.MemeV[m]);
+        TStringUtil::RemoveEndPunctuations(Memes.MemeV[m]);
         Memes.MemeV[m] = TStrUtil::GetCleanStr(Memes.MemeV[m]);
-        if (IsEnglish(Memes.MemeV[m]) &&
+        if (TStringUtil::IsEnglish(Memes.MemeV[m]) &&
             TStrUtil::CountWords(Memes.MemeV[m]) >= MinQtWrdLen &&
             TStrUtil::CountWords(Memes.MemeV[m]) <= MaxQtWrdLen) {
           ContainValidQuote = true;
         } else {
-          if (!IsEnglish(Memes.MemeV[m])) {
+          if (!TStringUtil::IsEnglish(Memes.MemeV[m])) {
             NSkipNonEnglish++;
           } else if (TStrUtil::CountWords(Memes.MemeV[m]) < MinQtWrdLen) {
             NSkipTooShort++;
@@ -172,6 +134,7 @@ int main(int argc, char *argv[]) {
         NSkipNoValidQuote++;
       }
     }
+    CurrentDate.AddHours(1);
   }
 
   fprintf(FLog, "Number of quotes inserted into QuoteBase: %d\n", TmpQB.Len());
@@ -199,9 +162,8 @@ int main(int argc, char *argv[]) {
     TStr QContentString;
     Q.GetContentString(QContentString);
     if (Q.GetNumSources() >= MinMemeFreq &&
-       (Q.GetNumSources() <= 20 || Q.GetNumSources() <= 6 * Q.GetNumDomains(TmpDB)) &&
-       Q.GetNumDomains(TmpDB) >= 2 &&
-       IsRobustlyEnglish(QContentString)) {
+       (Q.GetNumSources() <= 20 || (Q.GetNumSources() <= 6 * Q.GetNumDomains(TmpDB) && Q.GetNumDomains(TmpDB) >= 2)) &&
+       TStringUtil::IsRobustlyEnglish(QContentString)) {
       TIntV Sources;
       Q.GetSources(Sources);
       for (int k = 0; k < Sources.Len(); k++) {

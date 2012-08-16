@@ -1,13 +1,19 @@
 var JSONFilePrefix = "data/clusterinfo-";
+var Daily = "daily";
+var Weekly = "weekly";
+var Monthly = "monthly";
+var NumDaysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 var Quotes = {};
 var Colors = {};
 var Ranking = [];
+var Type;  // "daily", "weekly", or "monthly"; determined by $("main-desc")
 
 // Colors are from kuler.adobe.com; "Hey Mr. Grey Rainbow" by stephenmweathers
 var SetColors = ["#CC5C54", "#F69162", "#FFFFCD", "#85A562", "#7AB5DB"];
 // "Fairgrounds"
 //var SetColors = ["#FFF6C9", "#C8E8C7", "#A4DEAB", "#85CC9F", "#499E8D"];
-var StartDate = new Date(2012, 6, 1, 0, 0, 0, 0); // Note that month is zero-based
+//var StartDate = new Date(2012, 6, 1, 0, 0, 0, 0); // Note that month is zero-based
+var StartDate;
 var CurrDate;
 var a;
 
@@ -35,27 +41,68 @@ function UrlExists(url)
     return http.status!=404;
 }
 
+function IsLeapYear(Year) {
+    if (Year % 4 != 0) return false;
+    if (Year % 100 != 0 || Year % 400 == 0) return true;
+    return false;
+}
+
+function NumDaysToChange(DateToChange, IsForward) {
+    if (Type == "weekly") {
+        return 7;
+    } else if (Type == "monthly") {
+        var Month = DateToChange.getMonth();
+        if (!IsForward) {  // In this case, we want the number of the previous month
+          Month -= 1;
+          if (Month == -1) { Month = 11; }
+        }
+
+        if (Month == 1 && IsLeapYear(DateToChange.getFullYear())) {
+            return 29;
+        } else {
+            return NumDaysInMonth[Month];
+        }
+    } else {
+      return 1;
+    }
+}
+
 function graphPrevDay() {
-    CurrDate.setDate(CurrDate.getDate() - 1);
+    var OrigNumDaysToChange = NumDaysToChange(CurrDate, false);
+    CurrDate.setDate(CurrDate.getDate() - OrigNumDaysToChange);
+      
     var CurrDateStr = CurrDate.yyyymmdd();
     var NewUrl = JSONFilePrefix + CurrDateStr + ".json";
     if (UrlExists(NewUrl)) {
       createGraph(CurrDate);
     } else {
-      $("currdate-error").innerHTML = "Sorry, there is no quote frequency data available for " + CurrDate.mmddyyyy() + ".";
-      CurrDate.setDate(CurrDate.getDate() + 1);  // restore the previous, working date
+      if (Type == Daily) {
+        $("currdate-error").innerHTML = "Sorry, there is no quote frequency data available for " + CurrDate.mmddyyyy() + ".";
+      } else {
+        var EndGraphDate = new Date(CurrDate);
+        EndGraphDate.setDate(CurrDate.getDate() + NumDaysToChange(CurrDate, true) - 1);
+        $("currdate-error").innerHTML = "Sorry, there is no quote frequency data available for the range " + CurrDate.mmddyyyy() + " to " + EndGraphDate.mmddyyyy();
+      }
+      CurrDate.setDate(CurrDate.getDate() + OrigNumDaysToChange);  // restore the previous, working date
     }
 }
 
 function graphNextDay() {
-    CurrDate.setDate(CurrDate.getDate() + 1);
+    var OrigNumDaysToChange = NumDaysToChange(CurrDate, true);
+    CurrDate.setDate(CurrDate.getDate() + OrigNumDaysToChange);
     var CurrDateStr = CurrDate.yyyymmdd();
     var NewUrl = JSONFilePrefix + CurrDateStr + ".json";
     if (UrlExists(NewUrl)) {
       createGraph(CurrDate);
     } else {
-      $("currdate-error").innerHTML = "Sorry, there is no quote frequency data available for " + CurrDate.mmddyyyy() + ".";
-      CurrDate.setDate(CurrDate.getDate() - 1);  // restore the previous, working date
+      if (Type == Daily) {
+        $("currdate-error").innerHTML = "Sorry, there is no quote frequency data available for " + CurrDate.mmddyyyy() + ".";
+      } else {
+        var EndGraphDate = new Date(CurrDate);
+        EndGraphDate.setDate(CurrDate.getDate() + NumDaysToChange(CurrDate, true) - 1);
+        $("currdate-error").innerHTML = "Sorry, there is no quote frequency data available for the range " + CurrDate.mmddyyyy() + " to " + EndGraphDate.mmddyyyy();
+      }
+      CurrDate.setDate(CurrDate.getDate() - OrigNumDaysToChange);  // restore the previous, working date
     }
 }
 
@@ -70,7 +117,15 @@ function createGraph(GraphDate) {
         var GraphDateStr = GraphDate.yyyymmdd();
         var GraphDateArr = GraphDateStr.split("-");
         var GraphDateMDY = GraphDateArr[1] + "-" + GraphDateArr[2] + "-" + GraphDateArr[0];
-        $("quote-graph-currdate").innerHTML = "Current Date: " + GraphDate.mmddyyyy();
+        if (Type == Daily) {
+          $("quote-graph-currdate").innerHTML = "Current Date: " + GraphDate.mmddyyyy();
+          $("top-20-quotes").className = "selected";
+        } else {
+          var EndGraphDate = new Date(GraphDate);
+          EndGraphDate.setDate(GraphDate.getDate() + NumDaysToChange(GraphDate, true) - 1);
+          $("quote-graph-currdate").innerHTML = "Date Range: " + GraphDate.mmddyyyy() + " to " + EndGraphDate.mmddyyyy();
+          $("all-quotes").className = "selected";
+        }
         $("currdate-error").innerHTML = "";
         (new Request.JSON({
             //url: "data/match-summary.json",
@@ -149,9 +204,10 @@ function createGraph(GraphDate) {
                     }
                 };
                 a.config.animate = !0;
-                var filteredQuotes = Ranking.filter(function (a) {
+                /*var filteredQuotes = Ranking.filter(function (a) {
                     return Ranking.indexOf(a) > -1 && Ranking.indexOf(a) < 20
-                });
+                });*/
+                var filteredQuotes = Ranking;
                 a.filter(filteredQuotes, {
                     onComplete: function () {
                         a.setupLabels()
@@ -189,36 +245,53 @@ function createGraph(GraphDate) {
 
 function init() {
     (function () {
+        // Set the Type variable
+        var MainDesc = $("main-desc").innerHTML;
+        if (MainDesc.indexOf(Weekly) != -1) {
+          Type = Weekly;
+          StartDate = new Date(2012, 5, 1, 0, 0, 0, 0);
+        } else if (MainDesc.indexOf(Monthly) != -1) {
+          Type = Monthly;
+          StartDate = new Date(2012, 1, 1, 0, 0, 0, 0);
+        } else {
+          Type = Daily;
+          StartDate = new Date(2012, 5, 15, 0, 0, 0, 0); // Note that month is zero-based
+        }
+
         CurrDate = StartDate;
         var c = $$(".stream-nav a");
-        /*$("top-20-quotes").addEvent("click", function (b) {
-            b.stop();
-            a.busy || (c.removeClass("selected"), this.addClass("selected"), a.filter(Ranking, {
-                onComplete: function () {
-                    a.setupLabels()
-                }
-            }))
-        });*/
-        $("top-20-quotes").addEvent("click",
+        if (Type == Daily) {
+            $("top-20-quotes").addEvent("click",
 
-        function (b) {
-            a.busy || (b.stop(), c.removeClass("selected"), this.addClass("selected"), filteredQuotes = Ranking.filter(function (a) {
-                return Ranking.indexOf(a) > -1 && Ranking.indexOf(a) < 20
-            }), a.filter(filteredQuotes, {
-                onComplete: function () {
-                    a.setupLabels()
-                }
-            }))
-        });
-        $("top-10-quotes").addEvent("click", function (b) {
-            a.busy || (b.stop(), c.removeClass("selected"), this.addClass("selected"), filteredQuotes = Ranking.filter(function (a) {
-                return Ranking.indexOf(a) > -1 && Ranking.indexOf(a) < 10
-            }), a.filter(filteredQuotes, {
-                onComplete: function () {
-                    a.setupLabels()
-                }
-            }))
-        });
+            function (b) {
+                a.busy || (b.stop(), c.removeClass("selected"), this.addClass("selected"), filteredQuotes = Ranking.filter(function (a) {
+                    return Ranking.indexOf(a) > -1 && Ranking.indexOf(a) < 20
+                }), a.filter(filteredQuotes, {
+                    onComplete: function () {
+                        a.setupLabels()
+                    }
+                }))
+            });
+
+            $("top-10-quotes").addEvent("click", function (b) {
+                a.busy || (b.stop(), c.removeClass("selected"), this.addClass("selected"), filteredQuotes = Ranking.filter(function (a) {
+                    return Ranking.indexOf(a) > -1 && Ranking.indexOf(a) < 10
+                }), a.filter(filteredQuotes, {
+                    onComplete: function () {
+                        a.setupLabels()
+                    }
+                }))
+            });
+        } else {
+            $("all-quotes").addEvent("click", function (b) {
+                b.stop();
+                a.busy || (c.removeClass("selected"), this.addClass("selected"), a.filter(Ranking, {
+                    onComplete: function () {
+                        a.setupLabels()
+                    }
+                }))
+            });
+        }
         var h = new Fx.Scroll(window, {
             onComplete: function () {
                 $$(".row-wrapper.selected").removeClass("selected")

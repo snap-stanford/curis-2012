@@ -8,7 +8,7 @@ Here are the basic set-up steps:
 
 1) Create the folders ~/public_html/curis/resources/js and ~/public_html/curis/resources/css
 2) To resources/js, add the following:
-   i. 'jit.cc.js' and 'quotes.cc.js' (which can be found in this folder on Github).
+   i. all the .js files in this folder on Github
    ii. 'mootools-core-1.4.5.cc.js' and 'mootools-more-1.4.0.1.cc.js'
        (which can be found at /u/shhuang/public_html/curis/resources/js/)
 3) To resources/css, add 'quotes.css' (which can be found in this folder on Github)

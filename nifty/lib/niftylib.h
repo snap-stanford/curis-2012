@@ -6,6 +6,7 @@
 #include "../stdafx.h"
 
 // general
+#include "stringutil.h"
 #include "argumentparser.h"
 
 // data structures

@@ -100,7 +100,7 @@ void LSH::GetHashedShinglesOfCluster(TQuoteBase *QuoteBase, TCluster& C, TInt Sh
     TStr QContentStr;
     Q.GetContentString(QContentStr);
     TStr QContentStrNoPunc;
-    TQuote::RemovePunctuation(QContentStr, QContentStrNoPunc);
+    TStringUtil::RemovePunctuation(QContentStr, QContentStrNoPunc);
     TStrV QContentV;
     QContentStrNoPunc.SplitOnWs(QContentV);
     for (int i = 0; i < QContentV.Len()-ShingleLen+1; i++) {
