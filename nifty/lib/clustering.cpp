@@ -144,13 +144,13 @@ TInt Clustering::CalcRepresentativeQuote(TQuote& RepQuote, TIntV& Cluster, TQuot
     TInt QId = Cluster[j];
     TQuote Q;
     QuoteBase->GetQuote(QId, Q);
-    //if (!QuoteGraph::EdgeShouldBeFromOneToTwo(Q, RepQuote)) {
-    //  RepQuote = Q;
-    //}
-    if (Q.GetNumSources() > MaxSources) {
-      MaxSources = Q.GetNumSources();
+    if (!QuoteGraph::EdgeShouldBeFromOneToTwo(Q, RepQuote)) {
       RepQuote = Q;
     }
+    /*if (Q.GetNumSources() > MaxSources) {
+      MaxSources = Q.GetNumSources();
+      RepQuote = Q;
+    }*/
     NumQuotes += Q.GetNumSources();
   }
   return NumQuotes;

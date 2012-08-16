@@ -16,7 +16,7 @@
     <div id="container">
       <div id="title">
         <div class='main-title'>NIFTY</div>
-        <div id='links' class="description">A preliminary visualization of NIFTY output. (Inspiration: https://euro2012.twitter.com/)</div>
+        <div id='main-desc' class="description">A preliminary visualization of monthly NIFTY output. (Inspiration: https://euro2012.twitter.com/)</div>
         <div id='quote-graph-currdate' class="description"></div>
         <div id='currdate-error' class="description"></div>
         <!--[if lte IE 8]>
@@ -28,21 +28,19 @@
 
       <div class='stream'>
         <div class='stream-title' id='quote-graph-desc'>
-          The Streamgraph below shows quote popularity over time, for two weeks up until the current date.
+          The Streamgraph below shows quote popularity over a month.
           <br />
           <b>Hover over an area to see the full quote, and click on an area to see only that quote's graph.</b>
         </div>
         <div id='stream-viz'>
         </div>
         <div class='stream-nav'>
-          <a href='#' id='top-20-quotes' class='selected' id='top-20-quotes'>Top 20 Quotes</a>
-          <a href='#' id='top-10-quotes'>Top 10 Quotes</a>
-          <!--<a href='#' id='top-10-quotes'>Top 10 Quotes</a> -->
+          <a href='#' id='all-quotes' class='selected'>All Quotes</a>
         </div>
       </div>
       <div class='nav-buttons'>
-          <button onclick='graphPrevDay()' id='prev-day'>Previous Day</a>
-          <button onclick='graphNextDay()' id='next-day'>Next Day</a>
+          <button onclick='graphPrevDay()' id='prev-day'>Previous Month</a>
+          <button onclick='graphNextDay()' id='next-day'>Next Month</a>
       </div>
 
     </div>
