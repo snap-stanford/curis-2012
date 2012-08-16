@@ -21,7 +21,11 @@ void PrintFreqOverTime(THash<TSecTm, TFltV>& FreqOverTime) {
 }
 
 // Adds the frequency data for CurrDate to the data structures
-void UpdateDataForJsonPrinting(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, THash<TSecTm, TFltV>& FreqOverTime, TVec<TSecTm>& Times, TIntV& ClustersToPrint, THash<TInt, TStr>& ClustersRepQuote, TSecTm& CurrentDate, TInt DaysPassed) {
+void UpdateDataForJsonPrinting(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, THash<TSecTm, TFltV>& FreqOverTime, TVec<TSecTm>& Times, TIntV& ClustersToPrint, THash<TInt, TStr>& ClustersRepQuote, TSecTm& CurrentDate, TInt DaysPassed, TStr& Type) {
+  if (Type == "day") {
+    DaysPassed = 7;
+  }
+
   // Initialize the new values in the hash table
   TCluster MostRecentC;
   bool ClusterInCB = CB->GetCluster(ClustersToPrint[ClustersToPrint.Len() - 1], MostRecentC);
@@ -136,7 +140,7 @@ bool IsLeapYear(TInt Year) {
 
 TSecTm CalculateEndPeriodDate(TSecTm& CurrentDate, TStr& Type) {
   TSecTm EndPeriodDate = CurrentDate;
-  if (Type == "daily") {
+  if (Type == "day") {
     EndPeriodDate.AddDays(1);
   } else if (Type == "week") {
     EndPeriodDate.AddDays(7);
@@ -176,7 +180,7 @@ int main(int argc, char *argv[]) {
   if (Type == "day") {
     NumTopClustersPerDay = 20;
   } else if (Type == "week") {
-    NumTopClustersPerDay = 7;
+    NumTopClustersPerDay = 5;
   } else {
     NumTopClustersPerDay = 2;
   }
@@ -195,6 +199,7 @@ int main(int argc, char *argv[]) {
     TIntV ClustersToPrint;
     THash<TInt, TStr> ClustersRepQuote;
     fprintf(stderr, "Preparing to write JSON to file\n");
+    fprintf(stderr, "EndPeriodDate: %s\n", EndPeriodDate.GetDtYmdStr().CStr());
     for (int i = 0; CurrentDate < EndPeriodDate && CurrentDate < EndDate; ++i) {
       // Load Cumulative QBDBCB
       TQuoteBase QB;
@@ -214,16 +219,14 @@ int main(int argc, char *argv[]) {
           ClustersToPrint.Add(TopClusters[j]);
         }
       }
-      UpdateDataForJsonPrinting(&QB, &DB, &CB, FreqOverTime, Times, ClustersToPrint, ClustersRepQuote, CurrentDate, i + 1);
+      UpdateDataForJsonPrinting(&QB, &DB, &CB, FreqOverTime, Times, ClustersToPrint, ClustersRepQuote, CurrentDate, i + 1, Type);
       CurrentDate.AddDays(1);
     }
-
-    CurrentDate.AddDays(-1);
-    TStr OutputFilename = "../../../public_html/curis/output/clustering/visualization-" + Type + "/data-test/clusterinfo-" +
+    if (CurrentDate == EndPeriodDate) {
+      TStr OutputFilename = "../../../public_html/curis/output/clustering/visualization-" + Type + "/data/clusterinfo-" +
                         StartPeriodDate.GetDtYmdStr() + ".json";
-    PrintClustersInJson(FreqOverTime, Times, ClustersToPrint, ClustersRepQuote, OutputFilename);
-
-    CurrentDate.AddDays(1);
+      PrintClustersInJson(FreqOverTime, Times, ClustersToPrint, ClustersRepQuote, OutputFilename);
+    }
   }
 
   return 0;

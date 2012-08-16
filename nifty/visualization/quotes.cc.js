@@ -119,10 +119,12 @@ function createGraph(GraphDate) {
         var GraphDateMDY = GraphDateArr[1] + "-" + GraphDateArr[2] + "-" + GraphDateArr[0];
         if (Type == Daily) {
           $("quote-graph-currdate").innerHTML = "Current Date: " + GraphDate.mmddyyyy();
+          $("top-20-quotes").className = "selected";
         } else {
           var EndGraphDate = new Date(GraphDate);
           EndGraphDate.setDate(GraphDate.getDate() + NumDaysToChange(GraphDate, true) - 1);
           $("quote-graph-currdate").innerHTML = "Date Range: " + GraphDate.mmddyyyy() + " to " + EndGraphDate.mmddyyyy();
+          $("all-quotes").className = "selected";
         }
         $("currdate-error").innerHTML = "";
         (new Request.JSON({
@@ -253,7 +255,7 @@ function init() {
           StartDate = new Date(2012, 1, 1, 0, 0, 0, 0);
         } else {
           Type = Daily;
-          StartDate = new Date(2012, 6, 1, 0, 0, 0, 0); // Note that month is zero-based
+          StartDate = new Date(2012, 5, 15, 0, 0, 0, 0); // Note that month is zero-based
         }
 
         CurrDate = StartDate;
