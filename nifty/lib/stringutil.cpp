@@ -224,10 +224,13 @@ bool TStringUtil::IsEnglish(const TChA& Quote) {
 /// Assumes lower case characters only format
 bool TStringUtil::IsRobustlyEnglish(TStr& Quote) {
   if (TStringUtil::CommonEnglishWordsList.Len() == 0 ) { LoadCommonEnglishWords(); }
+  TStr CleanQuote;
+  RemovePunctuation(Quote, CleanQuote);
   TStrV Parsed;
-  TStringUtil::ParseStringIntoWords(Quote, Parsed);
+  TStringUtil::ParseStringIntoWords(CleanQuote, Parsed);
   TInt EnglishCount = 0;
   for (int i = 0; i < Parsed.Len(); ++i) {
+    if (Parsed[i].Len() > 30) { return false; }
     if (TStringUtil::CommonEnglishWordsList.IsKey(Parsed[i])) {
       EnglishCount++;
     }
