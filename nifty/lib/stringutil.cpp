@@ -224,8 +224,8 @@ bool TStringUtil::IsEnglish(const TChA& Quote) {
 /// Assumes lower case characters only format
 bool TStringUtil::IsRobustlyEnglish(TStr& Quote) {
   if (TStringUtil::CommonEnglishWordsList.Len() == 0 ) { LoadCommonEnglishWords(); }
-  TStr CleanQuote;
-  RemovePunctuation(Quote, CleanQuote);
+  TStr CleanQuote = Quote;
+  FilterSpacesAndSetLowercase(CleanQuote);
   TStrV Parsed;
   TStringUtil::ParseStringIntoWords(CleanQuote, Parsed);
   TInt EnglishCount = 0;
