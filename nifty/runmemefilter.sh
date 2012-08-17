@@ -1,90 +1,18 @@
 #!/bin/sh
-date=1
-while [ $date -lt 10 ]
-do
-  ./memefilter 2012-01-0${date} &
-  date=$(( $date + 1 ))
-  [[ $((date%10)) -eq 0 ]] && wait
-done
-date=10
-while [ $date -lt 32 ]
-do
-  ./memefilter 2012-01-${date} &
-  date=$(( $date + 1 ))
-  [[ $((date%10)) -eq 0 ]] && wait
-done
 
-date=1
-while [ $date -lt 10 ]
-do
-  ./memefilter 2012-02-0${date} &
-  date=$(( $date + 1 ))
-  [[ $((date%10)) -eq 0 ]] && wait
-done
-date=10
-while [ $date -lt 30 ]
-do
-  ./memefilter 2012-02-${date} &
-  date=$(( $date + 1 ))
-  [[ $((date%10)) -eq 0 ]] && wait
-done
+year=2012
+ndays=(31 29 31 30 31 30 31 31 30 31 30 31)
+months=(1 2 3 4 5 6)
 
-date=1
-while [ $date -lt 10 ]
+for month in ${months[*]}
 do
-  ./memefilter 2012-03-0${date} &
-  date=$(( $date + 1 ))
-  [[ $((date%10)) -eq 0 ]] && wait
-done
-date=10
-while [ $date -lt 32 ]
-do
-  ./memefilter 2012-03-${date} &
-  date=$(( $date + 1 ))
-  [[ $((date%10)) -eq 0 ]] && wait
-done
-
-date=1
-while [ $date -lt 10 ]
-do
-  ./memefilter 2012-04-0${date} &
-  date=$(( $date + 1 ))
-  [[ $((date%10)) -eq 0 ]] && wait
-done
-date=10
-while [ $date -lt 31 ]
-do
-  ./memefilter 2012-04-${date} &
-  date=$(( $date + 1 ))
-  [[ $((date%10)) -eq 0 ]] && wait
-done
-
-date=1
-while [ $date -lt 10 ]
-do
-  ./memefilter 2012-05-0${date} &
-  date=$(( $date + 1 ))
-  [[ $((date%10)) -eq 0 ]] && wait
-done
-date=10
-while [ $date -lt 32 ]
-do
-  ./memefilter 2012-05-${date} &
-  date=$(( $date + 1 ))
-  [[ $((date%10)) -eq 0 ]] && wait
-done
-
-date=1
-while [ $date -lt 10 ]
-do
-  ./memefilter 2012-06-0${date} &
-  date=$(( $date + 1 ))
-  [[ $((date%10)) -eq 0 ]] && wait
-done
-date=10
-while [ $date -lt 31 ]
-do
-  ./memefilter 2012-06-${date} &
-  date=$(( $date + 1 ))
-  [[ $((date%10)) -eq 0 ]] && wait
+  for (( day=1; day <= ${ndays[month-1]}; day++ ))
+  do
+    yearstr=$(printf "%04d" $year)
+    monthstr=$(printf "%02d" $month)
+  	daystr=$(printf "%02d" $day)
+  	#./memefilter ${yearstr}-${monthstr}-${daystr} &
+  	[[ $((day%10)) -eq 0 ]] && wait
+  done
+  wait
 done
