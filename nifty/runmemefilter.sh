@@ -11,7 +11,7 @@ do
     yearstr=$(printf "%04d" $year)
     monthstr=$(printf "%02d" $month)
   	daystr=$(printf "%02d" $day)
-  	#./memefilter ${yearstr}-${monthstr}-${daystr} &
+  	./memefilter ${yearstr}-${monthstr}-${daystr} &
   	[[ $((day%10)) -eq 0 ]] && wait
   done
   wait
