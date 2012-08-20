@@ -254,7 +254,7 @@ bool TStringUtil::IsRobustlyEnglish(TStr& Quote) {
 
 void TStringUtil::RemoveEndPunctuations(TChA& Quote) {
   for (int i = Quote.Len() - 1; i >= 0; i--) {
-    if (isalpha(Quote[i]) || Quote[i] == '\'' || Quote[i] == ')') {
+    if (isalpha(Quote[i]) || Quote[i] == '\'' || Quote[i] == ')' || Quote[i] == ']') {
       break;
     } else {
       Quote[i] = ' ';
