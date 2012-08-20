@@ -91,7 +91,7 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
   TStr CurDateString = PresentTime.GetDtYmdStr();
   fprintf(stderr, "Writing cluster information ...\n");
   TStr FileName = WebDirectory + TimeStamp + "/top_clusters_" + CurDateString + ".txt";
-  TStr HTMLFileName = WebDirectory + TimeStamp + "/clusters_" + CurDateString +".html";
+  TStr HTMLFileName = WebDirectory + TimeStamp + "/clusters_" + CurDateString + ".html";
   TStr Command = "mkdir -p " + WebDirectory + TimeStamp + "/cluster_" + CurDateString;
   system(Command.CStr());
   FILE *F = fopen(FileName.CStr(), "w");
@@ -218,7 +218,7 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
 
   //Close files
   fclose(F);
-  //fclose(H);
+  fclose(H);
 }
 
 void LogOutput::ComputeOldRankString(THash<TInt, TInt>& OldRankings, TInt& ClusterId, TInt CurRank, TStr& OldRankStr) {
