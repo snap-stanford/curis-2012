@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
   for (int j = 0; j < 24; j++) {
     TStr MonDir = CurrentDate.GetDtYmdStr().GetSubStr(0, 6);
     TStr CurFile = "web-" + CurrentDate.GetDtYmdStr() + TStr::Fmt("T%02d-00-00Z.rar", CurrentDate.GetHourN());
-    if(!Memes.LoadFile("/lfs/1/tmp/curis/spinn3r/" + MonDir + "/", CurFile)) {continue;}
+    if(!Memes.LoadFile("/lfs/1/tmp/curis/spinn3r/" + MonDir + "/", CurFile)) { CurrentDate.AddHours(1); continue; }
     while (Memes.LoadNextEntry()) {
       if (IsUrlInBlackList(Memes.PostUrlStr)) { NSkipBlackList++;continue; }
       TMd5Sig UrlSig = TMd5Sig(Memes.PostUrlStr);
