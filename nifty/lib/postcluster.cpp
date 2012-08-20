@@ -355,6 +355,8 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
 
   // Time setup
   //TUInt TwoWeekTime = 14 * Peaks::NumSecondsInDay;
+  TSecTm NextDay = PresentTime;
+  NextDay.AddDays(1);
   TUInt PresentTimeI = TUInt(PresentTime.GetAbsSecs());
   PresentTimeI = TUInt(uint(PresentTimeI / Peaks::NumSecondsInDay + 1) * Peaks::NumSecondsInDay);  // round to next 12am
   TUInt ThresholdTime = PresentTimeI - DayThreshold * Peaks::NumSecondsInDay;
@@ -368,7 +370,7 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
     TIntV AllSources;
     TCluster::GetUniqueSources(AllSources, ClusterQuoteIds, QB);
     TFreqTripleV PeakV, FreqV;
-    C.GetPeaks(DB, QB, PeakV, FreqV, PEAK_BUCKET, PEAK_WINDOW, PresentTime);
+    C.GetPeaks(DB, QB, PeakV, FreqV, PEAK_BUCKET, PEAK_WINDOW, NextDay);
 
     // Calculate number of recent sources.
     int NumSources = AllSources.Len();
@@ -400,7 +402,7 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
       for (int j = 0; j < ClusterQuoteIds.Len(); j++) {
         TQuote Q;
         QB->GetQuote(ClusterQuoteIds[j], Q);
-        fprintf(F2, "%s\n", DQuote::GetQuoteString(DB, Q, PresentTime).CStr());
+        fprintf(F2, "%s\n", DQuote::GetQuoteString(DB, Q, NextDay).CStr());
         QB->RemoveQuote(ClusterQuoteIds[j]);
         QGraph->DelNode(ClusterQuoteIds[j]);
       }

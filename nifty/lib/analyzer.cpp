@@ -12,7 +12,7 @@ TStr DCluster::GetClusterString(TQuoteBase *QB, TDocBase *DB, TCluster& C, TFreq
   RepStr.SplitOnStr(" ", QuoteV);
 
   TSecTm First, Last, Peak;
-  DCluster::GetFMP(FreqV, First, Last, Peak);
+  DCluster::GetFMP(FreqV, First, Last, Peak, RepStr);
 
   Response = Start.GetDtYmdStr() + "\t" + End + "\t";
   Response += C.GetNumUniqueQuotes().GetStr() + "\t" + C.GetNumQuotes().GetStr() + "\t";
@@ -53,7 +53,7 @@ DCluster::DCluster(TStr LineInput) {
   Archived = TBool(ArchiveBool);
 }
 
-void DCluster::GetFMP(TFreqTripleV& FreqV, TSecTm& First, TSecTm& Last, TSecTm& Peak) {
+void DCluster::GetFMP(TFreqTripleV& FreqV, TSecTm& First, TSecTm& Last, TSecTm& Peak, TStr &Quote) {
   TInt FreqLength = FreqV.Len();
   TInt MaxVal = -1, MinIndex = -1, MaxIndex = 0;
   for (int i = 0; i < FreqLength; ++i) {
@@ -73,7 +73,7 @@ void DCluster::GetFMP(TFreqTripleV& FreqV, TSecTm& First, TSecTm& Last, TSecTm& 
   if (MinIndex >= 0) {
     First = FreqV[MinIndex].Val3;
   } else {
-    Err("Uh oh!\n");
+    Err("QUOTE: %s", Quote.CStr());
     for (int i = 0; i < FreqV.Len(); i++) {
       Err("%f ", FreqV[i].Val2.Val);
     }
@@ -84,16 +84,16 @@ void DCluster::GetFMP(TFreqTripleV& FreqV, TSecTm& First, TSecTm& Last, TSecTm& 
 }
 
 TStr DQuote::GetQuoteString(TDocBase *DB, TQuote& Quote, TSecTm &PresentTime) {
+  TStr Str, RepURL;
+  Quote.GetContentString(Str);
+  Quote.GetRepresentativeUrl(DB, RepURL);
+
   TFreqTripleV FreqV, PeakV;
   TIntV Sources;
   Quote.GetSources(Sources);
   Peaks::GetPeaks(DB, Sources, PeakV, FreqV, PEAK_BUCKET, PEAK_WINDOW, PresentTime);
   TSecTm First, Last, Peak;
-  DCluster::GetFMP(FreqV, First, Last, Peak);
-
-  TStr Str, RepURL;
-  Quote.GetContentString(Str);
-  Quote.GetRepresentativeUrl(DB, RepURL);
+  DCluster::GetFMP(FreqV, First, Last, Peak, Str);
 
   TStr Response = Quote.GetNumSources().GetStr() + "\t" + TInt(PeakV.Len()).GetStr() + "\t" + Quote.GetContentNumWords().GetStr() + "\t";
   Response += Str + "\t" + RepURL + "\t";
