@@ -36,6 +36,7 @@ public:
   void GetPeaks(TDocBase *DocBase, TVec<TSecTm>& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
   void GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TSecTm PresentTime);
   void GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
+  void GetRepresentativeUrl(TDocBase *DocBase, TStr& RepUrl);
 };
 
 class TQuoteBase {
@@ -45,9 +46,8 @@ private:
   THash<TStrV, TInt> QuoteToId;
 
   static const TStr TopNewsSourcesFile;
-  TStrSet TopNewsSources;
-  void InitTopNewsSources();
-  bool IsUrlTopNewsSource(TStr Url);
+  static TStrSet TopNewsSources;
+  static void InitTopNewsSources();
 public:
   TQuoteBase();
   // returns true if new TQuote created, false otherwise.
@@ -67,6 +67,7 @@ public:
   TInt GetCurCounterValue();
   void GetRepresentativeUrl(TDocBase *DocBase, TInt QuoteId, TStr& RepUrl);
   bool IsContainNullQuote();
+  static bool IsUrlTopNewsSource(TStr Url);
 };
 
 // Compares two quotes by their frequency

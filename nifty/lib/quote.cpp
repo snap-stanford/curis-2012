@@ -3,6 +3,7 @@
 #include "peaks.h"
 
 const TStr TQuoteBase::TopNewsSourcesFile = TStr("resources/ranked_news_sources.txt");
+TStrSet TQuoteBase::TopNewsSources = TStrSet();
 
 TQuote::TQuote() {
 }
@@ -159,6 +160,46 @@ void TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize
   }
   TStr SetXTic = TStr("set xtics 24\nset terminal png small size 1000,800");
   GP.SavePng("./plots/" + Filename + ".png", 1000, 800, TStr(), SetXTic);
+}
+
+void TQuote::GetRepresentativeUrl(TDocBase *DocBase, TStr& RepUrl) {
+  // Sort the sources by time (ascending)
+  TIntV SourcesSorted = Sources;
+  SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
+
+  // Pick the first url with the domain in the whitelist
+  for (int i = 0; i < SourcesSorted.Len(); i++) {
+    TDoc Doc;
+    TStr DocUrl;
+    DocBase->GetDoc(SourcesSorted[i], Doc);
+    Doc.GetUrl(DocUrl);
+    if (TQuoteBase::IsUrlTopNewsSource(DocUrl)) {
+      RepUrl = DocUrl;
+      //fprintf(stderr, "URL matched news source on whitelist!\n");
+      return;
+    }
+  }
+
+  // If no url qualifies, pick the first one within the time period of the first peak
+  //fprintf(stderr, "No match :(\n");
+
+  TVec<TSecTm> PeakTimesV;
+  GetPeaks(DocBase, PeakTimesV, PEAK_BUCKET, PEAK_WINDOW, TSecTm(0));
+
+  // If there are no peaks, return the first document
+  if (PeakTimesV.Len() <= 0 && SourcesSorted.Len() > 0) {
+    TDoc Doc;
+    DocBase->GetDoc(SourcesSorted[0], Doc);
+    Doc.GetUrl(RepUrl);
+    return;
+  }
+
+  TDoc Doc;
+  for(int i = 0; i < SourcesSorted.Len(); i++) {
+    DocBase->GetDoc(SourcesSorted[i], Doc);
+    if (PeakTimesV[0] <= Doc.GetDate()) { break; }
+  }
+  Doc.GetUrl(RepUrl);
 }
 
 bool TQuoteBase::IsContainNullQuote() {
@@ -330,12 +371,12 @@ void TQuoteBase::InitTopNewsSources() {
   TFIn F(TopNewsSourcesFile.CStr());
   TStr NewsSource;
   while (!F.Eof() && F.GetNextLn(NewsSource)) {
-    TopNewsSources.AddKey(NewsSource);
+    TQuoteBase::TopNewsSources.AddKey(NewsSource);
   }
 }
 
 bool TQuoteBase::IsUrlTopNewsSource(TStr Url) {
-  if (TopNewsSources.Len() == 0) {
+  if (TQuoteBase::TopNewsSources.Len() == 0) {
     InitTopNewsSources();
   }
 
@@ -373,50 +414,6 @@ bool TQuoteBase::IsUrlTopNewsSource(TStr Url) {
 void TQuoteBase::GetRepresentativeUrl(TDocBase *DocBase, TInt QuoteId, TStr& RepUrl) {
   TQuote Q;
   if (!IdToTQuotes.IsKeyGetDat(QuoteId, Q)) { return; }
-  TStr QContentStr;
-  Q.GetContentString(QContentStr);
-
-  // Sort the sources by time (ascending)
-  TIntV SourcesSorted;
-  Q.GetSources(SourcesSorted);
-  if (SourcesSorted.Len() == 0) {
-    fprintf(stderr, "Warning: Quote \"%s\" has 0 sources\n", QContentStr.CStr());
-    return;
-  }
-  SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
-
-  // Pick the first url with the domain in the whitelist
-  for (int i = 0; i < SourcesSorted.Len(); i++) {
-    TDoc Doc;
-    TStr DocUrl;
-    DocBase->GetDoc(SourcesSorted[i], Doc);
-    Doc.GetUrl(DocUrl);
-    if (IsUrlTopNewsSource(DocUrl)) {
-      RepUrl = DocUrl;
-      //fprintf(stderr, "URL matched news source on whitelist!\n");
-      return;
-    }
-  }
-
-  // If no url qualifies, pick the first one within the time period of the first peak
-  //fprintf(stderr, "No match :(\n");
-
-  TVec<TSecTm> PeakTimesV;
-  Q.GetPeaks(DocBase, PeakTimesV, 2, 1, TSecTm(0));
-
-  // If there are no peaks, return the first document
-  if (PeakTimesV.Len() <= 0 && SourcesSorted.Len() > 0) {
-    TDoc Doc;
-    DocBase->GetDoc(SourcesSorted[0], Doc);
-    Doc.GetUrl(RepUrl);
-    return;
-  }
-
-  TDoc Doc;
-  for(int i = 0; i < SourcesSorted.Len(); i++) {
-    DocBase->GetDoc(SourcesSorted[i], Doc);
-    if (PeakTimesV[0] <= Doc.GetDate()) { break; }
-  }
-  Doc.GetUrl(RepUrl);
+  Q.GetRepresentativeUrl(DocBase, RepUrl);
 }
 

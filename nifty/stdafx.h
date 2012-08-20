@@ -18,4 +18,7 @@
 #define QBDBC_DIRECTORY "/lfs/1/tmp/curis/QBDBC/"
 //#define QBDBC_DIRECTORY "/lfs/1/tmp/curis/QBDBC-P/"
 
+#define PEAK_BUCKET 2
+#define PEAK_WINDOW 1
+
 #endif

@@ -77,8 +77,8 @@ TInt TStringUtil::LongestSubsequenceOfWords(const TStrV& Content1, const TStrV& 
   }
 
   // We assume the quotes are less than 50 words long
-  IAssert(IdV1.Len() < 50 && IdV2.Len() < 50);
-  int lcs[50][50];
+  IAssert(IdV1.Len() < 50 && IdV2.Len() < 75);
+  int lcs[75][75];
   for (int i = 0; i < IdV1.Len(); i++) {
     for (int j = 0; j < IdV2.Len(); j++) {
       lcs[i][j] = 0;
@@ -98,6 +98,19 @@ TInt TStringUtil::SubWordListEditDistance(const TStrV& Content1, const TStrV& Co
   const TStrV& V2 = Content1.Len() > Content2.Len() ? Content2:Content1; // shorter quote
 
   // We assumet the quotes are less than 50 words long
+  if (!(V1.Len() < 50 && V2.Len() < 50)) {
+    return 10;
+    /*TStr Ref1, Ref2;
+    for (int i = 0; i < Content1.Len(); ++i) {
+      if (i > 0)  Ref1.InsStr(Ref1.Len()," ");
+      Ref1.InsStr(Ref1.Len(), Content1[i]);
+    }
+    for (int i = 0; i < Content2.Len(); ++i) {
+      if (i > 0)  Ref2.InsStr(Ref2.Len()," ");
+      Ref2.InsStr(Ref2.Len(), Content2[i]);
+    }
+    Err("OBJECTION: %s\nOBJECTION: %s\n", Ref1.CStr(), Ref2.CStr());*/
+  }
   IAssert(V1.Len() < 50 && V2.Len() < 50);
   int lcs[50][50];
 

@@ -31,4 +31,6 @@
 #include "incrementalclustering.h"
 #include "incrementalquotegraph.h"
 
+// data analysis
+#include "analyzer.h"
 #endif

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-class DCluster {
+class FCluster {
 public:
   TSecTm Start;
   TSecTm End;
@@ -8,6 +8,7 @@ public:
   TStr RepURL;
   TInt Size;
   TInt Unique;
+  TStr PopStr;
 };
 
 void PlotUniqueClusterSize(int* Counts) {
@@ -66,15 +67,31 @@ void PlotClusterLengthVsLifespan(int *LenCounts, int *LenUnique) {
   Plot.SavePng("plot_cluster_length_lifespan.png");
 }
 
-void BuildClusterVec(TStr FileName, TVec<DCluster>& Deleted) {
+void PlotClusterLifespanVsSize(int *DayCounts, int *LenSize) {
+  TGnuPlot Plot = TGnuPlot("plot_lifespan_vs_size", "Cluster Lifespan vs. Average Size", false);
+  Plot.SetXYLabel("lifespan (in days)", "average cluster size");
+  //Plot.SetScale(gpsLog2XY);
+
+  TVec<TPair<TInt, TFlt> > Coordinates;
+  for (int i = 5; i < 31; ++i) {
+    if (DayCounts[i] > 0) {
+      Coordinates.Add(TPair<TInt, TFlt>(i, LenSize[i] * 1.0 / DayCounts[i]));
+    }
+  }
+
+  Plot.AddPlot(Coordinates, gpwPoints);
+  Plot.SavePng("plot_lifespan_vs_size.png");
+}
+
+void BuildClusterVec(TStr FileName, TVec<FCluster>& Deleted) {
   PSIn FileLoader = TFIn::New(FileName);
   TStr CurLn;
   int Counts[100];
   for (int i = 0; i < 100; i++) {
     Counts[i] = 0;
   }
-  int DayCounts[50];
-  for (int i = 0; i < 50; i++) {
+  int DayCounts[200];
+  for (int i = 0; i < 200; i++) {
     DayCounts[i] = 0;
   }
   int LenCounts[31];
@@ -85,8 +102,13 @@ void BuildClusterVec(TStr FileName, TVec<DCluster>& Deleted) {
   for (int i = 0; i < 31; i++) {
     LenUnique[i] = 0;
   }
+
+  int LenSize[200];
+  for (int i = 0; i < 200; i++) {
+    LenSize[i] = 0;
+  }
   while (FileLoader->GetNextLn(CurLn)) {
-    DCluster NewCluster;
+    FCluster NewCluster;
     TStrV Params;
     CurLn.SplitOnStr("\t", Params);
     if (Params.Len() >= 6) {
@@ -95,10 +117,11 @@ void BuildClusterVec(TStr FileName, TVec<DCluster>& Deleted) {
       uint StartDay = NewCluster.Start.GetInUnits(tmuDay);
       uint EndDay = NewCluster.End.GetInUnits(tmuDay);
       int Diff = EndDay - StartDay + 1;
-      if (Diff < 50) DayCounts[Diff]++;
+      if (Diff < 200) DayCounts[Diff]++;
       NewCluster.Unique = TInt(Params[2].GetInt());
       if (NewCluster.Unique < 100) Counts[NewCluster.Unique.Val]++;
       NewCluster.Size = TInt(Params[3].GetInt());
+      if (Diff < 200) LenSize[Diff] += NewCluster.Size;
       NewCluster.RepStr = Params[4];
       TStrV StrV;
       NewCluster.RepStr.SplitOnStr(" ", StrV);
@@ -121,14 +144,15 @@ void BuildClusterVec(TStr FileName, TVec<DCluster>& Deleted) {
 
   //PlotUniqueClusterSize(Counts);
   //PlotClusterLifespan(DayCounts);
-  PlotClusterLength(LenCounts);
-  PlotClusterLengthVsLifespan(LenCounts, LenUnique);
+  //PlotClusterLength(LenCounts);
+  //PlotClusterLengthVsLifespan(LenCounts, LenUnique);
+  PlotClusterLifespanVsSize(DayCounts, LenSize);
 
 }
 
 int main(int argc, char *argv[]) {
   TStr FileName = "all_deleted_clusters.txt";
-  TVec<DCluster> Deleted;
+  TVec<FCluster> Deleted;
   BuildClusterVec(FileName, Deleted);
   Err("Number of clusters: %d\n", Deleted.Len());
   return 0;

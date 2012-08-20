@@ -353,22 +353,27 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
   TInt NumArchived = 0;
   TInt TotalRemainingQuotes = 0;
 
+  // Time setup
+  //TUInt TwoWeekTime = 14 * Peaks::NumSecondsInDay;
+  TUInt PresentTimeI = TUInt(PresentTime.GetAbsSecs());
+  PresentTimeI = TUInt(uint(PresentTimeI / Peaks::NumSecondsInDay + 1) * Peaks::NumSecondsInDay);  // round to next 12am
+  TUInt ThresholdTime = PresentTimeI - DayThreshold * Peaks::NumSecondsInDay;
+
   for (int i = 0; i < AllClusterIds.Len(); i++) {
+    // Get cluster, and its sources/histogram
     TCluster C;
     CB->GetCluster(AllClusterIds[i], C);
     TIntV ClusterQuoteIds;
     C.GetQuoteIds(ClusterQuoteIds);
     TIntV AllSources;
     TCluster::GetUniqueSources(AllSources, ClusterQuoteIds, QB);
+    TFreqTripleV PeakV, FreqV;
+    C.GetPeaks(DB, QB, PeakV, FreqV, PEAK_BUCKET, PEAK_WINDOW, PresentTime);
 
-    TInt NumRecentSources = 0;
-    // Round PresentTime to the nearest day afterward
-    TUInt PresentTimeI = TUInt(PresentTime.GetAbsSecs());
-    PresentTimeI = TUInt(uint(PresentTimeI / Peaks::NumSecondsInDay + 1) * Peaks::NumSecondsInDay);  // round to next 12am
-
-    TUInt ThresholdTime = PresentTimeI - DayThreshold * Peaks::NumSecondsInDay;
+    // Calculate number of recent sources.
     int NumSources = AllSources.Len();
 
+    TInt NumRecentSources = 0;
     for (int j = 0; j < NumSources; ++j) {
       TDoc Doc;
       DB->GetDoc(AllSources[j], Doc);
@@ -377,37 +382,32 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
       }
     }
 
+    // NEW STRATEGY: if the peak hasn't changed in the last two weeks, trash the cluster!
+    TFlt MaxSources = -1;
+    TInt SourceIndex = -1;
+    for (int j = 0; j < PeakV.Len(); j++) {
+      if (FreqV[j].Val2 > MaxSources) {
+        MaxSources = PeakV[j].Val2;
+        SourceIndex = j;
+      }
+    }
+
     // If the number of recent sources does not pass the threshold, remove that cluster and all its quotes
-    if (NumRecentSources < QuoteThreshold) {
-      //Uniq  Freq  RepQuote  RepQuoteURL
-      TStr RepStr, RepURL;
-      TSecTm BirthDate;
-      C.GetBirthDate(BirthDate);
-      C.GetRepresentativeQuoteString(RepStr, QB);
-      C.GetRepresentativeQuoteURL(QB, DB, RepURL);
-      fprintf(F, "%s\t%s\t%d\t%d\t%s\t%s\n", BirthDate.GetDtYmdStr().CStr(), CurDateString.CStr(), C.GetNumUniqueQuotes().Val, C.GetNumQuotes().Val, RepStr.CStr(), RepURL.CStr());
-      fprintf(F2, "%d\t%d\t%s\t%s\n", C.GetNumUniqueQuotes().Val, C.GetNumQuotes().Val, RepStr.CStr(), RepURL.CStr());
+    if (NumRecentSources < QuoteThreshold || FreqV.Len() - SourceIndex  > 14 * 24 / PEAK_BUCKET) {
+      TStr ClusterString = DCluster::GetClusterString(QB, DB, C, FreqV, TInt(PeakV.Len()), CurDateString);
+      fprintf(F, "%s\n", ClusterString.CStr());
+      fprintf(F2, "%s\n", ClusterString.CStr());
       for (int j = 0; j < ClusterQuoteIds.Len(); j++) {
         TQuote Q;
         QB->GetQuote(ClusterQuoteIds[j], Q);
-        Q.GetContentString(RepStr);
-        QB->GetRepresentativeUrl(DB, ClusterQuoteIds[j], RepURL);
-        fprintf(F2, "\t%d\t%s\t%s\n", Q.GetNumSources().Val, RepStr.CStr(), RepURL.CStr());
+        fprintf(F2, "%s\n", DQuote::GetQuoteString(DB, Q, PresentTime).CStr());
         QB->RemoveQuote(ClusterQuoteIds[j]);
         QGraph->DelNode(ClusterQuoteIds[j]);
       }
+      fprintf(F2, "\n"); // empty line signifies next cluster!
       CB->RemoveCluster(AllClusterIds[i]);
     } else {
       TotalRemainingQuotes++;
-      // peak detection
-      TFlt MaxSources = -1;
-      TFreqTripleV PeakTimesV, FreqV;
-      C.GetPeaks(DB, QB, PeakTimesV, FreqV, 2, 1, PresentTime);
-      for (int i = 0; i < PeakTimesV.Len(); i++) {
-        if (PeakTimesV[i].Val2 > MaxSources) {
-          MaxSources = PeakTimesV[i].Val2;
-        }
-      }
       TFlt AvgFreq = 0;
       TInt Count = 0;
       int stop = FreqV.Len() - 12;
@@ -431,4 +431,19 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
   Err("Removing old documents...\n");
   DB->RemoveNullDocs(QB);
   return;
+}
+
+// I won't lie - I just want to have a method called "nukecluster". :D Doesn't clear null docs.
+void PostCluster::NukeCluster(TQuoteBase *QB, TClusterBase *CB, TInt ClusterId, TSecTm& PresentTime, PNGraph& QGraph, bool record) {
+  TCluster C;
+  CB->GetCluster(ClusterId, C);
+  TIntV ClusterQuoteIds;
+  C.GetQuoteIds(ClusterQuoteIds);
+  for (int j = 0; j < ClusterQuoteIds.Len(); j++) {
+    TQuote Q;
+    QB->GetQuote(ClusterQuoteIds[j], Q);
+    QB->RemoveQuote(ClusterQuoteIds[j]);
+    QGraph->DelNode(ClusterQuoteIds[j]);
+  }
+  CB->RemoveCluster(ClusterId);
 }

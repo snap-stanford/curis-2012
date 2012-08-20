@@ -28,3 +28,6 @@
 // incremental clustering
 #include "incrementalclustering.cpp"
 #include "incrementalquotegraph.cpp"
+
+// data analysis
+#include "analyzer.cpp"
