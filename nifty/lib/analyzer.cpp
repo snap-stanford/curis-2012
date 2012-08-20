@@ -74,6 +74,10 @@ void DCluster::GetFMP(TFreqTripleV& FreqV, TSecTm& First, TSecTm& Last, TSecTm& 
     First = FreqV[MinIndex].Val3;
   } else {
     Err("Uh oh!\n");
+    for (int i = 0; i < FreqV.Len(); i++) {
+      Err("%f ", FreqV[i].Val2.Val);
+    }
+    Err("\n");
     First = FreqV[0].Val3;
   }
   Last = FreqV[MaxIndex].Val3;
