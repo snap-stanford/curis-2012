@@ -63,9 +63,27 @@ void OutputQuoteInformation(TQuoteBase &QuoteBase, TStr FileName) {
   fclose(F);
 }
 
+bool IsDayLightSaving(TSecTm Date) {
+  PSIn DaylightSavingFile = TFIn::New("resources/daylight_saving_dates");
+  bool ContainDateInfo = false;
+  TStr Line;
+  while (!DaylightSavingFile->Eof() && DaylightSavingFile->GetNextLn(Line)) {
+    TStrV DateStrV;
+    TStringUtil::ParseStringIntoWords(Line, DateStrV);
+    TSecTm BegDate = TSecTm::GetDtTmFromYmdHmsStr(DateStrV[0]);
+    TSecTm EndDate = TSecTm::GetDtTmFromYmdHmsStr(DateStrV[1]);
+    if (BegDate <= Date && Date <= EndDate) { return true; }
+    if (BegDate.GetYearN() == Date.GetYearN()) { ContainDateInfo = true; }
+  }
+  if (!ContainDateInfo) {
+    fprintf(stderr, "Could not find daylight saving date for the current year. Please edit daylight_saving_dates file\n");
+  }
+  return false;
+}
+
 // usage filelist directory
 int main(int argc, char *argv[]) {
-  printf("File name must be in the form: web-{year}-{month}-{day}T{hour}-{minute}-{second}Z.rar\n");
+  // File name must be in the form: web-{year}-{month}-{day}T{hour}-{minute}-{second}Z.rar
 
   // Setup Output Directory
   TStr OutputDirectory = "/lfs/1/tmp/curis/output/filtering/";
@@ -78,7 +96,12 @@ int main(int argc, char *argv[]) {
     return 0;
   }
   TStr Date = argv[1];
-  TSecTm CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(Date + " 08:00:00");
+  TSecTm CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(Date);
+  if (IsDayLightSaving(CurrentDate)) {
+    CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(Date + " 07:00:00");
+  } else {
+    CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(Date + " 08:00:00");
+  }
 
   printf("Loading data from Spinn3r dataset to QuoteBase...\n");
 
@@ -96,7 +119,7 @@ int main(int argc, char *argv[]) {
   for (int j = 0; j < 24; j++) {
     TStr MonDir = CurrentDate.GetDtYmdStr().GetSubStr(0, 6);
     TStr CurFile = "web-" + CurrentDate.GetDtYmdStr() + TStr::Fmt("T%02d-00-00Z.rar", CurrentDate.GetHourN());
-    if(!Memes.LoadFile("/lfs/1/tmp/curis/spinn3r/" + MonDir + "/", CurFile)) {continue;}
+    if(!Memes.LoadFile("/lfs/1/tmp/curis/spinn3r/" + MonDir + "/", CurFile)) { CurrentDate.AddHours(1); continue; }
     while (Memes.LoadNextEntry()) {
       if (IsUrlInBlackList(Memes.PostUrlStr)) { NSkipBlackList++;continue; }
       TMd5Sig UrlSig = TMd5Sig(Memes.PostUrlStr);
