@@ -166,6 +166,81 @@ TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &Q
   return NewQuoteIds;
 }
 
+/// Merge QBDBCB2 into QBDBCB1
+void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
+                              const TQuoteBase &QB2, const TDocBase &DB2, const TClusterBase &CB2) {
+  // First step: Merge QB2 and DB2 into QB1 and DB1, respectively
+  // TODO: decompose this code - right now it is basically just a copy of the method above
+  THashSet<TInt> SeenDocSet;  // Set of doc ids in DB2 that are also in DB1
+
+  TIntV DocIds2;
+  DB2.GetAllDocIds(DocIds2);
+  for (int i = 0; i < DocIds2.Len(); i++) {
+    TDoc D;
+    DB2.GetDoc(DocIds2[i], D);
+    TStr DUrl;
+    D.GetUrl(DUrl);
+    if (DB1.GetDocId(DUrl) != -1) {
+      SeenDocSet.AddKey(DocIds2[i]);
+    }
+  }
+
+  TIntIntH OldToNewQuoteId;  // Only contains quotes with new source document
+  TIntV QuoteIds2;
+  QB2.GetAllQuoteIds(QuoteIds2);
+  for (int i = 0; i < QuoteIds2.Len(); i++) {
+    TQuote Q;
+    QB2.GetQuote(QuoteIds2[i], Q);
+    TIntV QSources;
+    Q.GetSources(QSources);
+    TStr QContentString;
+    Q.GetContentString(QContentString);
+    TStrV QContentVectorString;
+    TStringUtil::ParseStringIntoWords(QContentString, QContentVectorString);
+
+    bool ContainDoc = false;
+    for (int j = 0; j < QSources.Len(); j++) {
+      if (!SeenDocSet.IsKey(QSources[j])) {
+        ContainDoc = true;
+        break;
+      }
+    }
+
+    if (ContainDoc) {
+      if (QB1.GetQuoteId(QContentVectorString) < 0) {
+        TInt QId = QB1.AddQuote(QContentString);
+        OldToNewQuoteId.AddDat(QuoteIds2[i], QId);
+      } else {
+        OldToNewQuoteId.AddDat(QuoteIds2[i], QB1.GetQuoteId(QContentVectorString));
+      }
+    }
+
+    for (int j = 0; j < QSources.Len(); j++) {
+      if (!SeenDocSet.IsKey(QSources[j])) {
+        TDoc D;
+        DB2.GetDoc(QSources[j], D);
+        TInt NewSourceId = DB1.AddDoc(D);
+        QB1.AddQuote(QContentString, NewSourceId);
+      }
+    }
+  }
+  IAssert(!QB1.IsContainNullQuote());
+
+  TIntV ClusterIds2;
+  CB2.GetAllClusterIds(ClusterIds2);
+  for (int i = 0; i < ClusterIds2.Len(); i++) {
+    TCluster C;
+    CB2.GetCluster(ClusterIds2[i], C);
+    TIntV CQuoteIds;
+    C.GetQuoteIds(CQuoteIds);
+    for (int j = 0; j < CQuoteIds.Len(); j++) {
+      if (OldToNewQuoteId.IsKey(CQuoteIds[j])) {
+        CB1.ReplaceQuoteInCluster(&QB1, CQuoteIds[j], OldToNewQuoteId.GetDat(CQuoteIds[j]), ClusterIds2[i]);
+      }
+    }
+  }
+}
+
 void TDataLoader::LoadCumulative(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, PNGraph& P) {
   TStr CurFileName = "QBDBC" + Date + ".bin";
   TFIn CurFile(Prefix + CurFileName);

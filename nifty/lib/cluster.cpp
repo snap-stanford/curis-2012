@@ -146,6 +146,16 @@ void TCluster::SetRepresentativeQuoteIds(TIntV& QuoteIds) {
   this->RepresentativeQuoteIds = QuoteIds;
 }
 
+void TCluster::ReplaceQuote(TQuoteBase *QB, TInt OldQuoteId, TInt NewQuoteId) {
+  TInt QuoteIndex = this->QuoteIds.SearchForw(OldQuoteId);
+  QuoteIds[QuoteIndex] = NewQuoteId;
+
+  // Count the unique sources for the new frequency of the cluster
+  TIntV UniqueSources;
+  GetUniqueSources(UniqueSources, QuoteIds, QB);
+  NumQuotes = UniqueSources.Len();
+}
+
 void TCluster::GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, bool reset) {
   if (!reset && this->PeakTimesV.Len() > 0 && this->FreqV.Len() > 0) {
     PeakTimesV = this->PeakTimesV;
@@ -286,6 +296,18 @@ bool TClusterBase::AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterI
   }
 }
 
+bool TClusterBase::ReplaceQuoteInCluster(TQuoteBase *QB, TInt OldQuoteId, TInt NewQuoteId, TInt ClusterId) {
+  TCluster Cluster;
+  if (IdToTCluster.IsKeyGetDat(ClusterId, Cluster)) {
+    Cluster.ReplaceQuote(QB, OldQuoteId, NewQuoteId);
+    QuoteIdToClusterId.DelKey(OldQuoteId);
+    QuoteIdToClusterId.AddDat(NewQuoteId, ClusterId);
+    IdToTCluster.AddDat(ClusterId, Cluster);
+    return true;
+  }
+  return false;
+}
+
 /// Just removes the cluster from the IdToTCluster table;
 //  doesn't update the quote id to cluster id mappings
 void TClusterBase::RemoveCluster(TInt ClusterId) {
@@ -302,12 +324,12 @@ void TClusterBase::RemoveCluster(TInt ClusterId) {
   }
 }
 
-bool TClusterBase::GetCluster(TInt ClusterId, TCluster& RefC) {
+bool TClusterBase::GetCluster(TInt ClusterId, TCluster& RefC) const {
   return IdToTCluster.IsKeyGetDat(ClusterId, RefC);
 }
 
 // Returns -1 if QuoteId is not found
-TInt TClusterBase::GetClusterIdFromQuoteId(TInt QuoteId) {
+TInt TClusterBase::GetClusterIdFromQuoteId(TInt QuoteId) const {
   TInt ClusterId;
   if (QuoteIdToClusterId.IsKeyGetDat(QuoteId, ClusterId)) {
     return ClusterId;
@@ -316,7 +338,7 @@ TInt TClusterBase::GetClusterIdFromQuoteId(TInt QuoteId) {
   }
 }
 
-void TClusterBase::GetAllClusterIds(TIntV &ClusterIds) {
+void TClusterBase::GetAllClusterIds(TIntV &ClusterIds) const {
   IdToTCluster.GetKeyV(ClusterIds);
 }
 
