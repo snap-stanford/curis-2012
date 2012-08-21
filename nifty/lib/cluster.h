@@ -70,6 +70,7 @@ public:
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   TInt AddCluster(TCluster& Cluster, const TClusterBase *OldCB, TSecTm& PresentTime);
+  TInt AddCluster(TCluster& Cluster);
   bool AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterId);
   //bool ReplaceQuoteInCluster(TQuoteBase *QB, TInt OldQuoteId, TInt NewQuoteId, TInt ClusterId);
   void RemoveCluster(TInt ClusterId);

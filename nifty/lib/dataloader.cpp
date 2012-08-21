@@ -186,6 +186,7 @@ void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
   }
 
   TIntIntH OldToNewQuoteId;  // Only contains quotes with new source document
+  TIntSet ToRemoveQuotes;
   TIntV QuoteIds2;
   QB2.GetAllQuoteIds(QuoteIds2);
   for (int i = 0; i < QuoteIds2.Len(); i++) {
@@ -213,6 +214,12 @@ void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
       } else {
         OldToNewQuoteId.AddDat(QuoteIds2[i], QB1.GetQuoteId(QContentVectorString));
       }
+    } else {
+      if (QB1.GetQuoteId(QContentVectorString) >= 0) {
+        OldToNewQuoteId.AddDat(QuoteIds2[i], QB1.GetQuoteId(QContentVectorString));
+      } else {
+        ToRemoveQuotes.AddKey(QuoteIds2[i]);
+      }
     }
 
     for (int j = 0; j < QSources.Len(); j++) {
@@ -224,6 +231,19 @@ void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
       }
     }
   }
+
+  /*for (TIntIntH::TIter I = OldToNewQuoteId.BegI(); I < OldToNewQuoteId.EndI(); I++) {
+    TQuote Q1, Q2;
+    QB1.GetQuote(I.GetDat(), Q1);
+    QB2.GetQuote(I.GetKey(), Q2);
+    TStr Q1Str, Q2Str;
+    Q1.GetContentString(Q1Str);
+    Q2.GetContentString(Q2Str);
+    if (Q1Str != Q2Str) {
+      fprintf(stderr, "ERROR: Q1 not equal to Q2: %d, %s vs. %d, %s\n", I.GetDat(), Q1Str.CStr(), I.GetKey(), Q2Str.CStr());
+    }
+  }*/
+
   IAssert(!QB1.IsContainNullQuote());
 
   TIntV ClusterIds2;
@@ -234,26 +254,39 @@ void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
     TIntV CQuoteIds, NewCQuoteIds;
     C.GetQuoteIds(CQuoteIds);
     for (int j = 0; j < CQuoteIds.Len(); j++) {
-      if (!OldToNewQuoteId.IsKey(CQuoteIds[j])) {
-        NewCQuoteIds.Add(CQuoteIds[j]);
-      } else {
-        NewCQuoteIds.Add(OldToNewQuoteId.GetDat(CQuoteIds[j]));
+      if (ToRemoveQuotes.IsKey(CQuoteIds[j])) { continue; }
+      TInt NewId = CQuoteIds[j];
+      OldToNewQuoteId.IsKeyGetDat(CQuoteIds[j], NewId);
+      NewCQuoteIds.Add(NewId);
+
+      TQuote Q1, Q2;
+      QB1.GetQuote(NewId, Q1);
+      QB2.GetQuote(CQuoteIds[j], Q2);
+      TStr Q1Str, Q2Str;
+      Q1.GetContentString(Q1Str);
+      Q2.GetContentString(Q2Str);
+      if (Q1Str != Q2Str) {
+        fprintf(stderr, "ERROR: Q1 not equal to Q2: %d, %s vs. %d, %s\n", NewId.Val, Q1Str.CStr(), CQuoteIds[j].Val, Q2Str.CStr());
       }
+      
     }
 
     TIntV CRepQuoteIds, NewCRepQuoteIds;
     C.GetRepresentativeQuoteIds(CRepQuoteIds);
     for (int j = 0; j < CRepQuoteIds.Len(); j++) {
-      if (!OldToNewQuoteId.IsKey(CRepQuoteIds[j])) {
-        NewCRepQuoteIds.Add(CRepQuoteIds[j]);
-      } else {
-        NewCRepQuoteIds.Add(OldToNewQuoteId.GetDat(CRepQuoteIds[j]));
-      }
+      if (ToRemoveQuotes.IsKey(CRepQuoteIds[j])) { continue; }
+      TInt NewId = CRepQuoteIds[j];
+      OldToNewQuoteId.IsKeyGetDat(CRepQuoteIds[j], NewId);
+      NewCRepQuoteIds.Add(NewId);
     }
+
     C.SetQuoteIds(&QB1, NewCQuoteIds);
     C.SetRepresentativeQuoteIds(NewCRepQuoteIds);
-    CB1.AddCluster(C, &CB2, PresentTime);
+    CB1.AddCluster(C);
+
   }
+
+
 }
 
 void TDataLoader::LoadCumulative(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, PNGraph& P) {

@@ -295,6 +295,31 @@ TInt TClusterBase::AddCluster(TCluster &Cluster, const TClusterBase *OldCB, TSec
   return CurCounter;
 }
 
+/// Used when merging clusters
+TInt TClusterBase::AddCluster(TCluster& Cluster) {
+  TIntV QuoteIds;
+  Cluster.GetQuoteIds(QuoteIds);
+
+  TInt CurCounter = -1;
+  for (int i = 0; i < QuoteIds.Len(); i++) {
+    CurCounter = GetClusterIdFromQuoteId(QuoteIds[i]);
+    if (CurCounter >= 0) break;
+  }
+
+  if (CurCounter < 0) {  // New cluster, with new quotes
+    //fprintf(stderr, "\tNew cluster, with new quotes!\n");
+    CurCounter = ClusterIdCounter;
+    ClusterIdCounter++;
+  }
+
+  for (int i = 0; i < QuoteIds.Len(); i++) {
+    QuoteIdToClusterId.AddDat(QuoteIds[i], CurCounter);
+  }
+  Cluster.SetId(CurCounter);
+  IdToTCluster.AddDat(CurCounter, Cluster);
+  return CurCounter;
+}
+
 bool TClusterBase::AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterId) {
   TCluster Cluster;
   if (IdToTCluster.IsKeyGetDat(ClusterId, Cluster)) {
