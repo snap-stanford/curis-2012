@@ -240,7 +240,18 @@ void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
         NewCQuoteIds.Add(OldToNewQuoteId.GetDat(CQuoteIds[j]));
       }
     }
+
+    TIntV CRepQuoteIds, NewCRepQuoteIds;
+    C.GetRepresentativeQuoteIds(CRepQuoteIds);
+    for (int j = 0; j < CRepQuoteIds.Len(); j++) {
+      if (!OldToNewQuoteId.IsKey(CRepQuoteIds[j])) {
+        NewCRepQuoteIds.Add(CRepQuoteIds[j]);
+      } else {
+        NewCRepQuoteIds.Add(OldToNewQuoteId.GetDat(CRepQuoteIds[j]));
+      }
+    }
     C.SetQuoteIds(&QB1, NewCQuoteIds);
+    C.SetRepresentativeQuoteIds(NewCRepQuoteIds);
     CB1.AddCluster(C, &CB2, PresentTime);
   }
 }
