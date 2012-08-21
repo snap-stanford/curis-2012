@@ -26,7 +26,7 @@ public:
   static TSecTm GetFileTime(const TStr&);
   static TIntV MergeQBDB(TQuoteBase&, TDocBase&, const TQuoteBase&, const TDocBase&);
   static void MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
-                              const TQuoteBase &QB2, const TDocBase &DB2, const TClusterBase &CB2);
+                              const TQuoteBase &QB2, const TDocBase &DB2, const TClusterBase &CB2, TSecTm& PresentTime);
   static void LoadCumulative(const TStr&, const TStr&, TQuoteBase&, TDocBase&, TClusterBase&, PNGraph&);
   static void LoadQBDB(const TStr&, const TStr&, TQuoteBase&, TDocBase&);
   static TSecTm LoadBulkQBDB(const TStr&, const TStr&, TQuoteBase&, TDocBase&);

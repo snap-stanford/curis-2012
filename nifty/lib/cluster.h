@@ -41,7 +41,8 @@ public:
   void AddQuote(TQuoteBase *QB, TInt QuoteId);
   void SetRepresentativeQuoteIds(TIntV& QuoteIds);
 
-  void ReplaceQuote(TQuoteBase *QB, TInt OldQuoteId, TInt NewQuoteId);
+  void SetQuoteIds(TQuoteBase *QB, TIntV& NewQuoteIds);
+  //void ReplaceQuote(TQuoteBase *QB, TInt OldQuoteId, TInt NewQuoteId);
 
   //void GetTopPeak(TDocBase *DocBase, TQuoteBase *QuoteBase, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, bool reset = false);
   void GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, bool reset = false);
@@ -68,9 +69,9 @@ public:
   TClusterBase(TInt OldCounter);
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
-  TInt AddCluster(TCluster& Cluster, TClusterBase  *OldCB, TSecTm& PresentTime);
+  TInt AddCluster(TCluster& Cluster, const TClusterBase *OldCB, TSecTm& PresentTime);
   bool AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterId);
-  bool ReplaceQuoteInCluster(TQuoteBase *QB, TInt OldQuoteId, TInt NewQuoteId, TInt ClusterId);
+  //bool ReplaceQuoteInCluster(TQuoteBase *QB, TInt OldQuoteId, TInt NewQuoteId, TInt ClusterId);
   void RemoveCluster(TInt ClusterId);
 
   bool GetCluster(TInt ClusterId, TCluster &RefC) const;

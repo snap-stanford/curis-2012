@@ -146,15 +146,26 @@ void TCluster::SetRepresentativeQuoteIds(TIntV& QuoteIds) {
   this->RepresentativeQuoteIds = QuoteIds;
 }
 
-void TCluster::ReplaceQuote(TQuoteBase *QB, TInt OldQuoteId, TInt NewQuoteId) {
+void TCluster::SetQuoteIds(TQuoteBase *QB, TIntV& NewQuoteIds) {
+  this->QuoteIds = NewQuoteIds;
+
+  TIntV UniqueSources;
+  GetUniqueSources(UniqueSources, NewQuoteIds, QB);
+  NumQuotes = UniqueSources.Len();
+}
+
+/*void TCluster::ReplaceQuote(TQuoteBase *QB, TInt OldQuoteId, TInt NewQuoteId) {
   TInt QuoteIndex = this->QuoteIds.SearchForw(OldQuoteId);
+  if (QuoteIndex == -1) {
+    fprintf(stderr, "Warning: Quote Id %d not found in cluster's quote vector\n", OldQuoteId.Val);
+  }
   QuoteIds[QuoteIndex] = NewQuoteId;
 
   // Count the unique sources for the new frequency of the cluster
   TIntV UniqueSources;
   GetUniqueSources(UniqueSources, QuoteIds, QB);
   NumQuotes = UniqueSources.Len();
-}
+}*/
 
 void TCluster::GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, bool reset) {
   if (!reset && this->PeakTimesV.Len() > 0 && this->FreqV.Len() > 0) {
@@ -252,7 +263,7 @@ void TClusterBase::Load(TSIn& SIn) {
   QuoteIdToClusterId.Load(SIn);
 }
 
-TInt TClusterBase::AddCluster(TCluster &Cluster, TClusterBase *OldCB, TSecTm& PresentTime) {
+TInt TClusterBase::AddCluster(TCluster &Cluster, const TClusterBase *OldCB, TSecTm& PresentTime) {
   // setup to determine cluster id number
   Cluster.SetBirthDate(PresentTime);
   TIntV QuoteIds;
@@ -296,7 +307,7 @@ bool TClusterBase::AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterI
   }
 }
 
-bool TClusterBase::ReplaceQuoteInCluster(TQuoteBase *QB, TInt OldQuoteId, TInt NewQuoteId, TInt ClusterId) {
+/*bool TClusterBase::ReplaceQuoteInCluster(TQuoteBase *QB, TInt OldQuoteId, TInt NewQuoteId, TInt ClusterId) {
   TCluster Cluster;
   if (IdToTCluster.IsKeyGetDat(ClusterId, Cluster)) {
     Cluster.ReplaceQuote(QB, OldQuoteId, NewQuoteId);
@@ -306,7 +317,7 @@ bool TClusterBase::ReplaceQuoteInCluster(TQuoteBase *QB, TInt OldQuoteId, TInt N
     return true;
   }
   return false;
-}
+}*/
 
 /// Just removes the cluster from the IdToTCluster table;
 //  doesn't update the quote id to cluster id mappings

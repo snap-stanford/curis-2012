@@ -168,7 +168,7 @@ TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &Q
 
 /// Merge QBDBCB2 into QBDBCB1
 void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
-                              const TQuoteBase &QB2, const TDocBase &DB2, const TClusterBase &CB2) {
+                              const TQuoteBase &QB2, const TDocBase &DB2, const TClusterBase &CB2, TSecTm& PresentTime) {
   // First step: Merge QB2 and DB2 into QB1 and DB1, respectively
   // TODO: decompose this code - right now it is basically just a copy of the method above
   THashSet<TInt> SeenDocSet;  // Set of doc ids in DB2 that are also in DB1
@@ -231,13 +231,17 @@ void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
   for (int i = 0; i < ClusterIds2.Len(); i++) {
     TCluster C;
     CB2.GetCluster(ClusterIds2[i], C);
-    TIntV CQuoteIds;
+    TIntV CQuoteIds, NewCQuoteIds;
     C.GetQuoteIds(CQuoteIds);
     for (int j = 0; j < CQuoteIds.Len(); j++) {
-      if (OldToNewQuoteId.IsKey(CQuoteIds[j])) {
-        CB1.ReplaceQuoteInCluster(&QB1, CQuoteIds[j], OldToNewQuoteId.GetDat(CQuoteIds[j]), ClusterIds2[i]);
+      if (!OldToNewQuoteId.IsKey(CQuoteIds[j])) {
+        NewCQuoteIds.Add(CQuoteIds[j]);
+      } else {
+        NewCQuoteIds.Add(OldToNewQuoteId.GetDat(CQuoteIds[j]));
       }
     }
+    C.SetQuoteIds(&QB1, NewCQuoteIds);
+    CB1.AddCluster(C, &CB2, PresentTime);
   }
 }
 
