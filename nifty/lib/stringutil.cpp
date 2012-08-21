@@ -6,7 +6,14 @@ PSwSet TStringUtil::StopWordSet = new TSwSet(swstEnMsdn);
 TStrSet TStringUtil::CommonEnglishWordsList = THashSet<TStr>();
 TStrSet TStringUtil::PublicSuffixSet = THashSet<TStr>();
 
-// TODO: Rename to ParseStringIntoWords
+void TStringUtil::RemoveNonEnglish(TChA &S) {
+  for (int i = 0; i < S.Len(); i++) {
+    if (!isprint(S[i])) {
+      S[i] = '?';
+    }
+  }
+}
+
 void TStringUtil::ParseStringIntoWords(const TStr& OriginalString, TStrV& ParsedString) {
   OriginalString.SplitOnAllAnyCh(" ", ParsedString);
 }
