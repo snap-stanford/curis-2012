@@ -387,9 +387,9 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
     // NEW STRATEGY: if the peak hasn't changed in the last two weeks, trash the cluster!
     TFlt MaxSources = -1;
     TInt SourceIndex = -1;
-    for (int j = 0; j < PeakV.Len(); j++) {
+    for (int j = 0; j < FreqV.Len(); j++) {
       if (FreqV[j].Val2 > MaxSources) {
-        MaxSources = PeakV[j].Val2;
+        MaxSources = FreqV[j].Val2;
         SourceIndex = j;
       }
     }

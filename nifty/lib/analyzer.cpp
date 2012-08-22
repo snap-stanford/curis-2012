@@ -18,7 +18,7 @@ TStr DCluster::GetClusterString(TQuoteBase *QB, TDocBase *DB, TCluster& C, TFreq
   Response += C.GetNumUniqueQuotes().GetStr() + "\t" + C.GetNumQuotes().GetStr() + "\t";
   Response += NumPeaks.GetStr() + "\t" + TInt(QuoteV.Len()).GetStr() + "\t";
   Response += RepStr + "\t" + RepURL + "\t";
-  Response += First.GetYmdTmStr() + "\t" + Last.GetYmdTmStr() + "\t" + Peak.GetYmdTmStr();
+  Response += First.GetYmdTmStr() + "\t" + Last.GetYmdTmStr() + "\t" + Peak.GetYmdTmStr() + "\t";
   Response += TBool::GetStr(TBool(C.IsArchived()));
 
   return Response;
