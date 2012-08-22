@@ -67,6 +67,7 @@ bool TDataLoader::LoadNextEntry() {
 	IAssertR((! CurLn.Empty()) && CurLn[0]=='U' && CurLn[1]=='\t',
 			TStr::Fmt("ERROR1: %s [line %llu]: '%s'\n", SIn.GetSNm().CStr(), LineCnt, CurLn.CStr()).CStr());
 	PostUrlStr = CurLn.CStr()+2;
+	TStringUtil::RemoveNonEnglish(PostUrlStr);
 	while (SIn.GetNextLn(CurLn) && (CurLn.Empty() || (CurLn[0]!='D' || CurLn[1]!='\t'))) { LineCnt++; }
 
 	if (!((! CurLn.Empty()) && CurLn[0]=='D' && CurLn[1]=='\t' && CurLn[2] <'A'))
@@ -81,31 +82,37 @@ bool TDataLoader::LoadNextEntry() {
 
 	IAssertR(SIn.GetNextLn(CurLn) && (! CurLn.Empty()) && (CurLn[0]=='C' || CurLn[0]=='T'),
 			TStr::Fmt("ERROR4: %s [line %llu]: '%s'\n", SIn.GetSNm().CStr(), LineCnt, CurLn.CStr()).CStr());  LineCnt++;
-	if (!((! CurLn.Empty()) && (CurLn[0]=='C' || CurLn[0]=='T')))
-	  	  {printf("Error reading this file, return\n"); return false;}
-	if (CurLn[0] == 'T') { // skip title
-		IAssertR(SIn.GetNextLn(CurLn) && (! CurLn.Empty()) && CurLn[0]=='C',
-				TStr::Fmt("ERROR5: %s [line %llu]: '%s'\n", SIn.GetSNm().CStr(), LineCnt, CurLn.CStr()).CStr());  LineCnt++; }
-	ContentStr = CurLn.CStr()+2;
-	// Links
-	while (SIn.GetNextLn(CurLn)) {  LineCnt++;
-    	if (CurLn.Empty() || CurLn[0]!='L') { break; }
-    	int linkb=2;
-    	while (CurLn[linkb]!='\t') { linkb++; }
-    	CurLn[linkb]=0;
-    	LinkV.Add(CurLn.CStr()+linkb+1);
-    	LinkPosV.Add(atoi(CurLn.CStr()+2));
+	if (!CurLn.Empty() && CurLn[0] == 'T') { SIn.GetNextLn(CurLn);  LineCnt++; }
+	if (!CurLn.Empty() && CurLn[0] == 'C') {
+	  ContentStr = CurLn.CStr()+2;
+	  TStringUtil::RemoveNonEnglish(ContentStr);
+	  SIn.GetNextLn(CurLn);
+	  LineCnt++;
 	}
+
+	// Links
+	do {
+	  if (CurLn.Empty() || CurLn[0]!='L') { break; }
+	  int linkb=2;
+	  while (CurLn[linkb]!='\t') { linkb++; }
+	  CurLn[linkb]=0;
+	  LinkV.Add(CurLn.CStr()+linkb+1);
+	  LinkPosV.Add(atoi(CurLn.CStr()+2));
+	  LineCnt++;
+	} while (SIn.GetNextLn(CurLn));
 	// Quotes
 	do {
 		if (CurLn.Empty() || CurLn[0]!='Q') { break; }
 		int qb1=2;      while (CurLn[qb1]!='\t') { qb1++; }
 		int qb2=qb1+1;  while (CurLn[qb2]!='\t') { qb2++; }
 		CurLn[qb1]=0;  CurLn[qb2]=0;
-		MemeV.Add(CurLn.CStr()+qb2+1);
+		TChA Quote = CurLn.CStr()+qb2+1;
+		TStringUtil::RemoveNonEnglish(Quote);
+		MemeV.Add(Quote);
 		MemePosV.Add(TIntPr(atoi(CurLn.CStr()+2), atoi(CurLn.CStr()+qb1+1)));
 		LineCnt++;
 	} while (SIn.GetNextLn(CurLn));
+
 	return true;
 }
 
