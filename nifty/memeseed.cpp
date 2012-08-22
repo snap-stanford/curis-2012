@@ -8,9 +8,15 @@ int main(int argc, char *argv[]) {
   TStr BaseString;
   ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
 
-  TStr StartString, WindowString;
+  TStr StartString, QBDBDirectory, QBDBCDirectory, WindowString;
   if (!Arguments.IsKeyGetDat("start", StartString)) {
     StartString = "2012-06-24";
+  }
+  if (!Arguments.IsKeyGetDat("qbdb", QBDBDirectory)) {
+    QBDBDirectory = "/lfs/1/tmp/curis/QBDB/";
+  }
+  if (!Arguments.IsKeyGetDat("qbdbc", QBDBCDirectory)) {
+    QBDBCDirectory = "/lfs/1/tmp/curis/QBDBC/";
   }
 
   TInt WindowSize = 14;
@@ -22,7 +28,7 @@ int main(int argc, char *argv[]) {
   TQuoteBase QB;
   TDocBase DB;
   fprintf(stderr, "Loading QB and DB from file for %d days, starting from %s...\n", WindowSize.Val, StartString.CStr());
-  TSecTm PresentTime = TDataLoader::LoadQBDBByWindow(QBDB_DIRECTORY, StartString, WindowSize, QB, DB);
+  TSecTm PresentTime = TDataLoader::LoadQBDBByWindow(QBDBDirectory, StartString, WindowSize, QB, DB);
   fprintf(stderr, "\tQBDB successfully loaded!\n");
 
   // #### CLUSTERING STEP
@@ -41,7 +47,7 @@ int main(int argc, char *argv[]) {
   PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, PresentTime, QGraph);
 
   // #### SAVE THE DOLPHINS! I MEAN CLUSTERS
-  TStr FileName = TStr(QBDBC_DIRECTORY) + "QBDBC" + PresentTime.GetDtYmdStr() + ".bin";
+  TStr FileName = QBDBCDirectory + "QBDBC" + PresentTime.GetDtYmdStr() + ".bin";
   fprintf(stderr, "Saving Cluster information to file: %s", FileName.CStr());
   TFOut FOut(FileName);
   QB.Save(FOut);

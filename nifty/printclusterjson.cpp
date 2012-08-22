@@ -169,6 +169,11 @@ int main(int argc, char *argv[]) {
   }
   TStr EndString = "2012-07-08";
 
+  TStr QBDBCDirectory;
+  if (!Arguments.IsKeyGetDat("qbdbc", QBDBCDirectory)) {
+      QBDBCDirectory = "/lfs/1/tmp/curis/QBDBC/";
+  }
+
   TStr Type;  // Can be day, week, or month
   if (!Arguments.IsKeyGetDat("type", Type)) {
     Type = TStr("day");
@@ -207,7 +212,7 @@ int main(int argc, char *argv[]) {
       TClusterBase CB;
       PNGraph QGraph;
       fprintf(stderr, "Loading cumulative QBDBCB from %s from file...\n", CurrentDate.GetDtYmdStr().CStr());
-      TDataLoader::LoadCumulative(QBDBC_DIRECTORY, CurrentDate.GetDtYmdStr(), QB, DB, CB, QGraph);
+      TDataLoader::LoadCumulative(QBDBCDirectory, CurrentDate.GetDtYmdStr(), QB, DB, CB, QGraph);
       fprintf(stderr, "Done loading cumulative QBDBCB!\n");
 
       // Get top clusters
