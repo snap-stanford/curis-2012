@@ -84,19 +84,34 @@ bool IsDayLightSaving(TSecTm Date) {
 // usage filelist directory
 int main(int argc, char *argv[]) {
   // File name must be in the form: web-{year}-{month}-{day}T{hour}-{minute}-{second}Z.rar
-
-  // Setup Output Directory
-  TStr OutputDirectory = "/lfs/1/tmp/curis/output/filtering/";
-
   // Initialize
   LoadURLBlackList();
 
-  if (argc != 2) {
-    printf("Please specify date in the format yyyy-mm-dd\n");
-    return 0;
+  LogOutput Log;
+  THash<TStr, TStr> Arguments;
+  TStr BaseString;
+  ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
+
+  TStr Date, QBDBDirectory, Spinn3rDirectory;
+  if (!Arguments.IsKeyGetDat("date", Date)) {
+    Date = "2012-01-01";
   }
-  TStr Date = argv[1];
+  if (!Arguments.IsKeyGetDat("qbdb", QBDBDirectory)) {
+    QBDBDirectory = "/lfs/1/tmp/curis/QBDB/";
+  }
+  if (!Arguments.IsKeyGetDat("spinn3r", Spinn3rDirectory)) {
+    Spinn3rDirectory = "/lfs/1/tmp/curis/spinn3r/";
+  }
   TSecTm CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(Date);
+
+  // Setup Output Directory
+  QBDBDirectory = QBDBDirectory + TStr::Fmt("%d/", CurrentDate.GetYearN());
+  TStr Command = TStr::Fmt("mkdir -p %sLOG/", QBDBDirectory.CStr());
+  system(Command.CStr());
+  Command = TStr::Fmt("mkdir -p %sQFREQ/", QBDBDirectory.CStr());
+  system(Command.CStr());
+
+  // Calculate Start Hour
   if (IsDayLightSaving(CurrentDate)) {
     CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(Date + " 07:00:00");
   } else {
@@ -113,13 +128,13 @@ int main(int argc, char *argv[]) {
 
   THashSet<TMd5Sig> SeenUrlSet(Mega(100), true);
 
-  FILE *FLog = fopen((OutputDirectory + "FILTER" + Date + ".log").CStr(), "w");
+  FILE *FLog = fopen((QBDBDirectory + "LOG/FILTER" + Date + ".log").CStr(), "w");
   fprintf(FLog, "Initial Filtering:\n");
   TDataLoader Memes;
   for (int j = 0; j < 24; j++) {
     TStr MonDir = CurrentDate.GetDtYmdStr().GetSubStr(0, 6);
     TStr CurFile = "web-" + CurrentDate.GetDtYmdStr() + TStr::Fmt("T%02d-00-00Z.rar", CurrentDate.GetHourN());
-    if(!Memes.LoadFile("/lfs/1/tmp/curis/spinn3r/" + MonDir + "/", CurFile)) { CurrentDate.AddHours(1); continue; }
+    if(!Memes.LoadFile(Spinn3rDirectory + MonDir + "/", CurFile)) { CurrentDate.AddHours(1); continue; }
     while (Memes.LoadNextEntry()) {
       if (IsUrlInBlackList(Memes.PostUrlStr)) { NSkipBlackList++;continue; }
       TMd5Sig UrlSig = TMd5Sig(Memes.PostUrlStr);
@@ -218,10 +233,10 @@ int main(int argc, char *argv[]) {
   fprintf(FLog, "Number of documents: %d\n", DB.Len());
   printf("\nLOADING DATA TO QUOTE BASE DONE!\n");
   printf("Writing quote frequencies...\n");
-  OutputQuoteInformation(QB, OutputDirectory + "QFREQ" + Date + ".txt");
+  OutputQuoteInformation(QB, QBDBDirectory + "QFREQ/QFREQ" + Date + ".txt");
   printf("Done!\n");
   printf("Writing QuoteBase and DocBase\n");
-  TFOut FOut(OutputDirectory + "QBDB" + Date + ".bin");
+  TFOut FOut(QBDBDirectory + "QBDB" + Date + ".bin");
   QB.Save(FOut);
   DB.Save(FOut);
   printf("Done!\n");
