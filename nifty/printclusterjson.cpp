@@ -64,6 +64,11 @@ void UpdateDataForJsonPrinting(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, T
 
     TStr CRepQuote;
     C.GetRepresentativeQuoteString(CRepQuote, QB);
+    if (CRepQuote == "") {
+      TIntV CRepQuoteIds;
+      C.GetRepresentativeQuoteIds(CRepQuoteIds);
+      fprintf(stderr, "Warning: Representative Quote (id %d) is blank\n", CRepQuoteIds[0].Val);
+    }
     ClustersRepQuote.AddDat(ClustersToPrint[i], CRepQuote);
     
     TIntV CQuoteIds;
@@ -90,8 +95,8 @@ void UpdateDataForJsonPrinting(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, T
     }
   }
 
-  fprintf(stderr, "FreqOverTime hashtable: \n");
-  PrintFreqOverTime(FreqOverTime);
+  //fprintf(stderr, "FreqOverTime hashtable: \n");
+  //PrintFreqOverTime(FreqOverTime);
 }
 
 
@@ -169,13 +174,26 @@ int main(int argc, char *argv[]) {
   }
   TStr EndString = "2012-07-08";
 
+  TStr TopClusterSelection;  // Can be "cumulative" or "daily" 
+  if (!Arguments.IsKeyGetDat("topclusters", TopClusterSelection)) {
+    TopClusterSelection = TStr("cumulative");
+  }
+
+  fprintf(stderr, "Top Cluster Selection: %s\n", TopClusterSelection.CStr());
+  IAssert(TopClusterSelection == "cumulative" || TopClusterSelection == "daily");
+
+  TStr QBDBCDirectory;
+  if (!Arguments.IsKeyGetDat("qbdbc", QBDBCDirectory)) {
+      QBDBCDirectory = "/lfs/1/tmp/curis/QBDBC/";
+  }
+
   TStr Type;  // Can be day, week, or month
   if (!Arguments.IsKeyGetDat("type", Type)) {
     Type = TStr("day");
   }
 
-  IAssert(Type == "day" || Type == "week" || Type == "month");
   fprintf(stderr, "Type: %s\n", Type.CStr());
+  IAssert(Type == "day" || Type == "week" || Type == "month");
 
   if (Type == "day") {
     NumTopClustersPerDay = 20;
@@ -199,31 +217,61 @@ int main(int argc, char *argv[]) {
     TIntV ClustersToPrint;
     THash<TInt, TStr> ClustersRepQuote;
     fprintf(stderr, "Preparing to write JSON to file\n");
-    fprintf(stderr, "EndPeriodDate: %s\n", EndPeriodDate.GetDtYmdStr().CStr());
-    for (int i = 0; CurrentDate < EndPeriodDate && CurrentDate < EndDate; ++i) {
+
+    TQuoteBase QBCumulative;
+    TDocBase DBCumulative;
+    TClusterBase CBCumulative;
+
+    int i;
+    for (i = 0; CurrentDate < EndPeriodDate && CurrentDate < EndDate; ++i) {
       // Load Cumulative QBDBCB
       TQuoteBase QB;
       TDocBase DB;
       TClusterBase CB;
       PNGraph QGraph;
       fprintf(stderr, "Loading cumulative QBDBCB from %s from file...\n", CurrentDate.GetDtYmdStr().CStr());
-      TDataLoader::LoadCumulative(QBDBC_DIRECTORY, CurrentDate.GetDtYmdStr(), QB, DB, CB, QGraph);
+      TDataLoader::LoadCumulative(QBDBCDirectory, CurrentDate.GetDtYmdStr(), QB, DB, CB, QGraph);
       fprintf(stderr, "Done loading cumulative QBDBCB!\n");
 
-      // Get top clusters
-      TIntV TopClusters;
-      PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopClusters, CurrentDate, QGraph);
+      if (TopClusterSelection == "daily") {
+        // Get top clusters
+        TIntV TopClusters;
+        PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopClusters, CurrentDate, QGraph);
 
-      for (int j = 0; j < NumTopClustersPerDay && j < TopClusters.Len(); j++) {
-        if (ClustersToPrint.SearchForw(TopClusters[j]) < 0) {
-          ClustersToPrint.Add(TopClusters[j]);
+        for (int j = 0; j < NumTopClustersPerDay && j < TopClusters.Len(); j++) {
+          if (ClustersToPrint.SearchForw(TopClusters[j]) < 0) {
+            ClustersToPrint.Add(TopClusters[j]);
+          } 
+        }
+        UpdateDataForJsonPrinting(&QB, &DB, &CB, FreqOverTime, Times, ClustersToPrint, ClustersRepQuote, CurrentDate, i + 1, Type);
+      } else if (TopClusterSelection == "cumulative") {
+        if (QBCumulative.Len() == 0) {
+          QBCumulative = QB;
+          DBCumulative = DB;
+          CBCumulative = CB;
+        } else {
+          fprintf(stderr, "Merging QBDBCB!\n");
+          TDataLoader::MergeQBDBCB(QBCumulative, DBCumulative, CBCumulative, QB, DB, CB, CurrentDate);
         }
       }
-      UpdateDataForJsonPrinting(&QB, &DB, &CB, FreqOverTime, Times, ClustersToPrint, ClustersRepQuote, CurrentDate, i + 1, Type);
       CurrentDate.AddDays(1);
     }
+
+    if (TopClusterSelection == "cumulative") {
+      TIntV TopFilteredClusters;
+      CBCumulative.GetTopClusterIdsByFreq(TopFilteredClusters);
+      PostCluster::FilterAndCacheClusterSize(&DBCumulative, &QBCumulative, &CBCumulative, Log, TopFilteredClusters, CurrentDate);
+      PostCluster::FilterAndCacheClusterPeaks(&DBCumulative, &QBCumulative, &CBCumulative, Log, TopFilteredClusters, CurrentDate);
+
+      for (int j = 0; j < 50; j++) {
+        ClustersToPrint.Add(TopFilteredClusters[j]);
+      }
+      UpdateDataForJsonPrinting(&QBCumulative, &DBCumulative, &CBCumulative, FreqOverTime, Times, ClustersToPrint,
+                                ClustersRepQuote, CurrentDate, i + 1, Type);
+    }
+
     if (CurrentDate == EndPeriodDate) {
-      TStr OutputFilename = "../../../public_html/curis/output/clustering/visualization-" + Type + "/data/clusterinfo-" +
+      TStr OutputFilename = "../../../public_html/curis/output/clustering/visualization-" + Type + "-ext/data/clusterinfo-" +
                         StartPeriodDate.GetDtYmdStr() + ".json";
       PrintClustersInJson(FreqOverTime, Times, ClustersToPrint, ClustersRepQuote, OutputFilename);
     }

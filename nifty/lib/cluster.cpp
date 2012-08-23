@@ -146,6 +146,27 @@ void TCluster::SetRepresentativeQuoteIds(TIntV& QuoteIds) {
   this->RepresentativeQuoteIds = QuoteIds;
 }
 
+void TCluster::SetQuoteIds(TQuoteBase *QB, TIntV& NewQuoteIds) {
+  this->QuoteIds = NewQuoteIds;
+
+  TIntV UniqueSources;
+  GetUniqueSources(UniqueSources, NewQuoteIds, QB);
+  NumQuotes = UniqueSources.Len();
+}
+
+/*void TCluster::ReplaceQuote(TQuoteBase *QB, TInt OldQuoteId, TInt NewQuoteId) {
+  TInt QuoteIndex = this->QuoteIds.SearchForw(OldQuoteId);
+  if (QuoteIndex == -1) {
+    fprintf(stderr, "Warning: Quote Id %d not found in cluster's quote vector\n", OldQuoteId.Val);
+  }
+  QuoteIds[QuoteIndex] = NewQuoteId;
+
+  // Count the unique sources for the new frequency of the cluster
+  TIntV UniqueSources;
+  GetUniqueSources(UniqueSources, QuoteIds, QB);
+  NumQuotes = UniqueSources.Len();
+}*/
+
 void TCluster::GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, bool reset) {
   if (!reset && this->PeakTimesV.Len() > 0 && this->FreqV.Len() > 0) {
     PeakTimesV = this->PeakTimesV;
@@ -242,7 +263,7 @@ void TClusterBase::Load(TSIn& SIn) {
   QuoteIdToClusterId.Load(SIn);
 }
 
-TInt TClusterBase::AddCluster(TCluster &Cluster, TClusterBase *OldCB, TSecTm& PresentTime) {
+TInt TClusterBase::AddCluster(TCluster &Cluster, const TClusterBase *OldCB, TSecTm& PresentTime) {
   // setup to determine cluster id number
   Cluster.SetBirthDate(PresentTime);
   TIntV QuoteIds;
@@ -274,6 +295,31 @@ TInt TClusterBase::AddCluster(TCluster &Cluster, TClusterBase *OldCB, TSecTm& Pr
   return CurCounter;
 }
 
+/// Used when merging clusters
+TInt TClusterBase::AddCluster(TCluster& Cluster) {
+  TIntV QuoteIds;
+  Cluster.GetQuoteIds(QuoteIds);
+
+  TInt CurCounter = -1;
+  for (int i = 0; i < QuoteIds.Len(); i++) {
+    CurCounter = GetClusterIdFromQuoteId(QuoteIds[i]);
+    if (CurCounter >= 0) break;
+  }
+
+  if (CurCounter < 0) {  // New cluster, with new quotes
+    //fprintf(stderr, "\tNew cluster, with new quotes!\n");
+    CurCounter = ClusterIdCounter;
+    ClusterIdCounter++;
+  }
+
+  for (int i = 0; i < QuoteIds.Len(); i++) {
+    QuoteIdToClusterId.AddDat(QuoteIds[i], CurCounter);
+  }
+  Cluster.SetId(CurCounter);
+  IdToTCluster.AddDat(CurCounter, Cluster);
+  return CurCounter;
+}
+
 bool TClusterBase::AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterId) {
   TCluster Cluster;
   if (IdToTCluster.IsKeyGetDat(ClusterId, Cluster)) {
@@ -285,6 +331,18 @@ bool TClusterBase::AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterI
     return false;
   }
 }
+
+/*bool TClusterBase::ReplaceQuoteInCluster(TQuoteBase *QB, TInt OldQuoteId, TInt NewQuoteId, TInt ClusterId) {
+  TCluster Cluster;
+  if (IdToTCluster.IsKeyGetDat(ClusterId, Cluster)) {
+    Cluster.ReplaceQuote(QB, OldQuoteId, NewQuoteId);
+    QuoteIdToClusterId.DelKey(OldQuoteId);
+    QuoteIdToClusterId.AddDat(NewQuoteId, ClusterId);
+    IdToTCluster.AddDat(ClusterId, Cluster);
+    return true;
+  }
+  return false;
+}*/
 
 /// Just removes the cluster from the IdToTCluster table;
 //  doesn't update the quote id to cluster id mappings
@@ -302,12 +360,12 @@ void TClusterBase::RemoveCluster(TInt ClusterId) {
   }
 }
 
-bool TClusterBase::GetCluster(TInt ClusterId, TCluster& RefC) {
+bool TClusterBase::GetCluster(TInt ClusterId, TCluster& RefC) const {
   return IdToTCluster.IsKeyGetDat(ClusterId, RefC);
 }
 
 // Returns -1 if QuoteId is not found
-TInt TClusterBase::GetClusterIdFromQuoteId(TInt QuoteId) {
+TInt TClusterBase::GetClusterIdFromQuoteId(TInt QuoteId) const {
   TInt ClusterId;
   if (QuoteIdToClusterId.IsKeyGetDat(QuoteId, ClusterId)) {
     return ClusterId;
@@ -316,7 +374,7 @@ TInt TClusterBase::GetClusterIdFromQuoteId(TInt QuoteId) {
   }
 }
 
-void TClusterBase::GetAllClusterIds(TIntV &ClusterIds) {
+void TClusterBase::GetAllClusterIds(TIntV &ClusterIds) const {
   IdToTCluster.GetKeyV(ClusterIds);
 }
 

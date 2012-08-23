@@ -10,12 +10,18 @@ int main(int argc, char *argv[]) {
   TStr BaseString;
   ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
 
-  TStr StartString, EndString, OutputDirectory;
+  TStr StartString, EndString, OutputDirectory, QBDBDirectory, QBDBCDirectory;
   if (!Arguments.IsKeyGetDat("start", StartString)) {
     StartString = "2012-07-01";
   }
   if (!Arguments.IsKeyGetDat("end", EndString)) {
     EndString = "2012-07-08";
+  }
+  if (!Arguments.IsKeyGetDat("qbdb", QBDBDirectory)) {
+    QBDBDirectory = "/lfs/1/tmp/curis/QBDB/";
+  }
+  if (!Arguments.IsKeyGetDat("qbdbc", QBDBCDirectory)) {
+    QBDBCDirectory = "/lfs/1/tmp/curis/QBDBC/";
   }
   if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
     Log.SetupNewOutputDirectory();
@@ -35,7 +41,7 @@ int main(int argc, char *argv[]) {
   TClusterBase CB;
   PNGraph OldQGraph;
   fprintf(stderr, "Loading cumulative QBDBCB from file...\n");
-  TDataLoader::LoadCumulative(QBDBC_DIRECTORY, OldDate.GetDtYmdStr(), QB, DB, CB, OldQGraph);
+  TDataLoader::LoadCumulative(QBDBCDirectory, OldDate.GetDtYmdStr(), QB, DB, CB, OldQGraph);
   fprintf(stderr, "\tDone loading cumulative QBDBCB!\n");
 
   // #### GET TOP FILTERED CLUSTERS FROM PREVIOUS DAY WHYY
@@ -49,7 +55,7 @@ int main(int argc, char *argv[]) {
     TQuoteBase NewQB;
     TDocBase NewDB;
     fprintf(stderr, "Loading QBDB for %s...\n", CurrentDate.GetDtYmdStr().CStr());
-    TDataLoader::LoadQBDB(QBDB_DIRECTORY, CurrentDate.GetDtYmdStr(), NewQB, NewDB);
+    TDataLoader::LoadQBDB(QBDBDirectory, CurrentDate.GetDtYmdStr(), NewQB, NewDB);
     fprintf(stderr, "Done loading new QBDB!\n");
 
     int OldGraphSize = OldQGraph->GetNodes();
@@ -83,7 +89,7 @@ int main(int argc, char *argv[]) {
     OldQGraph = QGraph;
     CB = NewCB;
     OldTopClusters = TopFilteredClusters;
-    TStr FileName = TStr(QBDBC_DIRECTORY) + "QBDBC" + CurrentDate.GetDtYmdStr() + ".bin";
+    TStr FileName = QBDBCDirectory + "QBDBC" + CurrentDate.GetDtYmdStr() + ".bin";
     fprintf(stderr, "Saving Cluster information to file: %s\n", FileName.CStr());
     TFOut FOut(FileName);
     IAssert(!QB.IsContainNullQuote());
