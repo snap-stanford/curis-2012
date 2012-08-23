@@ -150,10 +150,46 @@ void BuildClusterVec(TStr FileName, TVec<FCluster>& Deleted) {
 
 }
 
+void ReadDeletedClustersDetailed(TVec<DCluster> &Clusters) {
+  TStr FileName = "detailed_clusters.txt";
+  PSIn FileLoader = TFIn::New(FileName);
+  TStr CurLn;
+
+  DCluster Cluster;
+  bool IsCluster = true;
+  while (FileLoader->GetNextLn(CurLn)) {
+    if (CurLn == "") {
+      Clusters.Add(Cluster);
+      Cluster = DCluster(Cluster);
+      IsCluster = true;
+    } else {
+      if (IsCluster) {
+        IsCluster = false;
+        Cluster = DCluster(CurLn);
+      } else {
+        DQuote Quote(CurLn);
+        Cluster.Quotes.Add(Quote);
+      }
+    }
+  }
+
+  FileName = "deleted_clusters.bin";
+  TFOut FOut(FileName);
+  Clusters.Save(FOut);
+}
+
+void LoadDeletedClustersDetailed(TVec<DCluster> &Clusters) {
+  TFIn CurFile("deleted_clusters.bin");
+  Clusters.Load(CurFile);
+}
+
 int main(int argc, char *argv[]) {
-  TStr FileName = "all_deleted_clusters.txt";
+  /*TStr FileName = "all_deleted_clusters.txt";
   TVec<FCluster> Deleted;
   BuildClusterVec(FileName, Deleted);
-  Err("Number of clusters: %d\n", Deleted.Len());
+  Err("Number of clusters: %d\n", Deleted.Len());*/
+  TVec<DCluster> Clusters;
+  //ReadDeletedClustersDetailed(Clusters);
+  LoadDeletedClustersDetailed(Clusters);
   return 0;
 }

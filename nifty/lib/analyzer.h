@@ -23,7 +23,13 @@ public:
   TBool Archived; // TODO: calculate if should be discarded
   TVec<DQuote> Quotes;
 
+  DCluster() {}
   DCluster(TStr LineInput);
+  DCluster(TSIn& SIn) : Start(SIn), End(SIn), DiffDay(SIn), Unique(SIn), Size(SIn),
+      NumPeaks(SIn), PopStrLen(SIn), RepStr(SIn), RepURL(SIn), First(SIn), Last(SIn),
+      Peak(SIn), Archived(SIn) { }
+  void Save(TSOut& SOut) const;
+  void Load(TSIn& SIn);
   static TStr GetClusterString(TQuoteBase *QB, TDocBase *DB, TCluster& C, TFreqTripleV &FreqV, TInt NumPeaks, TStr &End);
   static void GetFMP(TFreqTripleV& FreqV, TSecTm& First, TSecTm& Last, TSecTm& Peak, TStr &Quote);
 };
@@ -39,6 +45,12 @@ public:
   TSecTm Last;
   TSecTm Peak;
 
+  DQuote() {}
+  DQuote(TStr LineInput);
+  DQuote(TSIn& SIn) : Size(SIn), NumPeaks(SIn), StrLen(SIn), Str(SIn),
+      RepURL(SIn), First(SIn), Last(SIn), Peak(SIn) { }
+  void Save(TSOut& SOut) const;
+  void Load(TSIn& SIn);
   static TStr GetQuoteString(TDocBase *DB, TQuote& Quote, TSecTm &PresentTime);
 };
 
