@@ -307,8 +307,10 @@ void TDataLoader::LoadCumulative(const TStr &Prefix, const TStr &Date, TQuoteBas
 }
 
 void TDataLoader::LoadQBDB(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB) {
+  TSecTm CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(Date);
+  TStr SubDir = TStr::Fmt("%d/", CurrentDate.GetYearN());
   TStr CurFileName = "QBDB" + Date + ".bin";
-  TFIn CurFile(Prefix + CurFileName);
+  TFIn CurFile(Prefix + SubDir + CurFileName);
   QB.Load(CurFile);
   DB.Load(CurFile);
   IAssert(!QB.IsContainNullQuote());
@@ -333,7 +335,7 @@ TSecTm TDataLoader::LoadQBDBByWindow(const TStr& Prefix, const TStr& StartDate, 
   for (int i = 0; i < WindowSize; i++) {
     TQuoteBase TmpQB;
     TDocBase TmpDB;
-    fprintf(stderr, "Seeking file %s%s\n", Prefix.CStr(), CurrentDate.GetDtYmdStr().CStr());
+    fprintf(stderr, "Seeking file %s.bin\n", CurrentDate.GetDtYmdStr().CStr());
     LoadQBDB(Prefix, CurrentDate.GetDtYmdStr(), TmpQB, TmpDB);
     MergeQBDB(QB, DB, TmpQB, TmpDB);
     if (i + 1 < WindowSize) {

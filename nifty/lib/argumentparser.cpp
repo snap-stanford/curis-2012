@@ -12,16 +12,6 @@ void ArgumentParser::ParseArguments(int argc, char *argv[], THash<TStr, TStr>& A
       exit(1);
     }
   }
-  // load QB and DB. Custom variables can be added later.
-  BaseString = TWOWEEK_DIRECTORY;
-  if (Arguments.IsKey("qbdb")) {
-    TStr BaseArg = Arguments.GetDat("qbdb");
-    if (BaseArg == "week") {
-      BaseString = WEEK_DIRECTORY;
-    } else if (BaseArg == "day"){
-      BaseString = DAY_DIRECTORY;
-    }
-  }
   if (Arguments.IsKey("nolog")) {
     Log.DisableLogging();
   }
