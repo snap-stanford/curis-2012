@@ -1,5 +1,8 @@
 #include "stdafx.h"
 
+int MaxWords = 50;
+int MaxLifespan = 200; // half a year
+
 class FCluster {
 public:
   TSecTm Start;
@@ -10,6 +13,62 @@ public:
   TInt Unique;
   TStr PopStr;
 };
+
+void SetZero(int *Arr, int Size) {
+  for (int i = 0; i < Size; ++i) {
+    Arr[i] = 0;
+  }
+}
+
+void PlotGraph(TStr FileName, TStr Title, TStr XStr, TStr YStr, int *Arr1, int *Arr2, int NumPoints, bool normalize = false, bool log = true) {
+  TGnuPlot Plot = TGnuPlot(FileName, Title, false);
+  Plot.SetXYLabel(XStr, YStr);
+  if (log) Plot.SetScale(gpsLog2XY);
+
+  if (!normalize) {
+    TIntPrV Coordinates;
+    for (int i = 0; i < NumPoints; ++i) {
+      if (Arr1 == NULL)
+        Coordinates.Add(TIntPr(i, Arr2[i]));
+      else
+        Coordinates.Add(TIntPr(Arr1[i], Arr2[i]));
+    }
+    Plot.AddPlot(Coordinates, gpwPoints);
+  } else {
+    TVec<TPair<TInt, TFlt> > Coordinates;
+    for (int i = 0; i < NumPoints; ++i) {
+      if (Arr1[i] != 0) {
+        Coordinates.Add(TPair<TInt, TFlt>(i, Arr2[i] * 1.0 / Arr1[i]));
+      }
+    }
+    Plot.AddPlot(Coordinates, gpwPoints);
+  }
+
+  Plot.SavePng(FileName + ".png");
+}
+
+void GetHistogram(TVec<DCluster>& Clusters, int *Arr, int Size, int (*Fn)(DCluster& Cluster)) {
+  SetZero(Arr, Size);
+  int Len = Clusters.Len();
+  for (int i = 0; i < Len; ++i) {
+    int Value = (*Fn)(Clusters[i]);
+    if (Value < Size) {
+      Arr[Value]++;
+    }
+  }
+}
+
+void GetHistogramRelation(TVec<DCluster>& Clusters, int *Arr, int Size, int (*KeyFn)(DCluster& Cluster), int (*ValueFn)(DCluster& Cluster)) {
+  SetZero(Arr, Size);
+  int Len = Clusters.Len();
+  for (int i = 0; i < Len; ++i) {
+    int Key = (*KeyFn)(Clusters[i]);
+    if (Key < Size) {
+      Arr[Key]+= (*ValueFn)(Clusters[i]);
+    }
+  }
+}
+
 
 void PlotUniqueClusterSize(int* Counts) {
   TGnuPlot Plot = TGnuPlot("plot_unique_clusters", "Cluster Size Frequency - Unique Quotes", false);
@@ -150,6 +209,21 @@ void BuildClusterVec(TStr FileName, TVec<FCluster>& Deleted) {
 
 }
 
+void ReadDeletedClusters(TVec<DCluster> &Clusters) {
+  TStr FileName = "clusters.txt";
+  PSIn FileLoader = TFIn::New(FileName);
+  TStr CurLn;
+
+  while (FileLoader->GetNextLn(CurLn)) {
+    DCluster Cluster(CurLn);
+    Clusters.Add(Cluster);
+  }
+
+  FileName = "clusters.bin";
+  TFOut FOut(FileName);
+  Clusters.Save(FOut);
+}
+
 void ReadDeletedClustersDetailed(TVec<DCluster> &Clusters) {
   TStr FileName = "detailed_clusters.txt";
   PSIn FileLoader = TFIn::New(FileName);
@@ -183,6 +257,93 @@ void LoadDeletedClustersDetailed(TVec<DCluster> &Clusters) {
   Clusters.Load(CurFile);
 }
 
+void GetRepLenHistogram(TVec<DCluster> &Clusters, int *RepLenHist) {
+  SetZero(RepLenHist, MaxWords);
+  int Len = Clusters.Len();
+  for (int i = 0; i < Len; ++i) {
+    if (Clusters[i].RepStrLen < MaxWords) {
+      RepLenHist[Clusters[i].RepStrLen]++;
+    }
+  }
+}
+
+void GetPopLenHistogram(TVec<DCluster> &Clusters, int *PopLenHist) {
+  SetZero(PopLenHist, MaxWords);
+  int Len = Clusters.Len();
+  for (int i = 0; i < Len; ++i) {
+    TInt MaxSize = -1;
+    TInt MaxIndex = -1;
+    for (int j = 0; j < Clusters[i].Quotes.Len(); ++j) {
+      if (Clusters[i].Quotes[j].Size > MaxSize) {
+        MaxSize = Clusters[i].Quotes[j].Size;
+        MaxIndex = j;
+      }
+    }
+
+    if (MaxIndex >= 0)
+      PopLenHist[Clusters[i].Quotes[MaxIndex].StrLen]++;
+  }
+}
+
+void GetRepLenLifespan(TVec<DCluster> &Clusters, int *RepLenLifespan) {
+  SetZero(RepLenLifespan, MaxWords);
+  int Len = Clusters.Len();
+  for (int i = 0; i < Len; ++i) {
+    if (Clusters[i].RepStrLen < MaxWords) {
+      RepLenLifespan[Clusters[i].RepStrLen]+= Clusters[i].DiffDay;
+    }
+  }
+}
+
+void GetPopLenLifespan(TVec<DCluster> &Clusters, int *PopLenLifespan) {
+  SetZero(PopLenLifespan, MaxWords);
+  int Len = Clusters.Len();
+  for (int i = 0; i < Len; ++i) {
+    TInt MaxSize = -1;
+    TInt MaxIndex = -1;
+    for (int j = 0; j < Clusters[i].Quotes.Len(); ++j) {
+      if (Clusters[i].Quotes[j].Size > MaxSize) {
+        MaxSize = Clusters[i].Quotes[j].Size;
+        MaxIndex = j;
+      }
+    }
+    if (MaxIndex >= 0)
+      PopLenLifespan[Clusters[i].Quotes[MaxIndex].StrLen]+= Clusters[i].DiffDay;
+  }
+}
+
+int GetLifespan(DCluster &Cluster) {
+  return Cluster.DiffDay;
+}
+
+void AnalyzeClustersDetailed(TVec<DCluster> &Clusters) {
+  int RepLenHist[MaxWords];
+  int RepLenLifespan[MaxWords];
+  int PopLenHist[MaxWords];
+  int PopLenLifespan[MaxWords];
+  int LifespanHist[MaxLifespan];
+
+  GetRepLenHistogram(Clusters, RepLenHist);
+  GetRepLenLifespan(Clusters, RepLenLifespan);
+  GetPopLenHistogram(Clusters, PopLenHist);
+  GetPopLenLifespan(Clusters, PopLenLifespan);
+  GetHistogram(Clusters, LifespanHist, MaxLifespan, GetLifespan);
+
+  // GRAPH PLOTTING - Histogramming
+  PlotGraph("plot_replen_histogram", "Representative Quote Length Histogram", "representative quote length",
+      "number of clusters", NULL, RepLenHist, MaxWords, false, false);
+  PlotGraph("plot_poplen_histogram", "Most Popular Quote Length Histogram", "most popular quote length",
+      "number of clusters", NULL, PopLenHist, MaxWords, false, false);
+  PlotGraph("plot_lifespan_histogram", "Lifespan Histogram", "lifespan (in days)",
+      "number of clusters", NULL, LifespanHist, MaxLifespan, false, true);
+
+  // GRAPH PLOTTING - Interesting
+  PlotGraph("plot_replen_vs_lifespan", "Representative Quote Length vs. Lifespan", "representative quote length",
+      "lifespan (in days)", RepLenHist, RepLenLifespan, MaxWords, true, false);
+  PlotGraph("plot_poplen_vs_lifespan", "Most Popular Quote Length vs. Lifespan", "most popular quote length",
+      "lifespan (in days)", PopLenHist, PopLenLifespan, MaxWords, true, false);
+}
+
 int main(int argc, char *argv[]) {
   /*TStr FileName = "all_deleted_clusters.txt";
   TVec<FCluster> Deleted;
@@ -191,5 +352,6 @@ int main(int argc, char *argv[]) {
   TVec<DCluster> Clusters;
   //ReadDeletedClustersDetailed(Clusters);
   LoadDeletedClustersDetailed(Clusters);
+  AnalyzeClustersDetailed(Clusters);
   return 0;
 }

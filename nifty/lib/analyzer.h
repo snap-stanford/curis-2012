@@ -14,7 +14,7 @@ public:
   TInt Unique;
   TInt Size;
   TInt NumPeaks;
-  TInt PopStrLen;
+  TInt RepStrLen;
   TStr RepStr;
   TStr RepURL;
   TSecTm First;
@@ -26,8 +26,8 @@ public:
   DCluster() {}
   DCluster(TStr LineInput);
   DCluster(TSIn& SIn) : Start(SIn), End(SIn), DiffDay(SIn), Unique(SIn), Size(SIn),
-      NumPeaks(SIn), PopStrLen(SIn), RepStr(SIn), RepURL(SIn), First(SIn), Last(SIn),
-      Peak(SIn), Archived(SIn) { }
+      NumPeaks(SIn), RepStrLen(SIn), RepStr(SIn), RepURL(SIn), First(SIn), Last(SIn),
+      Peak(SIn), Archived(SIn), Quotes(SIn) { }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   static TStr GetClusterString(TQuoteBase *QB, TDocBase *DB, TCluster& C, TFreqTripleV &FreqV, TInt NumPeaks, TStr &End);
