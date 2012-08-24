@@ -54,4 +54,47 @@ public:
   static TStr GetQuoteString(TDocBase *DB, TQuote& Quote, TSecTm &PresentTime);
 };
 
+//##### COMPARISON FUNCTIONS YO
+class TCmpDQuoteBySize {
+private:
+  bool IsAsc;
+public:
+  TCmpDQuoteBySize(const bool& AscSort=true) : IsAsc(AscSort) { }
+  bool operator () (const DQuote& D1, const DQuote& D2) const {
+    if (IsAsc) {
+      return D1.Size < D2.Size;
+    } else {
+      return D2.Size > D1.Size;
+    }
+  }
+};
+
+class TCmpDQuoteByPeak {
+private:
+  bool IsAsc;
+public:
+  TCmpDQuoteByPeak(const bool& AscSort=true) : IsAsc(AscSort) { }
+  bool operator () (const DQuote& D1, const DQuote& D2) const {
+    if (IsAsc) {
+      return D1.Peak < D2.Peak;
+    } else {
+      return D2.Peak > D1.Peak;
+    }
+  }
+};
+
+class TCmpDQuoteByFirst {
+private:
+  bool IsAsc;
+public:
+  TCmpDQuoteByFirst(const bool& AscSort=true) : IsAsc(AscSort) {}
+  bool operator () (const DQuote& D1, const DQuote& D2) const {
+    if (IsAsc) {
+      return D1.First < D2.First;
+    } else {
+      return D2.First > D1.First;
+    }
+  }
+};
+
 #endif
