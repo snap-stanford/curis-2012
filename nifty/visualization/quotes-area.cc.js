@@ -9,10 +9,23 @@ var Ranking = [];
 var Type;  // "daily", "weekly", or "monthly"; determined by $("main-desc")
 
 // Colors are from kuler.adobe.com; "Hey Mr. Grey Rainbow" by stephenmweathers
-var SetColors = ["#CC5C54", "#F69162", "#FFFFCD", "#85A562", "#7AB5DB"];
+//var SetColors = ["#CC5C54", "#F69162", "#FFFFCD", "#85A562", "#7AB5DB"];
 // "Fairgrounds"
 //var SetColors = ["#FFF6C9", "#C8E8C7", "#A4DEAB", "#85CC9F", "#499E8D"];
 //var StartDate = new Date(2012, 6, 1, 0, 0, 0, 0); // Note that month is zero-based
+
+// Colors are from www.colourlovers.com/business/trends/branding/7880/Papeterie_Haute-Ville_Logo
+//var SetColors = ["#113F8C", "#01A4A4", "#00A1CB", "#61AE24", "#D0D102", "#32742C", "#D70060", "#E54028", "#F18D05", "#616161"];
+
+// Colors from www.colourlovers.com/business/trends/branding/7783/HUEMINCE
+//var SetColors = ["#B3D334", "#FFC40A", "#00ABF0", "#EF1C25", "#87318C", "#0160A0", "#F59EE5", "#C3D6E4"];
+
+// Colors from www.colourlovers.com/palette/2366249/1
+//var SetColors = ["#84F57B", "#1FE6E6", "#9A1FE6", "#E61FB0", "#F7AF48"];
+
+// Original color selection
+var SetColors = ["#0099FF", "#33CC00", "#FF3366", "#9933FF", "#FFFF00", "#FF6600", "#3399FF", "#00CC00", "#CC3366", "#9900FF", "#FFFF33", "#FF9900", "#3399CC", "#00FF00", "#FF6699", "#6633CC", "#FFFF66", "#FF9933", "#6699CC", "#99FF66", "#FF3399", "#9933CC", "#FFFF99", "#FFCC33"];
+
 var StartDate;
 var CurrDate;
 var a;
@@ -147,6 +160,7 @@ function createGraph(GraphDate) {
                     var offset = Math.floor(Ranking.indexOf(a) / SetColors.length);
                     var newColorStr = (color + offset).toString(16).toUpperCase();
                     Colors[a] = '#000000'.slice(0, -newColorStr.length) + newColorStr;
+
                     return Colors[a];
                 });
                 //a = new $jit.StreamChart({
@@ -267,7 +281,7 @@ function init() {
         } else if (MainDesc.indexOf(Monthly) != -1) {
           Type = Monthly;
           StartDate = new Date(2012, 1, 1, 0, 0, 0, 0);
-          SetColors = ["#8A2BE2", "#DC143C", "#70A35E", "#FFD700", "#FF69B4"];
+          //SetColors = ["#8A2BE2", "#DC143C", "#70A35E", "#FFD700", "#FF69B4"];
         } else {
           Type = Daily;
           StartDate = new Date(2012, 5, 30, 0, 0, 0, 0); // Note that month is zero-based

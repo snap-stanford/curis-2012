@@ -150,6 +150,7 @@ function createGraph(GraphDate) {
                     return Colors[a];
                 });
                 a = new $jit.StreamChart({
+                //a = new $jit.AreaChart({
                     injectInto: "stream-viz",
                     type: window.G_vmlCanvasManager ? "stacked" : "smooth",
                     animate: !1,
@@ -250,18 +251,22 @@ function init() {
         if (MainDesc.indexOf(Weekly) != -1) {
           Type = Weekly;
           StartDate = new Date(2012, 5, 1, 0, 0, 0, 0);
+          SetColors = ["#D91A2A", "#A6056D", "#A9D943", "#F2E527", "#F25D07"];
         } else if (MainDesc.indexOf(Monthly) != -1) {
           Type = Monthly;
           StartDate = new Date(2012, 1, 1, 0, 0, 0, 0);
+          SetColors = ["#8A2BE2", "#DC143C", "#70A35E", "#FFD700", "#FF69B4"];
         } else {
           Type = Daily;
-          StartDate = new Date(2012, 5, 15, 0, 0, 0, 0); // Note that month is zero-based
+          StartDate = new Date(2012, 5, 30, 0, 0, 0, 0); // Note that month is zero-based
         }
 
         CurrDate = StartDate;
         var c = $$(".stream-nav a");
-        if (Type == Daily) {
-            $("top-20-quotes").addEvent("click",
+
+        var Top20Q = $("top-20-quotes");
+        if (Top20Q) {
+            Top20Q.addEvent("click",
 
             function (b) {
                 a.busy || (b.stop(), c.removeClass("selected"), this.addClass("selected"), filteredQuotes = Ranking.filter(function (a) {
@@ -272,8 +277,11 @@ function init() {
                     }
                 }))
             });
+        }
 
-            $("top-10-quotes").addEvent("click", function (b) {
+        var Top10Q = $("top-10-quotes");
+        if (Top10Q) {
+            Top10Q.addEvent("click", function (b) {
                 a.busy || (b.stop(), c.removeClass("selected"), this.addClass("selected"), filteredQuotes = Ranking.filter(function (a) {
                     return Ranking.indexOf(a) > -1 && Ranking.indexOf(a) < 10
                 }), a.filter(filteredQuotes, {
@@ -282,8 +290,11 @@ function init() {
                     }
                 }))
             });
-        } else {
-            $("all-quotes").addEvent("click", function (b) {
+        }
+
+        var AllQ = $("all-quotes");
+        if (AllQ) {
+            AllQ.addEvent("click", function (b) {
                 b.stop();
                 a.busy || (c.removeClass("selected"), this.addClass("selected"), a.filter(Ranking, {
                     onComplete: function () {
@@ -292,6 +303,7 @@ function init() {
                 }))
             });
         }
+
         var h = new Fx.Scroll(window, {
             onComplete: function () {
                 $$(".row-wrapper.selected").removeClass("selected")
