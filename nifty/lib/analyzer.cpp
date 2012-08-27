@@ -38,7 +38,7 @@ DCluster::DCluster(TStr LineInput) {
   Unique = TInt(Params[2].GetInt());
   Size = TInt(Params[3].GetInt());
   NumPeaks = TInt(Params[4].GetInt());
-  PopStrLen = TInt(Params[5].GetInt());
+  RepStrLen = TInt(Params[5].GetInt());
 
   // Strings
   RepStr = Params[6];
@@ -60,13 +60,14 @@ void DCluster::Save(TSOut& SOut) const {
   Unique.Save(SOut);
   Size.Save(SOut);
   NumPeaks.Save(SOut);
-  PopStrLen.Save(SOut);
+  RepStrLen.Save(SOut);
   RepStr.Save(SOut);
   RepURL.Save(SOut);
   First.Save(SOut);
   Last.Save(SOut);
   Peak.Save(SOut);
   Archived.Save(SOut);
+  Quotes.Save(SOut);
 }
 
 void DCluster::Load(TSIn& SIn) {
@@ -76,13 +77,14 @@ void DCluster::Load(TSIn& SIn) {
   Unique.Load(SIn);
   Size.Load(SIn);
   NumPeaks.Load(SIn);
-  PopStrLen.Load(SIn);
+  RepStrLen.Load(SIn);
   RepStr.Load(SIn);
   RepURL.Load(SIn);
   First.Load(SIn);
   Last.Load(SIn);
   Peak.Load(SIn);
   Archived.Load(SIn);
+  Quotes.Load(SIn);
 }
 
 void DCluster::GetFMP(TFreqTripleV& FreqV, TSecTm& First, TSecTm& Last, TSecTm& Peak, TStr &Quote) {
