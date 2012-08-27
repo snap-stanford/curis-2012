@@ -262,15 +262,13 @@ TInt TQuoteBase::AddQuote(const TStr &ContentString, TInt DocId) {
 
 void TQuoteBase::RemoveQuote(TInt QuoteId) {
   // TODO: memory management
-  if (IdToTQuotes.IsKey(QuoteId)) {
-    TQuote CurQuote = IdToTQuotes.GetDat(QuoteId);
-    TStrV CurContent;
-    CurQuote.GetContent(CurContent);
-    if (QuoteToId.IsKey(CurContent)) {
-      QuoteToId.DelKey(CurContent);
-    }
-    IdToTQuotes.DelKey(QuoteId);
-  }
+  IAssert(IdToTQuotes.IsKey(QuoteId));
+  TQuote CurQuote = IdToTQuotes.GetDat(QuoteId);
+  TStrV CurContent;
+  CurQuote.GetContent(CurContent);
+  QuoteToId.DelKey(CurContent);
+  IdToTQuotes.DelKey(QuoteId);
+  IAssert(QuoteToId.Len() == IdToTQuotes.Len());
 }
 
 TInt TQuoteBase::GetNewQuoteId(const TStrV& Content) {

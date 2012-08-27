@@ -6,7 +6,6 @@ TDoc::TDoc() {
 
 TDoc::TDoc(TInt Id, const TChA &Url, TSecTm Date, const TChA &Content, const TVec<TChA> &Links) {
   // TODO: Check that URLs are not repeated
-  this->NumQuotes = TInt(0);
   this->Url = TStr(Url);
   this->Date = Date;
   this->Content = TStr(Content);
@@ -35,10 +34,6 @@ void TDoc::Load(TSIn& SIn) {
 
 TInt TDoc::GetId() const {
   return Id;
-}
-
-TInt TDoc::GetNumQuotes() const {
-  return NumQuotes;
 }
 
 void TDoc::GetUrl(TStr &Ref) {
@@ -120,8 +115,7 @@ bool TDocBase::GetDoc(TInt Id, TDoc &RetDoc) const {
 /// Forms a new TDoc from the document information and adds it to the doc base.
 TInt TDocBase::AddDoc(const TChA &Url, TSecTm Date, const TChA &Content, const TVec<TChA> &Links) {
   if (!DocUrlToId.IsKey(TStr(Url))) {
-    TInt DocId = NextId;
-    NextId += 1;
+    TInt DocId = NextId++;
     TDoc NewDoc = TDoc(DocId, Url, Date, Content, Links);
     IdToDoc.AddDat(DocId, NewDoc);
     DocUrlToId.AddDat(TStr(Url), DocId);
@@ -135,29 +129,26 @@ TInt TDocBase::AddDoc(TDoc &Doc) {
   TStr DocUrl;
   Doc.GetUrl(DocUrl);
   if (!DocUrlToId.IsKey(DocUrl)) {
-    TInt DocId = NextId;
-    NextId += 1;
-    Doc.SetId(NextId);
+    TInt DocId = NextId++;
+    Doc.SetId(DocId);
     IdToDoc.AddDat(DocId, Doc);
     DocUrlToId.AddDat(DocUrl, DocId);
     return DocId;
   } else {
     return GetDocId(DocUrl);
   }
-
-  // GEE GEE GEE GEE BABY BABY BABY
 }
 
 void TDocBase::RemoveDoc(TInt DocId) {
-  if (IdToDoc.IsKey(DocId)) {
-    TDoc Doc;
-    GetDoc(DocId, Doc);
-    TStr DocUrl;
-    Doc.GetUrl(DocUrl);
+  IAssert(IdToDoc.IsKey(DocId));
+  TDoc Doc;
+  GetDoc(DocId, Doc);
+  TStr DocUrl;
+  Doc.GetUrl(DocUrl);
 
-    IdToDoc.DelKey(DocId);
-    DocUrlToId.DelKey(DocUrl);
-  }
+  IdToDoc.DelKey(DocId);
+  DocUrlToId.DelKey(DocUrl);
+  IAssert(IdToDoc.Len() == DocUrlToId.Len());
 }
 
 void TDocBase::GetAllDocIds(TVec<TInt> &DocIds) const {
@@ -165,6 +156,7 @@ void TDocBase::GetAllDocIds(TVec<TInt> &DocIds) const {
 }
 
 void TDocBase::RemoveNullDocs(TQuoteBase *QB) {
+  Err("QB Size: %d DB Size: %d\n", QB->Len(), Len());
   TIntSet ValidDocs;
 
   TIntV QuoteIds;
@@ -179,15 +171,34 @@ void TDocBase::RemoveNullDocs(TQuoteBase *QB) {
     }
   }
 
-  TInt Count = 0;
+  int count = 0;
   TIntV DocIds;
   GetAllDocIds(DocIds);
   for (int i = 0; i < DocIds.Len(); i++) {
     if(!ValidDocs.IsKey(DocIds[i])) {
       RemoveDoc(DocIds[i]);
-      Count++;
+      count++;
     }
   }
-  Err("Removed %d documents.\n", Count.Val);
+  Err("Removed %d documents.\n", count);
+  Err("DB Size: %d\n", Len());
+
+  IAssert(ValidDocs.Len() == Len());
+
+  int mm = 0, id = -1;
+  for (int i = 0; i < QuoteIds.Len(); i++) {
+    TQuote Q;
+    QB->GetQuote(QuoteIds[i], Q);
+    if(Q.GetNumSources() > mm) {
+      id = QuoteIds[i];
+      mm = Q.GetNumSources();
+    }
+  }
+
+  TQuote Q;
+  QB->GetQuote(id, Q);
+  TStr ContentStr;
+  Q.GetContentString(ContentStr);
+  Err("Max size: %s %d\n", ContentStr.CStr(), mm);
 }
 
