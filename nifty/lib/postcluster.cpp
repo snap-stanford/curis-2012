@@ -395,7 +395,7 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
     }
 
     // If the number of recent sources does not pass the threshold, remove that cluster and all its quotes
-    if (NumRecentSources < QuoteThreshold || FreqV.Len() - SourceIndex  > 14 * 24 / PEAK_BUCKET) {
+    if (NumRecentSources < QuoteThreshold || FreqV.Len() - SourceIndex  > 7 * 24 / PEAK_BUCKET) {
       TStr ClusterString = DCluster::GetClusterString(QB, DB, C, FreqV, TInt(PeakV.Len()), CurDateString);
       fprintf(F, "%s\n", ClusterString.CStr());
       fprintf(F2, "%s\n", ClusterString.CStr());

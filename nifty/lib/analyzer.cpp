@@ -38,7 +38,7 @@ DCluster::DCluster(TStr LineInput) {
   Unique = TInt(Params[2].GetInt());
   Size = TInt(Params[3].GetInt());
   NumPeaks = TInt(Params[4].GetInt());
-  PopStrLen = TInt(Params[5].GetInt());
+  RepStrLen = TInt(Params[5].GetInt());
 
   // Strings
   RepStr = Params[6];
@@ -51,6 +51,40 @@ DCluster::DCluster(TStr LineInput) {
   bool ArchiveBool = true;
   Params[11].IsBool(ArchiveBool);
   Archived = TBool(ArchiveBool);
+}
+
+void DCluster::Save(TSOut& SOut) const {
+  Start.Save(SOut);
+  End.Save(SOut);
+  DiffDay.Save(SOut);
+  Unique.Save(SOut);
+  Size.Save(SOut);
+  NumPeaks.Save(SOut);
+  RepStrLen.Save(SOut);
+  RepStr.Save(SOut);
+  RepURL.Save(SOut);
+  First.Save(SOut);
+  Last.Save(SOut);
+  Peak.Save(SOut);
+  Archived.Save(SOut);
+  Quotes.Save(SOut);
+}
+
+void DCluster::Load(TSIn& SIn) {
+  Start.Load(SIn);
+  End.Load(SIn);
+  DiffDay.Load(SIn);
+  Unique.Load(SIn);
+  Size.Load(SIn);
+  NumPeaks.Load(SIn);
+  RepStrLen.Load(SIn);
+  RepStr.Load(SIn);
+  RepURL.Load(SIn);
+  First.Load(SIn);
+  Last.Load(SIn);
+  Peak.Load(SIn);
+  Archived.Load(SIn);
+  Quotes.Load(SIn);
 }
 
 void DCluster::GetFMP(TFreqTripleV& FreqV, TSecTm& First, TSecTm& Last, TSecTm& Peak, TStr &Quote) {
@@ -100,4 +134,46 @@ TStr DQuote::GetQuoteString(TDocBase *DB, TQuote& Quote, TSecTm &PresentTime) {
   Response += First.GetYmdTmStr() + "\t" + Last.GetYmdTmStr() + "\t" + Peak.GetYmdTmStr();
 
   return Response;
+}
+
+DQuote::DQuote(TStr LineInput) {
+  TStrV Params;
+  LineInput.SplitOnStr("\t", Params);
+
+  // Extract size, numpeaks, numwords
+  Size = TInt(Params[0].GetInt());
+  NumPeaks = TInt(Params[1].GetInt());
+  StrLen = TInt(Params[2].GetInt());
+
+  // Strings
+  Str = Params[3];
+  RepURL = Params[4];
+
+  // dates
+  First = TSecTm::GetDtTmFromYmdHmsStr(Params[5]);
+  Last = TSecTm::GetDtTmFromYmdHmsStr(Params[6]);
+  Peak = TSecTm::GetDtTmFromYmdHmsStr(Params[7]);
+
+}
+
+void DQuote::Save(TSOut& SOut) const {
+  Size.Save(SOut);
+  NumPeaks.Save(SOut);
+  StrLen.Save(SOut);
+  Str.Save(SOut);
+  RepURL.Save(SOut);
+  First.Save(SOut);
+  Last.Save(SOut);
+  Peak.Save(SOut);
+}
+
+void DQuote::Load(TSIn& SIn) {
+  Size.Load(SIn);
+  NumPeaks.Load(SIn);
+  StrLen.Load(SIn);
+  Str.Load(SIn);
+  RepURL.Load(SIn);
+  First.Load(SIn);
+  Last.Load(SIn);
+  Peak.Load(SIn);
 }
