@@ -8,8 +8,6 @@ class TQuoteBase;
 class TDoc {
 private:
   TInt Id;
-  // Number of quotes in the QuoteBase that have this document as a source
-  TInt NumQuotes;
   TStr Url;
   TSecTm Date;
   TStr Content;
@@ -22,7 +20,6 @@ public:
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   TInt GetId() const;
-  TInt GetNumQuotes() const;
   void GetUrl(TStr &Ref);
   void GetDomainName(TStr &DomainName);
   TSecTm GetDate() const;
