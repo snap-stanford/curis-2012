@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include <stdio.h>
 
+const TStr GraphDirectory = "../../../public_html/curis/output/clustering/visualization/graphdata/";
+const TStr TableDirectory = "../../../public_html/curis/output/clustering/visualization/tabledata/";
+
 int main(int argc, char *argv[]) {
   // Parse Arguments
   LogOutput Log;
@@ -8,12 +11,17 @@ int main(int argc, char *argv[]) {
   TStr BaseString;
   ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
 
-  TStr StartString, EndString;
+  TStr StartString, EndString, IgnoreString;
+  bool PrintTopClustersJson = true;
   if (!Arguments.IsKeyGetDat("start", StartString)) {
     StartString = "2009-02-01";
   }
   if (!Arguments.IsKeyGetDat("end", EndString)) {
     EndString = "2009-02-06";
+  }
+
+  if (!Arguments.IsKeyGetDat("printjson", IgnoreString)) {
+    PrintTopClustersJson = false;
   }
 
   TStr QBDBCDirectory;
@@ -47,8 +55,9 @@ int main(int argc, char *argv[]) {
   PostCluster::FilterAndCacheClusterSize(&DBCumulative, &QBCumulative, &CBCumulative, Log, TopFilteredClusters, EndDate);
   PostCluster::FilterAndCacheClusterPeaks(&DBCumulative, &QBCumulative, &CBCumulative, Log, TopFilteredClusters, EndDate);
 
-  Log.OutputClusterInformation(&DBCumulative, &QBCumulative, &CBCumulative, TopFilteredClusters, EndDate);
-  Log.WriteClusteringOutputToFile(EndDate);
+  // Commented out the next two lines because they were causing warnings to pop up :(
+  //Log.OutputClusterInformation(&DBCumulative, &QBCumulative, &CBCumulative, TopFilteredClusters, EndDate);
+  //Log.WriteClusteringOutputToFile(EndDate);
 
   // Construct new top QB, DB and CB
   TQuoteBase TopQB;
@@ -92,6 +101,12 @@ int main(int argc, char *argv[]) {
     C.SetRepresentativeQuoteIds(NewRepQuoteIds);
 
     TopCB.AddCluster(C);
+  }
+
+  if (PrintTopClustersJson) {
+    TIntV ClustersToPrint;
+    TPrintJson::GetTopPeakClustersPerDay(&TopQB, &TopDB, &TopCB, ClustersToPrint, 2, StartDate, EndDate);
+    TPrintJson::PrintClustersJson(&TopQB, &TopDB, &TopCB, ClustersToPrint, GraphDirectory, TableDirectory, StartDate, EndDate);
   }
 
   TFOut FOut("TOPQBDBCB.bin");

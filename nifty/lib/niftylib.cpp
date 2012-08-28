@@ -31,3 +31,6 @@
 
 // data analysis
 #include "analyzer.cpp"
+
+// visualization
+#include "printjson.cpp"

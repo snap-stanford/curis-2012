@@ -33,4 +33,7 @@
 
 // data analysis
 #include "analyzer.h"
+
+// visualization
+#include "printjson.h"
 #endif
