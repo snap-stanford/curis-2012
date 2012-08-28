@@ -425,14 +425,96 @@ void AnalyzeClustersDetailed(TVec<DCluster> &Clusters) {
         "quote size", VariantCumulative, VariantQuoteSize, MaxClusterSize, true, false);
 }
 
+void GetWhitneyHoustonQuote(TVec<DCluster>& Clusters) {
+  int Len = Clusters.Len();
+  for (int i = 0; i < Len; ++i) {
+    if (Clusters[i].Size == 517 && Clusters[i].Unique == 15) {
+      Err("%s\n", Clusters[i].RepStr.CStr());
+      TFOut FOut("whitney.bin");
+      Clusters[i].Save(FOut);
+    }
+  }
+}
+
+void LoadWhitney(DCluster& Whitney) {
+  TFIn CurFile("whitney.bin");
+  Whitney.Load(CurFile);
+}
+
+void PrintWhitney(DCluster& Whitney) {
+  Whitney.Quotes.SortCmp(TCmpDQuoteByFirst(true));
+
+  TGnuPlot Plot = TGnuPlot("whitney_plot", "Quote pertaining to Whitney Houston's death", false);
+  //Plot.SetXYLabel(XStr, YStr);
+
+  /*
+  -2 a
+  -1 small
+  0 spoon
+  1 with
+  2 a
+  3 white
+  4 crystal
+  5 like
+  6 substance
+  7 in
+  8 it
+  9 a
+  10 rolled
+  11 up
+  12 piece
+  13 of
+  14 white
+  15 paper
+  16 from
+  17 off
+  18 the
+  19 top
+  20 of
+  21 a
+  22 counter
+  23 along
+  24 the
+  25 east
+  26 wall
+  27 of
+  28 the
+  29 bathroom
+  */
+
+  TIntPrV Coordinates;
+  Coordinates.Add(TIntPr(2, 10));
+  Coordinates.Add(TIntPr(1, 17));
+  Coordinates.Add(TIntPr(2, 31));
+  Coordinates.Add(TIntPr(12, 17));
+  Coordinates.Add(TIntPr(0, 17));
+  Coordinates.Add(TIntPr(1, 17));
+  Coordinates.Add(TIntPr(0, 8));
+  Coordinates.Add(TIntPr(0, 17));
+  Coordinates.Add(TIntPr(5, 8));
+  Coordinates.Add(TIntPr(4, 8));
+  Coordinates.Add(TIntPr(12, 17));
+  Coordinates.Add(TIntPr(1, 10));
+
+  Plot.AddPlot(Coordinates, gpwBoxes);
+
+  Plot.SavePng("whitney_plot.png");
+}
+
 int main(int argc, char *argv[]) {
   /*TStr FileName = "all_deleted_clusters.txt";
   TVec<FCluster> Deleted;
   BuildClusterVec(FileName, Deleted);
   Err("Number of clusters: %d\n", Deleted.Len());*/
-  TVec<DCluster> Clusters;
-  ReadDeletedClustersDetailed(Clusters);
+  //TVec<DCluster> Clusters;
+  //ReadDeletedClustersDetailed(Clusters);
   //LoadDeletedClustersDetailed(Clusters);
-  AnalyzeClustersDetailed(Clusters);
+  //AnalyzeClustersDetailed(Clusters);
+
+  //GetWhitneyHoustonQuote(Clusters);
+  DCluster Whitney;
+  LoadWhitney(Whitney);
+  PrintWhitney(Whitney);
+
   return 0;
 }
