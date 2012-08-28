@@ -42,6 +42,12 @@ private:
 
 public:
   TDocBase();
+  TDocBase& operator=(const TDocBase& QB) {
+    NextId = QB.NextId;
+    IdToDoc = QB.IdToDoc;
+    DocUrlToId = QB.DocUrlToId;
+    return *this;
+  };
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   int Len() const;
