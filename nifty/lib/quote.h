@@ -22,6 +22,7 @@ public:
   void Load(TSIn& SIn);
   void AddSource(TInt DocId);
   void GetSources(TIntV &RefS);
+  void RemoveSources(TIntV &ToDelete);
   void RemoveDuplicateSources();
   void GetContent(TStrV &Ref);
   void GetContentString(TStr &Ref);
@@ -51,12 +52,18 @@ private:
 public:
   TQuoteBase();
   // returns true if new TQuote created, false otherwise.
+  TQuoteBase& operator=(const TQuoteBase& QB) {
+    QuoteIdCounter = QB.QuoteIdCounter;
+    IdToTQuotes = QB.IdToTQuotes;
+    QuoteToId = QB.QuoteToId;
+    return *this;
+  };
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   TInt AddQuote(const TStr &ContentString);
   TInt AddQuote(const TStr &ContentString, TInt DocId);
   void RemoveQuote(TInt QuoteId);
-  TInt GetQuoteId(const TStrV &Content);
+  TInt GetQuoteId(const TStrV &Content) const;
   TInt GetNewQuoteId(const TStrV &Content);
   bool GetQuote(TInt QuoteId, TQuote &RefQ) const;
   void GetAllQuoteIds(TIntV &KeyV) const;

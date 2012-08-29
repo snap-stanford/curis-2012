@@ -105,6 +105,21 @@ void TQuote::GetSources(TIntV &RefS) {
   RefS = Sources;
 }
 
+void TQuote::RemoveSources(TIntV &ToDelete) {
+  TIntSet DeleteSet;
+  for (int i = 0; i < ToDelete.Len(); i++) {
+    DeleteSet.AddKey(ToDelete[i]);
+  }
+
+  TIntV NewSources;
+  for (int i = 0; i < Sources.Len(); i++) {
+    if (!DeleteSet.IsKey(Sources[i])) {
+      NewSources.Add(Sources[i]);
+    }
+  }
+  Sources = NewSources;
+}
+
 void TQuote::RemoveDuplicateSources() {
   TIntV UniqueSources;
   Sources.Sort();
@@ -283,7 +298,7 @@ TInt TQuoteBase::GetNewQuoteId(const TStrV& Content) {
   }
 }
 
-TInt TQuoteBase::GetQuoteId(const TStrV &Content) {
+TInt TQuoteBase::GetQuoteId(const TStrV &Content) const {
   if (QuoteToId.IsKey(Content)) {
     return QuoteToId.GetDat(Content);
   } else {
