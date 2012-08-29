@@ -104,9 +104,11 @@ int main(int argc, char *argv[]) {
   }
 
   if (PrintTopClustersJson) {
-    TIntV ClustersToPrint;
-    TPrintJson::GetTopPeakClustersPerDay(&TopQB, &TopDB, &TopCB, ClustersToPrint, 2, StartDate, EndDate);
-    TPrintJson::PrintClustersJson(&TopQB, &TopDB, &TopCB, ClustersToPrint, GraphDirectory, TableDirectory, StartDate, EndDate);
+    TIntV ClustersToGraph;
+    TPrintJson::GetTopPeakClustersPerDay(&TopQB, &TopDB, &TopCB, ClustersToGraph, 2, StartDate, EndDate);
+    TIntV ClustersToTable;
+    TopCB.GetTopClustersByFreq(ClustersToTable);
+    TPrintJson::PrintClustersJson(&TopQB, &TopDB, &TopCB, ClustersToGraph, ClustersToTable, GraphDirectory, TableDirectory, StartDate, EndDate);
   }
 
   TFOut FOut("TOPQBDBCB.bin");
