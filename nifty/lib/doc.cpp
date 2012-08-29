@@ -184,21 +184,5 @@ void TDocBase::RemoveNullDocs(TQuoteBase *QB) {
   Err("DB Size: %d\n", Len());
 
   IAssert(ValidDocs.Len() == Len());
-
-  int mm = 0, id = -1;
-  for (int i = 0; i < QuoteIds.Len(); i++) {
-    TQuote Q;
-    QB->GetQuote(QuoteIds[i], Q);
-    if(Q.GetNumSources() > mm) {
-      id = QuoteIds[i];
-      mm = Q.GetNumSources();
-    }
-  }
-
-  TQuote Q;
-  QB->GetQuote(id, Q);
-  TStr ContentStr;
-  Q.GetContentString(ContentStr);
-  Err("Max size: %s %d\n", ContentStr.CStr(), mm);
 }
 

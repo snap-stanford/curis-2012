@@ -46,6 +46,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Done loading cumulative QBDBCB!\n");
 
     fprintf(stderr, "Merging QBDBCB!\n");
+    TDataLoader::FilterOldData(QB, DB, CB, StartDate);
     TDataLoader::MergeQBDBCB(QBCumulative, DBCumulative, CBCumulative, QB, DB, CB, CurrentDate);
   }
 
@@ -115,14 +116,5 @@ int main(int argc, char *argv[]) {
   TopQB.Save(FOut);
   TopDB.Save(FOut);
   TopCB.Save(FOut);
-  Log.SetupNewOutputDirectory();
-
-  /*TIntV t;
-  TopCB.GetTopClusterIdsByFreq(t);
-  PostCluster::FilterAndCacheClusterSize(&TopDB, &TopQB, &TopCB, Log, t, EndDate);
-  PostCluster::FilterAndCacheClusterPeaks(&TopDB, &TopQB, &TopCB, Log, t, EndDate);
-
-  Log.OutputClusterInformation(&TopDB, &TopQB, &TopCB, t, EndDate);
-  Log.WriteClusteringOutputToFile(EndDate);*/
   return 0;
 }
