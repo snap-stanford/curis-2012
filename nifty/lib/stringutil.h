@@ -16,6 +16,8 @@ public:
   static PSwSet StopWordSet;
   static const double MinCommonEnglishRatio;
 
+  static TStr GetEscapedString(TStr &QtStr);
+
   static void RemoveNonEnglish(TChA &S);
   static void ParseStringIntoWords(const TStr& OriginalString, TStrV& ParsedString);
   static void FilterSpacesAndSetLowercase(TStr& QtStr);
