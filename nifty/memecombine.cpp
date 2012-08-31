@@ -3,6 +3,7 @@
 
 const TStr GraphDirectory = "../../../public_html/curis/output/clustering/visualization/graphdata/";
 const TStr TableDirectory = "../../../public_html/curis/output/clustering/visualization/tabledata/";
+const TStr ClusterDirectoryPrefix = "../../../public_html/curis/output/clustering/visualization/clusters/data";
 
 int main(int argc, char *argv[]) {
   // Parse Arguments
@@ -33,9 +34,11 @@ int main(int argc, char *argv[]) {
   TSecTm EndDate = TSecTm::GetDtTmFromYmdHmsStr(EndString);
   TSecTm CurrentDate = StartDate;
 
-  TQuoteBase QBCumulative;
-  TDocBase DBCumulative;
-  TClusterBase CBCumulative;
+  // XXCumulative contains info starting from StartDate; XXAll contains all info
+  TQuoteBase QBCumulative, QBAll;
+  TDocBase DBCumulative, DBAll;
+  TClusterBase CBCumulative, CBAll;
+
   for(TSecTm CurrentDate = StartDate; CurrentDate < EndDate; CurrentDate.AddDays(1)) {
     TQuoteBase QB;
     TDocBase DB;
@@ -46,8 +49,43 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Done loading cumulative QBDBCB!\n");
 
     fprintf(stderr, "Merging QBDBCB!\n");
-    TDataLoader::FilterOldData(QB, DB, CB, StartDate);
-    TDataLoader::MergeQBDBCB(QBCumulative, DBCumulative, CBCumulative, QB, DB, CB, CurrentDate);
+
+    // TODO: REMOVE THIS - just for testing
+    TCluster C1;
+    TStr RepQuoteStr;
+    TIntV CQuoteIds;
+    bool ClusterGotten = CBAll.GetCluster(5323, C1);
+    if (ClusterGotten) {
+      C1.GetRepresentativeQuoteString(RepQuoteStr, &QBAll);
+      fprintf(stderr, "\t5323 Rep Quote: %s\n", RepQuoteStr.CStr());
+      C1.GetQuoteIds(CQuoteIds);
+      for (int j = 0; j < CQuoteIds.Len(); ++j) {
+        TQuote Q1;
+        QBAll.GetQuote(CQuoteIds[j], Q1);
+        TStr QContent1;
+        Q1.GetContentString(QContent1);
+        fprintf(stderr, "\t\t%s\n", QContent1.CStr());
+      }
+    }
+
+    TStr RepQuoteStr2;
+    TDataLoader::MergeQBDBCB(QBAll, DBAll, CBAll, QB, DB, CB, CurrentDate);
+    ClusterGotten = CB.GetCluster(577800, C1);
+    if (ClusterGotten) {
+      C1.GetRepresentativeQuoteString(RepQuoteStr2, &QB);
+      fprintf(stderr, "\t577800 Rep Quote: %s\n", RepQuoteStr.CStr());
+      C1.GetQuoteIds(CQuoteIds);
+      for (int j = 0; j < CQuoteIds.Len(); ++j) {
+        TQuote Q1;
+        QB.GetQuote(CQuoteIds[j], Q1);
+        TStr QContent1;
+        Q1.GetContentString(QContent1);
+        fprintf(stderr, "\t\t%s\n", QContent1.CStr());
+      }
+    }
+
+    //TDataLoader::FilterOldData(QB, DB, CB, StartDate);
+    //TDataLoader::MergeQBDBCB(QBCumulative, DBCumulative, CBCumulative, QB, DB, CB, CurrentDate);
   }
 
   Log.SetupNewOutputDirectory();
@@ -55,6 +93,17 @@ int main(int argc, char *argv[]) {
   CBCumulative.GetTopClusterIdsByFreq(TopFilteredClusters);
   PostCluster::FilterAndCacheClusterSize(&DBCumulative, &QBCumulative, &CBCumulative, Log, TopFilteredClusters, EndDate);
   PostCluster::FilterAndCacheClusterPeaks(&DBCumulative, &QBCumulative, &CBCumulative, Log, TopFilteredClusters, EndDate);
+
+  if (PrintTopClustersJson) {
+    TIntV ClustersToGraph;
+    for (int i = 0; i < 50 && i < TopFilteredClusters.Len(); i++) {
+      ClustersToGraph.Add(TopFilteredClusters[i]);
+    }
+    TIntV ClustersToTable = TopFilteredClusters;
+
+    TPrintJson::PrintClustersJson(&QBCumulative, &DBCumulative, &CBCumulative, ClustersToGraph, ClustersToTable, GraphDirectory, TableDirectory, StartDate, EndDate);
+    TPrintJson::PrintClustersDataJson(&QBAll, &DBAll, &CBAll, ClustersToTable, ClusterDirectoryPrefix, EndDate);
+  }
 
   // Commented out the next two lines because they were causing warnings to pop up :(
   //Log.OutputClusterInformation(&DBCumulative, &QBCumulative, &CBCumulative, TopFilteredClusters, EndDate);
@@ -102,14 +151,6 @@ int main(int argc, char *argv[]) {
     C.SetRepresentativeQuoteIds(NewRepQuoteIds);
 
     TopCB.AddCluster(C);
-  }
-
-  if (PrintTopClustersJson) {
-    TIntV ClustersToGraph;
-    TPrintJson::GetTopPeakClustersPerDay(&TopQB, &TopDB, &TopCB, ClustersToGraph, 2, StartDate, EndDate);
-    TIntV ClustersToTable;
-    TopCB.GetTopClustersByFreq(ClustersToTable);
-    TPrintJson::PrintClustersJson(&TopQB, &TopDB, &TopCB, ClustersToGraph, ClustersToTable, GraphDirectory, TableDirectory, StartDate, EndDate);
   }
 
   TFOut FOut("TOPQBDBCB.bin");

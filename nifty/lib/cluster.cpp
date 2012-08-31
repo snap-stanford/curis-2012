@@ -303,13 +303,22 @@ TInt TClusterBase::AddCluster(TCluster& Cluster) {
   TInt CurCounter = -1;
   for (int i = 0; i < QuoteIds.Len(); i++) {
     CurCounter = GetClusterIdFromQuoteId(QuoteIds[i]);
-    if (CurCounter >= 0) break;
+    //if (CurCounter >= 0) break;
+    if (CurCounter == Cluster.GetId()) break;
+  }
+
+  if (CurCounter != -1 && CurCounter != Cluster.GetId()) {
+    fprintf(stderr, "WARNING: Cluster id is different: %d (cumulative) vs. %d\n", CurCounter.Val, Cluster.GetId().Val);
   }
 
   if (CurCounter < 0) {  // New cluster, with new quotes
     //fprintf(stderr, "\tNew cluster, with new quotes!\n");
-    CurCounter = ClusterIdCounter;
-    ClusterIdCounter++;
+    TCluster TempC;
+    IAssert(!GetCluster(Cluster.GetId(), TempC));
+    CurCounter = Cluster.GetId();
+    if (Cluster.GetId() > ClusterIdCounter) {
+      ClusterIdCounter = Cluster.GetId() + 1;
+    }
   }
 
   for (int i = 0; i < QuoteIds.Len(); i++) {

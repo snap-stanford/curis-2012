@@ -38,7 +38,6 @@ private:
   THash<TInt, TDoc> IdToDoc;
   THash<TStr, TInt> DocUrlToId;
   TInt NextId;
-  void RemoveDoc(TInt DocId);
 
 public:
   TDocBase();
@@ -55,6 +54,7 @@ public:
   bool GetDoc(TInt Id, TDoc &RetDoc) const;
   TInt AddDoc(const TChA &Url, TSecTm Date, const TChA &Content, const TVec<TChA> &Links);
   TInt AddDoc(TDoc &Doc);
+  void RemoveDoc(TInt DocId);
   void RemoveNullDocs(TQuoteBase *QB);
   void GetAllDocIds(TVec<TInt> &DocIds) const;
 };
