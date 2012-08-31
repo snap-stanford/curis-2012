@@ -12,7 +12,7 @@ private:
 
 public:
   static const int BandSize;
-  static const int NumBands; // TODO: CHANGE EVERYTHING
+  static const int NumBands;
   static const int ShingleLen;
   static const int ShingleWordLen;
   static const int WordWindow;

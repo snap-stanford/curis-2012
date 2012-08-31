@@ -20,7 +20,7 @@ public:
   TSecTm First;
   TSecTm Last;
   TSecTm Peak;
-  TBool Archived; // TODO: calculate if should be discarded
+  TBool Archived; // TODO: add a "discarded" flag
   TVec<DQuote> Quotes;
 
   DCluster() {}

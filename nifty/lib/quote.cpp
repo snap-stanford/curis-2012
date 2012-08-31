@@ -10,7 +10,7 @@ TQuote::TQuote() {
 
 TQuote::TQuote(TInt Id, const TStrV& Content) {
   this->Id = Id;
-  this->Content = Content; // TODO: deep copy?
+  this->Content = Content;
   Init();
 }
 

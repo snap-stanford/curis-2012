@@ -419,14 +419,14 @@ void AnalyzeClustersDetailed(TVec<DCluster> &Clusters) {
   GetHistogramRelation(Clusters, LongRepLenLifespan, MaxWords, GetLongRepLen, GetLifespan);
   GetHistogramRelationQuotes(Clusters, VariantQuoteLen, MaxClusterSize, GetQuoteLength, SortQuotesBySize);
   GetHistogram(Clusters, VariantHist, MaxClusterSize, GetNumVariants);
-  for (int i = 0; i < MaxClusterSize; ++i) {
+  /*for (int i = 0; i < MaxClusterSize; ++i) {
     Err("%d\t %d\n", i, VariantHist[i]);
   }
   Err("BREAK\n");
   ComputeCumulative(VariantHist, VariantCumulative, MaxClusterSize);
   for (int i = 0; i < MaxClusterSize; ++i) {
     Err("%d\t %d\n", i, VariantCumulative[i]);
-  }
+  }*/
   GetHistogramRelationQuotes(Clusters, VariantQuotePeak, MaxClusterSize, GetQuoteLength, SortQuotesByPeak);
   GetHistogramRelationQuotes(Clusters, VariantQuoteFirst, MaxClusterSize, GetQuoteLength, SortQuotesByFirst);
   GetHistogramRelationQuotes(Clusters, VariantQuoteSize, MaxClusterSize, GetQuoteSize, SortQuotesByFirst);
@@ -437,22 +437,22 @@ void AnalyzeClustersDetailed(TVec<DCluster> &Clusters) {
 
   Err("Number of clusters: %d\n", Clusters.Len());
   // GRAPH PLOTTING - Histogramming
-  /*PlotGraph("plot_replen_histogram", "Representative Quote Length Histogram", "representative quote length",
+  PlotGraph("plot_replen_histogram", "Representative Quote Length Histogram", "representative quote length",
       "number of clusters", NULL, RepLenHist, MaxWords, false, false);
   PlotGraph("plot_poplen_histogram", "Most Popular Quote Length Histogram", "most popular quote length",
       "number of clusters", NULL, PopLenHist, MaxWords, false, false);
   PlotGraph("plot_lifespan_histogram", "Lifespan Histogram", "lifespan (in days)",
-      "number of clusters", NULL, LifespanHist, MaxLifespan, false, true);*/
+      "number of clusters", NULL, LifespanHist, MaxLifespan, false, true);
 
   // GRAPH PLOTTING - Interesting
-  /*PlotGraph("plot_replen_vs_lifespan", "Representative Quote Length vs. Lifespan", "representative quote length",
+  PlotGraph("plot_replen_vs_lifespan", "Representative Quote Length vs. Lifespan", "representative quote length",
       "lifespan (in days)", RepLenHist, RepLenLifespan, MaxWords, true, false);
   PlotGraph("plot_poplen_vs_lifespan", "Most Popular Quote Length vs. Lifespan", "most popular quote length",
       "lifespan (in days)", PopLenHist, PopLenLifespan, MaxWords, true, false);
   PlotGraph("plot_poplen_vs_lifespan_long", "Most Popular Quote Length vs. Lifespan (for longer clusters)", "most popular quote length",
       "lifespan (in days)", LongPopLenHist, LongPopLenLifespan, MaxWords, true, false);
   PlotGraph("plot_replen_vs_lifespan_long", "Representative Quote Length vs. Lifespan (for longer clusters)", "representative quote length",
-        "lifespan (in days)", LongRepLenHist, LongRepLenLifespan, MaxWords, true, false); */
+        "lifespan (in days)", LongRepLenHist, LongRepLenLifespan, MaxWords, true, false);
   PlotGraph("plot_variant_quote_length", "Popularity of Individual Quotes in Clusters vs. Quote Length", "quote popularity rank",
         "quote length", VariantCumulative, VariantQuoteLen, MaxClusterSize, true, false);
   PlotGraph("plot_variant_quote_peak", "Peak Time of Individual Quotes in Clusters vs. Quote Length", "order of quotes (by peak)",
@@ -462,14 +462,14 @@ void AnalyzeClustersDetailed(TVec<DCluster> &Clusters) {
   PlotGraph("plot_quote_start_vs_quote_size", "Start Time of Individual Quotes in Clusters vs. Quote Size", "order of quotes (by start time)",
         "quote size", VariantCumulative, VariantQuoteSize, MaxClusterSize, true, false);
 
-  /*PlotGraph("plot_replen_vs_variance", "Representative Quote Length vs. Variance", "representative quote length",
+  PlotGraph("plot_replen_vs_variance", "Representative Quote Length vs. Variance", "representative quote length",
           "variance (i.e. number unique quotes)", RepLenHist, RepLenVariance, MaxWords, true, false);
   PlotGraph("plot_poplen_vs_variance", "Popular Quote Length vs. Variance", "popular quote length",
-          "variance (i.e. number unique quotes)", PopLenHist, PopLenVariance, MaxWords, true, false); */
-  /*PlotGraph("plot_replen_vs_size", "Representative Quote Length vs. Size", "representative quote length",
+          "variance (i.e. number unique quotes)", PopLenHist, PopLenVariance, MaxWords, true, false);
+  PlotGraph("plot_replen_vs_size", "Representative Quote Length vs. Size", "representative quote length",
             "number of articles", RepLenHist, RepLenSize, MaxWords, true, false);
     PlotGraph("plot_poplen_vs_size", "Popular Quote Length vs. Size", "popular quote length",
-            "number of articles", PopLenHist, PopLenSize, MaxWords, true, false);*/
+            "number of articles", PopLenHist, PopLenSize, MaxWords, true, false);
 }
 
 void GetWhitneyHoustonQuote(TVec<DCluster>& Clusters) {

@@ -76,15 +76,13 @@ void QuoteGraph::CreateEdges() {
 }
 
 void QuoteGraph::AddEdgeIfSimilar(TInt Id1, TInt Id2) {
-  TQuote Quote1, Quote2; // TODO: Why is Id being sorted in its own bucket? {
+  TQuote Quote1, Quote2;
   if (Id1 != Id2 && QB->GetQuote(Id1, Quote1) && QB->GetQuote(Id2, Quote2)) {
     if (QuoteGraph::EdgeShouldBeCreated(Quote1, Quote2)) {
       if (EdgeShouldBeFromOneToTwo(Quote1, Quote2)) {
-        // printf("%d --> %d\n", Id1.Val, Id2.Val);
         QGraph->AddEdge(Id1, Id2);
       } else {
-        // printf("%d --> %d\n", Id2.Val, Id1.Val);
-        QGraph->AddEdge(Id2, Id1); // EDGE ADDED!
+        QGraph->AddEdge(Id2, Id1);
       }
       EdgeCount++;
         
