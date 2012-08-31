@@ -213,7 +213,8 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
     //fprintf(stderr, "\t%d\t%f\n", FreqTripleV[i].Val1.Val, FreqTripleV[i].Val2.Val);
   }
 
-  TGnuPlot GP(Filename, "Frequency of Cluster " + Id.GetStr() + " Over Time: " + ContentStr);
+  TStr EscapedContentStr = TStringUtil::GetEscapedString(ContentStr);
+  TGnuPlot GP(Filename, "Frequency of Cluster " + Id.GetStr() + " Over Time: " + EscapedContentStr);
   GP.SetXLabel(TStr("Hour Offset From Present Time"));
   GP.SetYLabel(TStr("Frequency of Cluster"));
   GP.AddPlot(FreqV, gpwLinesPoints, "Frequency");

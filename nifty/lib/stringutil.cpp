@@ -6,6 +6,18 @@ PSwSet TStringUtil::StopWordSet = new TSwSet(swstEnMsdn);
 TStrSet TStringUtil::CommonEnglishWordsList = THashSet<TStr>();
 TStrSet TStringUtil::PublicSuffixSet = THashSet<TStr>();
 
+TStr TStringUtil::GetEscapedString(TStr &QtStr) {
+  TStr Ret;
+  TChA QtChA = TChA(QtStr);
+
+  for (int i = 0; i < QtChA.Len(); i++) {
+    if (QtChA[i] != '\'' && QtChA[i] != '`' && QtChA[i] != '"') {
+      Ret += TStr(QtChA[i]);
+    }
+  }
+  return Ret;
+}
+
 void TStringUtil::RemoveNonEnglish(TChA &S) {
   for (int i = 0; i < S.Len(); i++) {
     if (!isprint(S[i])) {
