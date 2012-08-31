@@ -190,13 +190,9 @@ void TQuote::GetRepresentativeUrl(TDocBase *DocBase, TStr& RepUrl) {
     Doc.GetUrl(DocUrl);
     if (TQuoteBase::IsUrlTopNewsSource(DocUrl)) {
       RepUrl = DocUrl;
-      //fprintf(stderr, "URL matched news source on whitelist!\n");
       return;
     }
   }
-
-  // If no url qualifies, pick the first one within the time period of the first peak
-  //fprintf(stderr, "No match :(\n");
 
   TVec<TSecTm> PeakTimesV;
   GetPeaks(DocBase, PeakTimesV, PEAK_BUCKET, PEAK_WINDOW, TSecTm(0));
