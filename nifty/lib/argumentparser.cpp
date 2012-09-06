@@ -16,3 +16,12 @@ void ArgumentParser::ParseArguments(int argc, char *argv[], THash<TStr, TStr>& A
     Log.DisableLogging();
   }
 }
+
+TStr ArgumentParser::GetArgument(THash<TStr, TStr>& Arguments, TStr Key, TStr Default) {
+  TStr Result;
+  if (Arguments.IsKeyGetDat(Default, Result)) {
+    return Result;
+  } else {
+    return Default;
+  }
+}

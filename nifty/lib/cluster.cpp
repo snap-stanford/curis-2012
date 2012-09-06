@@ -35,6 +35,7 @@ void TCluster::Save(TSOut& SOut) const {
   FreqV.Save(SOut);
   BirthDate.Save(SOut);
   Archived.Save(SOut);
+  DiscardState.Save(SOut);
 }
 
 void TCluster::Load(TSIn& SIn) {
@@ -46,6 +47,7 @@ void TCluster::Load(TSIn& SIn) {
   FreqV.Load(SIn);
   BirthDate.Load(SIn);
   Archived.Load(SIn);
+  DiscardState.Load(SIn);
 }
 
 void TCluster::Archive() {
@@ -54,6 +56,14 @@ void TCluster::Archive() {
 
 bool TCluster::IsArchived() {
   return Archived;
+}
+
+TInt TCluster::GetDiscardState() {
+  return DiscardState;
+}
+
+void TCluster::SetDiscardState(TInt State) {
+  DiscardState = State;
 }
 
 void TCluster::SetBirthDate(TSecTm& BirthDate) {

@@ -15,15 +15,18 @@ private:
   TFreqTripleV FreqV;
   TSecTm BirthDate;
   TBool Archived;
+  TInt DiscardState; // 0 = clean, 1 = peaks, 2 = variants
 
 public:
   TCluster();
   TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB, TSecTm BirthDate);
-  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), PeakTimesV(SIn), FreqV(SIn), BirthDate(SIn) , Archived(SIn) { }
+  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), PeakTimesV(SIn), FreqV(SIn), BirthDate(SIn) , Archived(SIn), DiscardState(SIn) { }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   void Archive();
   bool IsArchived();
+  TInt GetDiscardState();
+  void SetDiscardState(TInt State);
   void SetBirthDate(TSecTm& BirthDate);
   void GetBirthDate(TSecTm& BirthDate);
   void GetRepresentativeQuoteIds(TIntV& RepQuoteIds) const;

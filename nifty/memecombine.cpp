@@ -12,23 +12,10 @@ int main(int argc, char *argv[]) {
   TStr BaseString;
   ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
 
-  TStr StartString, EndString, IgnoreString;
-  bool PrintTopClustersJson = true;
-  if (!Arguments.IsKeyGetDat("start", StartString)) {
-    StartString = "2009-02-01";
-  }
-  if (!Arguments.IsKeyGetDat("end", EndString)) {
-    EndString = "2009-02-06";
-  }
-
-  if (!Arguments.IsKeyGetDat("printjson", IgnoreString)) {
-    PrintTopClustersJson = false;
-  }
-
-  TStr QBDBCDirectory;
-  if (!Arguments.IsKeyGetDat("qbdbc", QBDBCDirectory)) {
-      QBDBCDirectory = "/lfs/1/tmp/curis/QBDBC/";
-  }
+  TStr StartString = ArgumentParser::GetArgument(Arguments, "start", "2009-02-01");
+  TStr EndString = ArgumentParser::GetArgument(Arguments, "end", "2009-02-06");
+  bool PrintTopClustersJson = Arguments.IsKey("printjson");
+  TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", "/lfs/1/tmp/curis/QBDBC/");
 
   TSecTm StartDate = TSecTm::GetDtTmFromYmdHmsStr(StartString);
   TSecTm EndDate = TSecTm::GetDtTmFromYmdHmsStr(EndString);

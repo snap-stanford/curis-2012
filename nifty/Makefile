@@ -16,9 +16,6 @@ profile: memefilter memecluster memepostcluster memeincrement memeseed memecombi
 memefilter: memefilter.cpp Snap.o niftylib.o
 	g++ -o memefilter memefilter.cpp Snap.o niftylib.o -fopenmp -I$(GLIB) -I$(SNAP) $(LDFLAGS) 
 	
-memecluster: memecluster.cpp Snap.o niftylib.o
-	g++ -o memecluster memecluster.cpp Snap.o niftylib.o -I$(GLIB) -I$(SNAP) $(LDFLAGS)
-
 memepostcluster: memepostcluster.cpp Snap.o niftylib.o
 	g++ -o memepostcluster memepostcluster.cpp Snap.o niftylib.o -I$(GLIB) -I$(SNAP) $(LDFLAGS)
 

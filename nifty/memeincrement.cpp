@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
     TIntV TopFilteredClusters;
     PostCluster::GetTopFilteredClusters(&NewCB, &DB, &QB, Log, TopFilteredClusters, CurrentDate, QGraph);
     
-    Log.OutputClusterInformation(&DB, &QB, &NewCB, TopFilteredClusters, CurrentDate, OldTopClusters);
+    //Log.OutputClusterInformation(&DB, &QB, &NewCB, TopFilteredClusters, CurrentDate, OldTopClusters);
     Log.WriteClusteringOutputToFile(CurrentDate);
     Log.LogQBDBCBSize(&DB, &QB, &CB);
 
