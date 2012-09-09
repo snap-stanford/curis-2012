@@ -8,21 +8,10 @@ int main(int argc, char *argv[]) {
   TStr BaseString;
   ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
 
-  TStr StartString, QBDBDirectory, QBDBCDirectory, WindowString;
-  if (!Arguments.IsKeyGetDat("start", StartString)) {
-    StartString = "2012-06-24";
-  }
-  if (!Arguments.IsKeyGetDat("qbdb", QBDBDirectory)) {
-    QBDBDirectory = "/lfs/1/tmp/curis/QBDB/";
-  }
-  if (!Arguments.IsKeyGetDat("qbdbc", QBDBCDirectory)) {
-    QBDBCDirectory = "/lfs/1/tmp/curis/QBDBC/";
-  }
-
-  TInt WindowSize = 14;
-  if (Arguments.IsKeyGetDat("window", WindowString)) {
-    WindowSize = WindowString.GetInt();
-  }
+  TStr StartString = ArgumentParser::GetArgument(Arguments, "start", "2009-02-01");
+  TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", "/lfs/1/tmp/curis/QBDBC/");
+  TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", "/lfs/1/tmp/curis/QBDB/");
+  TInt WindowSize = ArgumentParser::GetArgument(Arguments, "window", "14").GetInt();
 
   // #### DATA LOADING: Load everything!
   TQuoteBase QB;
@@ -56,7 +45,7 @@ int main(int argc, char *argv[]) {
   QGraph->Save(FOut);
 
   // TODO: consider if quote is dead?
-  //Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime);
+  Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime);
   Log.WriteClusteringOutputToFile(PresentTime);
 
   return 0;

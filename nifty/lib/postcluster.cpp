@@ -347,8 +347,8 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
   TStr CurDateString = PresentTime.GetDtYmdStr();
   TStr TimeStamp;
   Log.GetDirectory(TimeStamp);
-  TStr DeleteClustersFile = LogOutput::WebDirectory + TimeStamp + "/deleted_clusters_" + CurDateString + ".txt";
-  TStr DeleteClustersFile2 = LogOutput::WebDirectory + TimeStamp + "/deleted_clusters_detailed_" + CurDateString + ".txt";
+  TStr DeleteClustersFile = LogOutput::WebDirectory + TimeStamp + "/output/deleted_clusters_" + CurDateString + ".txt";
+  TStr DeleteClustersFile2 = LogOutput::WebDirectory + TimeStamp + "/output/deleted_clusters_detailed_" + CurDateString + ".txt";
   //FILE *F = fopen(DeleteClustersFile.CStr(), "w");
   FILE *F2 = fopen(DeleteClustersFile2.CStr(), "w");
 

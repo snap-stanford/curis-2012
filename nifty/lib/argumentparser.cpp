@@ -19,7 +19,7 @@ void ArgumentParser::ParseArguments(int argc, char *argv[], THash<TStr, TStr>& A
 
 TStr ArgumentParser::GetArgument(THash<TStr, TStr>& Arguments, TStr Key, TStr Default) {
   TStr Result;
-  if (Arguments.IsKeyGetDat(Default, Result)) {
+  if (Arguments.IsKeyGetDat(Key, Result)) {
     return Result;
   } else {
     return Default;

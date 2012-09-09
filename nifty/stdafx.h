@@ -6,9 +6,9 @@
 
 #define Err(format, args...) fprintf(stderr, format, ## args)
 
-#define TWITTER_BOOTSTRAP "../../../bootstrap/css/bootstrap.css"
-#define TWITTER_BOOTSTRAP2 "../../../../bootstrap/css/bootstrap.css"
-#define TWITTER_BOOTSTRAP_JS "../../../../bootstrap/js/bootstrap.js"
+#define TWITTER_BOOTSTRAP "../../../../bootstrap/css/bootstrap.css"
+#define TWITTER_BOOTSTRAP2 "../../../../../bootstrap/css/bootstrap.css"
+#define TWITTER_BOOTSTRAP_JS "../../../../../bootstrap/js/bootstrap.js"
 
 #define PEAK_BUCKET 2
 #define PEAK_WINDOW 1
