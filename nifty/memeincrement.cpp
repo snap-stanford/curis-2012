@@ -6,8 +6,7 @@ int main(int argc, char *argv[]) {
   // #### SETUP: Parse Arguments
   LogOutput Log;
   THash<TStr, TStr> Arguments;
-  TStr BaseString;
-  ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
+  ArgumentParser::ParseArguments(argc, argv, Arguments, Log);
 
   TStr OutputDirectory;
   TStr StartString = ArgumentParser::GetArgument(Arguments, "start", "2009-02-01");
@@ -38,7 +37,7 @@ int main(int argc, char *argv[]) {
 
   // #### GET TOP FILTERED CLUSTERS FROM PREVIOUS DAY WHYY
   TIntV OldTopClusters;
-  PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, OldTopClusters, OldDate, OldQGraph);
+  PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, OldTopClusters, OldDate, OldQGraph, false);
 
   // #### MAIN CLUSTERING STEP.
   TSecTm CurrentDate = StartDate;

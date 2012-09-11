@@ -5,8 +5,7 @@ int main(int argc, char *argv[]) {
   // #### SETUP: Parse Arguments
   LogOutput Log;
   THash<TStr, TStr> Arguments;
-  TStr BaseString;
-  ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
+  ArgumentParser::ParseArguments(argc, argv, Arguments, Log);
 
   TStr StartString = ArgumentParser::GetArgument(Arguments, "start", "2009-02-01");
   TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", "/lfs/1/tmp/curis/QBDBC/");

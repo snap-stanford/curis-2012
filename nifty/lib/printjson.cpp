@@ -119,7 +119,6 @@ void TPrintJson::PrintClustersTableJson(TQuoteBase *QB, TDocBase *DB, TClusterBa
     Frequencies.Add(CUniqueSources.Len());
 
     NumVariants.Add(C.GetNumUniqueQuotes());
-
   }
 
   fprintf(F, "], \"quote\": [");

@@ -9,8 +9,10 @@ const int PostCluster::PeakThreshold = 5;
 const int PostCluster::DayThreshold = 3;
 const int PostCluster::QuoteThreshold = 20;
 
-void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm& PresentTime, PNGraph& QGraph) {
-  RemoveOldClusters(QB, DB, CB, Log, PresentTime, QGraph);
+void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm& PresentTime, PNGraph& QGraph, bool RemoveClusters) {
+  if (RemoveClusters) {
+    RemoveOldClusters(QB, DB, CB, Log, PresentTime, QGraph);
+  }
   CB->GetTopClusterIdsByFreq(TopFilteredClusters);
   //MergeAllClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
   //MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
@@ -347,12 +349,9 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
   TStr CurDateString = PresentTime.GetDtYmdStr();
   TStr TimeStamp;
   Log.GetDirectory(TimeStamp);
-  TStr DeleteClustersFile = LogOutput::WebDirectory + TimeStamp + "/output/deleted_clusters_" + CurDateString + ".txt";
-  TStr DeleteClustersFile2 = LogOutput::WebDirectory + TimeStamp + "/output/deleted_clusters_detailed_" + CurDateString + ".txt";
-  //FILE *F = fopen(DeleteClustersFile.CStr(), "w");
-  FILE *F2 = fopen(DeleteClustersFile2.CStr(), "w");
+  TStr DeleteClustersFile = LogOutput::WebDirectory + TimeStamp + "/output/deleted_clusters_detailed_" + CurDateString + ".txt";
+  FILE *F2 = fopen(DeleteClustersFile.CStr(), "w");
 
-  //fprintf(F, "%s\n", DCluster::GetDescription().CStr());
   fprintf(F2, "%s\n", DCluster::GetDescription().CStr());
   fprintf(F2, "%s\n", DQuote::GetDescription().CStr());
 
@@ -403,7 +402,6 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
     // If the number of recent sources does not pass the threshold, remove that cluster and all its quotes
     if (NumRecentSources < QuoteThreshold || FreqV.Len() - SourceIndex  > 7 * 24 / PEAK_BUCKET) {
       TStr ClusterString = DCluster::GetClusterString(QB, DB, C, FreqV, TInt(PeakV.Len()), CurDateString);
-      //fprintf(F, "%s\n", ClusterString.CStr());
       fprintf(F2, "%s\n", ClusterString.CStr());
       for (int j = 0; j < ClusterQuoteIds.Len(); j++) {
         TQuote Q;
@@ -435,7 +433,6 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
   }
 
   Err("Number of clusters archived: %d out of %d\n", NumArchived.Val, TotalRemainingQuotes.Val);
-  //fclose(F);
   fclose(F2);
 
   Err("Removing old documents...\n");

@@ -6,11 +6,10 @@ const TStr TableDirectory = "../../../public_html/curis/output/clustering/visual
 const TStr ClusterDirectoryPrefix = "../../../public_html/curis/output/clustering/visualization/clusters/data";
 
 int main(int argc, char *argv[]) {
-  // Parse Arguments
+  // ##### STEP 1: GET ARGUMENTS FRO COMMAND LINE
   LogOutput Log;
   THash<TStr, TStr> Arguments;
-  TStr BaseString;
-  ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
+  ArgumentParser::ParseArguments(argc, argv, Arguments, Log);
 
   TStr StartString = ArgumentParser::GetArgument(Arguments, "start", "2009-02-01");
   TStr EndString = ArgumentParser::GetArgument(Arguments, "end", "2009-02-06");
@@ -33,43 +32,10 @@ int main(int argc, char *argv[]) {
     PNGraph QGraph;
     fprintf(stderr, "Loading cumulative QBDBCB from %s from file...\n", CurrentDate.GetDtYmdStr().CStr());
     TDataLoader::LoadCumulative(QBDBCDirectory, CurrentDate.GetDtYmdStr(), QB, DB, CB, QGraph);
-    fprintf(stderr, "Done loading cumulative QBDBCB!\n");
 
     fprintf(stderr, "Merging QBDBCB!\n");
 
-    // TODO: REMOVE THIS - just for testing
-    TCluster C1;
-    TStr RepQuoteStr;
-    TIntV CQuoteIds;
-    bool ClusterGotten = CBAll.GetCluster(5323, C1);
-    if (ClusterGotten) {
-      C1.GetRepresentativeQuoteString(RepQuoteStr, &QBAll);
-      fprintf(stderr, "\t5323 Rep Quote: %s\n", RepQuoteStr.CStr());
-      C1.GetQuoteIds(CQuoteIds);
-      for (int j = 0; j < CQuoteIds.Len(); ++j) {
-        TQuote Q1;
-        QBAll.GetQuote(CQuoteIds[j], Q1);
-        TStr QContent1;
-        Q1.GetContentString(QContent1);
-        fprintf(stderr, "\t\t%s\n", QContent1.CStr());
-      }
-    }
-
-    TStr RepQuoteStr2;
     TDataLoader::MergeQBDBCB(QBAll, DBAll, CBAll, QB, DB, CB, CurrentDate);
-    ClusterGotten = CB.GetCluster(577800, C1);
-    if (ClusterGotten) {
-      C1.GetRepresentativeQuoteString(RepQuoteStr2, &QB);
-      fprintf(stderr, "\t577800 Rep Quote: %s\n", RepQuoteStr.CStr());
-      C1.GetQuoteIds(CQuoteIds);
-      for (int j = 0; j < CQuoteIds.Len(); ++j) {
-        TQuote Q1;
-        QB.GetQuote(CQuoteIds[j], Q1);
-        TStr QContent1;
-        Q1.GetContentString(QContent1);
-        fprintf(stderr, "\t\t%s\n", QContent1.CStr());
-      }
-    }
 
     //TDataLoader::FilterOldData(QB, DB, CB, StartDate);
     //TDataLoader::MergeQBDBCB(QBCumulative, DBCumulative, CBCumulative, QB, DB, CB, CurrentDate);
