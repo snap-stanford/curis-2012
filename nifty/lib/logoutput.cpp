@@ -117,14 +117,26 @@ void LogOutput::PrintClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBa
   }
 
   TStrV RankStr;
+  TStr ClusterJSONDirectory = Directory + "/web/json/clusters/";
   for (int i = 0; i < ClusterIds.Len(); i++) {
     TStr OldRankStr;
     ComputeOldRankString(OldRankings, ClusterIds[i], i+1, OldRankStr);
     RankStr.Add(OldRankStr);
+
+    // JSON file for each cluster!
+    TPrintJson::PrintClusterJSON(QB, DB, CB, ClusterJSONDirectory, ClusterIds[i], PresentTime);
   }
 
+  Err("JSON Files for individual written!\n");
   TStr JSONTableFileName = Directory + "/web/json/daily/" + CurDateString + ".json";
   TPrintJson::PrintClusterTableJSON(QB, DB, CB, JSONTableFileName, ClusterIds, RankStr);
+  Err("JSON Files for the cluster table written!\n");
+
+  // Update current date file
+  TStr CurrentDateFileName = Directory + "/web/currentdate.txt";
+  FILE *C = fopen(CurrentDateFileName.CStr(), "w");
+  fprintf(C, "%s", CurDateString.CStr());
+  fclose(C);
 }
 
 void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime, TIntV &OldTopClusters) {
@@ -279,7 +291,7 @@ void LogOutput::ComputeOldRankString(THash<TInt, TInt>& OldRankings, TInt& Clust
 }
 
 void LogOutput::OutputDiscardedClusters(TQuoteBase *QB, TVec<TPair<TCluster, TInt> >& DiscardedClusters, TSecTm& Date) {
-  TStr DiscardedFileName = Directory + "/text/discarded/discarded_by_peaks_" + Date.GetDtYmdStr() + ".txt";
+  TStr DiscardedFileName = Directory + "/text/discarded/peaks/discarded_by_peaks_" + Date.GetDtYmdStr() + ".txt";
   FILE *D = fopen(DiscardedFileName.CStr(), "w");
 
   for (int i = 0; i < DiscardedClusters.Len(); ++i) {
@@ -292,7 +304,7 @@ void LogOutput::OutputDiscardedClusters(TQuoteBase *QB, TVec<TPair<TCluster, TIn
 }
 
 void LogOutput::OutputDiscardedClustersBySize(TQuoteBase *QB, TVec<TCluster>& DiscardedClusters, TSecTm& Date) {
-  TStr DiscardedFileName = Directory + "/text/discarded/discarded_by_size_" + Date.GetDtYmdStr() + ".txt";
+  TStr DiscardedFileName = Directory + "/text/discarded/variants/discarded_by_size_" + Date.GetDtYmdStr() + ".txt";
   FILE *D = fopen(DiscardedFileName.CStr(), "w");
 
   for (int i = 0; i < DiscardedClusters.Len(); ++i) {
@@ -304,16 +316,10 @@ void LogOutput::OutputDiscardedClustersBySize(TQuoteBase *QB, TVec<TCluster>& Di
   fclose(D);
 }
 
-void LogOutput::SetupQBDBCBSizeFile() {
-  TStr QBDBCB = Directory + "/text/QBDBCB_info.txt";
-  QBDBCBSizeFile = fopen(QBDBCB.CStr(), "w");
-}
-
 void LogOutput::LogQBDBCBSize(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB) {
+  TStr QBDBCB = Directory + "/text/QBDBCB_info.txt";
+  QBDBCBSizeFile = fopen(QBDBCB.CStr(), "a");
   fprintf(QBDBCBSizeFile, "DB\t%d\tQB\t%d\tCB\t%d\n", DB->Len(), QB->Len(), CB->Len());
   fprintf(stderr, "DB\t%d\tQB\t%d\tCB\t%d\n", DB->Len(), QB->Len(), CB->Len());
-}
-
-void LogOutput::ShutDown() {
   fclose(QBDBCBSizeFile);
 }

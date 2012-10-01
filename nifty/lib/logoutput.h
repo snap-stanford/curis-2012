@@ -39,9 +39,7 @@ public:
   void ComputeOldRankString(THash<TInt, TInt>& OldRankings, TInt& ClusterId, TInt CurRank, TStr& OldRankStr);
   void OutputDiscardedClusters(TQuoteBase *QB, TVec<TPair<TCluster, TInt> >& DiscardedClusters, TSecTm& Date);
   void OutputDiscardedClustersBySize(TQuoteBase *QB, TVec<TCluster>& DiscardedClusters, TSecTm& Date);
-  void SetupQBDBCBSizeFile();
   void LogQBDBCBSize(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB);
-  void ShutDown();
 };
 
 #endif

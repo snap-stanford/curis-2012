@@ -1,8 +1,40 @@
 window.addEvent("domready", init);
 function init() {
 	var dateString = GetParameters()["date"];
-	if (!dateString) dateString = "2012-01-01"; // TODO: read from defaults file
-	var date = new Date(dateString);
+	if (!dateString) {
+		$.ajax({
+            url: 'currentdate.txt',
+            type: 'GET',
+            dataType: 'txt',
+            success: function(data) {
+            	SetupDate(data);
+            },
+            error: function(xhr, textStatus, errorThrown) {
+                SetupDate("2012-01-01");
+            }
+        });
+	} else {
+		SetupDate(dateString)
+	}
+}
+
+function SetupDate(dateString) {
+	$(".today").text(dateString);
+	date = new Date(dateString);
+	
+	// set navigation links
+	$('#prev-day').click(function(e) { 
+		e.preventDefault();
+		date.setDate(date.getDate() - 1);
+		GetTable(GetDateString(date));
+	});
+	$('#next-day').click(function(e) { 
+		e.preventDefault();
+		date.setDate(date.getDate() + 1);
+		GetTable(GetDateString(date));
+	});
+	
+	GetTable(dateString);
 }
 
 function GetParameters() {
@@ -13,20 +45,23 @@ function GetParameters() {
     return vars;
 }
 
+function GetDateString(date) {
+	return date.getUTCFullYear() + "-" + ("0" + (date.getUTCMonth() + 1)).slice(-2) + "-" + ("0" + date.getUTCDate()).slice(-2);
+}
+
 function GetTable(dateString) {
-	$.getJSON('../json/daily/' + dateString + '.json', function(data) {
-		$('cluster-table').clear(); //TODO: is this an actual method?
-		
+	history.pushState({date:dateString}, document.title, "daily.html?date=" + dateString);
+	$.getJSON('json/daily/' + dateString + '.json', function(data) {
 		var table = document.createElement("tbody");
 		
 		// Write the heading
-		var headings = ["Rank", "Previous", "Frequency", "# Variants", "Quote"];
+		var headings = ["Rank", "Previous", "Frequency", "#Variants", "Quote"];
 		var tr_heading = document.createElement("tr");
 		$(tr_heading).attr("id", "heading");
 		for (var i = 0; i < headings.length; ++i) {
 			var td_heading = document.createElement("td");
-			$(tr_heading).attr("onclick", "HeadingClicked(" + headings[i] + ")");
-			$(td_heading).text("<b>" + headings[i] + "</b>")
+			$(tr_heading).click(function() { HeadingClicked(headings[i]); });
+			$(td_heading).html("<b>" + headings[i] + "</b>")
 			$(tr_heading).append(td_heading);
 		}
 		$(table).append(tr_heading);
@@ -34,16 +69,16 @@ function GetTable(dateString) {
 		// Write everything else
 		for (var i = 0; i < data.label.length; ++i) {
 			var tr = document.createElement("tr");
-            $(tr).attr("id", data.labels[i]);
+            $(tr).attr("id", data.label[i]);
             $(tr).append("<td>" + (i + 1) + "</td>") // rank
-            $(tr).append("<td>" + data.previous[i] + "</td>") // previous
+            $(tr).append("<td>" + data.prev[i] + "</td>") // previous
             $(tr).append("<td>" + data.frequency[i] + "</td>") // frequency
             $(tr).append("<td>" + data.numvariants[i] + "</td>") // variants
-            $(tr).append("<td><a href=\"cluster.html?id=" + data.quote[i] + "\">" + data.quote[i] + "</a></td>") // quote
+            $(tr).append("<td><a href=\"cluster.html?id=" + data.label[i] + "\">" + data.quote[i] + "</a></td>") // quote
             $(table).append(tr);
         }
 		
-		$('.cluster-table').replaceWith(table);
+		$('#cluster-table').html(table);
 	});
 }
 

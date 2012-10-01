@@ -1,14 +1,18 @@
 #include "stdafx.h"
 #include "printjson.h"
 
-void TPrintJson::PrintJSON(TStr& FileName, THash<TStr, TStrV> JSON) {
+void TPrintJson::PrintJSON(TStr& FileName, THash<TStr, TStrV> JSON, TStr& Extra) {
   FILE *F = fopen(FileName.CStr(), "w");
   TStrV Keys;
   JSON.GetKeyV(Keys);
   fprintf(F, "{");
+  if (Extra.Len() > 0) {
+    fprintf(F, "%s", Extra.CStr());
+    if(Keys.Len() > 0) fprintf(F, ", ");
+  }
   for (int i = 0; i < Keys.Len(); i++) {
-    fprintf(F, "\"%s\": [", Keys[i].CStr());
     TStrV Values = JSON.GetDat(Keys[i]);
+    fprintf(F, "\"%s\": [", Keys[i].CStr());
     for (int j = 0; j < Values.Len(); j++) {
       fprintf(F, "\"%s\"", Values[j].CStr());
       if (j + 1 < Values.Len()) fprintf(F, ", ");
@@ -46,7 +50,63 @@ void TPrintJson::PrintClusterTableJSON(TQuoteBase *QB, TDocBase *DB, TClusterBas
   JSON.AddDat("frequency", Frequency);
   JSON.AddDat("numvariants", NumVariants);
   JSON.AddDat("quote", Quote);
-  PrintJSON(FileName, JSON);
+  TStr Empty;
+  PrintJSON(FileName, JSON, Empty);
+}
+
+void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
+                                  TStr& FolderName, TInt& ClusterId, TSecTm PresentTime) {
+  TCluster C;
+  CB->GetCluster(ClusterId, C);
+  TFreqTripleV PeakV, FreqV;
+  C.GetPeaks(DB, QB, PeakV, FreqV, PEAK_BUCKET, PEAK_WINDOW, PresentTime);
+
+  TStr Plots = "\"plot\": [";
+
+  for (int i = 0; i < FreqV.Len(); i++) {
+    Plots += "[" + FreqV[i].Val1.GetStr() + ", " + FreqV[i].Val2.GetStr() + "]";
+    if (i + 1 < FreqV.Len()) Plots += ", ";
+  }
+  Plots += "], \"peak\": [";
+  for (int i = 0; i < PeakV.Len(); i++) {
+    Plots += "[" + PeakV[i].Val1.GetStr() + ", " + PeakV[i].Val2.GetStr() + "]";
+    if (i + 1 < PeakV.Len()) Plots += ", ";
+  }
+  Plots += "]";
+
+  TStrV Quote, Urls, Frequencies, Quotes;
+  TStr CRepQuote;
+  C.GetRepresentativeQuoteString(CRepQuote, QB);
+  Quote.Add(CRepQuote);
+
+  TIntV QuoteIds;
+  C.GetQuoteIds(QuoteIds);
+  for (int j = 0; j < QuoteIds.Len(); j++) {
+    TQuote Q;
+    if (QB->GetQuote(QuoteIds[j], Q)) {
+      TStr QuoteStr, QuoteURL;
+      Q.GetContentString(QuoteStr);
+      QB->GetRepresentativeUrl(DB, Q.GetId(), QuoteURL);
+
+      Urls.Add(QuoteURL);
+      Frequencies.Add(Q.GetNumSources().GetStr());
+      Quotes.Add(QuoteStr);
+    }
+  }
+
+  THash<TStr, TStrV> JSON;
+  JSON.AddDat("quote", Quote);
+  JSON.AddDat("urls", Urls);
+  JSON.AddDat("frequencies", Frequencies);
+  JSON.AddDat("quotes", Quotes);
+
+  TInt FirstIndex = ClusterId / 10000;
+  TInt SecondIndex = FirstIndex / 1000;
+  FolderName = FolderName + SecondIndex.GetStr() + "/" + FirstIndex.GetStr();
+  TStr FileName = FolderName + "/" + ClusterId.GetStr() + ".json";
+  TStr Command = "mkdir -p " + FolderName;
+  system(Command.CStr());
+  PrintJSON(FileName, JSON, Plots);
 }
 
 void TPrintJson::PrintClustersJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,

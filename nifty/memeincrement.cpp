@@ -19,7 +19,6 @@ int main(int argc, char *argv[]) {
   } else {
     Log.SetDirectory(OutputDirectory);
   }
-  Log.SetupQBDBCBSizeFile();
 
   TSecTm StartDate = TSecTm::GetDtTmFromYmdHmsStr(StartString);
   TSecTm EndDate = TSecTm::GetDtTmFromYmdHmsStr(EndString);
@@ -73,7 +72,8 @@ int main(int argc, char *argv[]) {
     PostCluster::GetTopFilteredClusters(&NewCB, &DB, &QB, Log, TopFilteredClusters, CurrentDate, QGraph);
     
     //Log.OutputClusterInformation(&DB, &QB, &NewCB, TopFilteredClusters, CurrentDate, OldTopClusters);
-    Log.WriteClusteringOutputToFile(CurrentDate);
+    //Log.WriteClusteringOutputToFile(CurrentDate);
+    Log.PrintClusterInformation(&DB, &QB, &CB, TopFilteredClusters, CurrentDate, OldTopClusters);
     Log.LogQBDBCBSize(&DB, &QB, &CB);
 
     // ## SAVE CLUSTERS OR SAVE THEM TO VARIABLES.
@@ -103,7 +103,6 @@ int main(int argc, char *argv[]) {
   system(Command.CStr());
   TFOut FOut2("output/cumulativeclusters" + NewDayDate.CStr() + ".bin");
   MergedClusterSummaries.Save(FOut2);*/
-  Log.ShutDown();
   printf("Done with POST CLUSTERING!\n");
   return 0;
 }

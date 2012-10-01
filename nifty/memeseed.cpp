@@ -48,5 +48,8 @@ int main(int argc, char *argv[]) {
   Log.PrintClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime, Temp);
   Log.WriteClusteringOutputToFile(PresentTime);
 
+  TStr Directory;
+  Log.GetDirectory(Directory);
+  Err("Done with memeseed! Directory created at: %s\n", Directory.CStr());
   return 0;
 }
