@@ -2,7 +2,6 @@
 #include "quote.h"
 #include "doc.h"
 
-const TStr LogOutput::OutputDirectory = "/lfs/1/tmp/curis/output/clustering/";
 const TStr LogOutput::WebDirectory = "../../public_html/curis/output/clustering/";
 const TStr LogOutput::PercentEdgesDeleted = "PercentEdgesDeleted";
 const TStr LogOutput::PercentEdgesDeletedNotFromSubgraphs = "PercentEdgesDeletedNotFromSubgraphs";
@@ -20,13 +19,11 @@ LogOutput::LogOutput() {
 
 void LogOutput::Save(TSOut& SOut) const {
   OutputValues.Save(SOut);
-  TimeStamp.Save(SOut);
   ShouldLog.Save(SOut);
 }
 
 void LogOutput::Load(TSIn& SIn) {
   OutputValues.Load(SIn);
-  TimeStamp.Load(SIn);
   ShouldLog.Load(SIn);
 }
 
@@ -34,25 +31,44 @@ void LogOutput::DisableLogging() {
   ShouldLog = false;
 }
 
-void LogOutput::SetupNewOutputDirectory() {
+// Directory is timestamped in the web directory by default.
+void LogOutput::SetupNewOutputDirectory(TStr Directory) {
   if (!ShouldLog) return;
-  TSecTm Tm = TSecTm::GetCurTm();
+  // CASE 1: We need to set up a new directory
+  if (Directory == TStr("")) {
+    TSecTm Tm = TSecTm::GetCurTm();
+    TStr TimeStamp = Tm.GetDtYmdStr() + "_" + Tm.GetTmStr();
+    this->Directory = WebDirectory + TimeStamp;
+    Err("New directory set up: %s\n", this->Directory.CStr());
+  } else {
+    // CASE 2: The user has specified a directory - we just have to store it
+    this->Directory = Directory;
+    Err("Using existing directory: %s\n", Directory.CStr());
+  }
+  
+  // Copy directories over.
+  TStrV Commands;
+  Commands.Add("mkdir -p " + this->Directory);
+  Commands.Add("cp -r resources/output/text " + this->Directory);
+  Commands.Add("cp -r resources/output/web " + this->Directory);
+  /*Commands.Add("mkdir -p " + Directory + "/text/removed");
+  Commands.Add("mkdir -p " + Directory + "/text/statistics");
+  Commands.Add("mkdir -p " + Directory + "/text/top");
+  Commands.Add("mkdir -p " + Directory + "/text/discarded/peaks");
+  Commands.Add("mkdir -p " + Directory + "/text/discarded/variants");
+  Commands.Add("mkdir -p " + Directory + "/web");*/
 
-  TimeStamp = Tm.GetDtYmdStr() + "_" + Tm.GetTmStr();
-  printf("Setting up new output directory at %s\n", (WebDirectory + TimeStamp).CStr());
-
-  TStr Command = "mkdir -p " + WebDirectory + TimeStamp + "/output";
-  system(Command.CStr());
-  Command = "mkdir -p " + WebDirectory + TimeStamp + "/web";
-  system(Command.CStr());
-}
-
-void LogOutput::SetDirectory(const TStr &Directory) {
-  TimeStamp = Directory;
+  for (int i = 0; i < Commands.Len(); i++) {
+    system(Commands[i].CStr());
+  }
 }
 
 void LogOutput::GetDirectory(TStr& Directory) {
-  Directory = this->TimeStamp;
+  Directory = this->Directory;
+}
+
+void LogOutput::SetDirectory(TStr& Directory) {
+  this->Directory = Directory;
 }
 
 void LogOutput::LogValue(const TStr Key, TStr Value) {
@@ -69,7 +85,7 @@ void LogOutput::LogValue(const TStr Key, TFlt Value) {
 
 void LogOutput::WriteClusteringOutputToFile(TSecTm& Date) {
   if (!ShouldLog) return;
-  TStr FileName = WebDirectory + TimeStamp + "/output/clustering_info_" + Date.GetDtYmdStr() + ".txt";
+  TStr FileName = Directory + "/text/statistics/statistics_" + Date.GetDtYmdStr() + ".txt";
   FILE *F = fopen(FileName.CStr(), "w");
 
   TStrV Keys;
@@ -77,7 +93,6 @@ void LogOutput::WriteClusteringOutputToFile(TSecTm& Date) {
 
   for (int i = 0; i < Keys.Len(); ++i) {
     fprintf(F, "%s\t%s\n", Keys[i].CStr(), OutputValues.GetDat(Keys[i]).CStr());
-    printf("%s\t%s\n", Keys[i].CStr(), OutputValues.GetDat(Keys[i]).CStr());
   }
 
   fclose(F);
@@ -88,13 +103,37 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
   OutputClusterInformation(DB, QB, CB, ClusterIds, PresentTime, OldTopClusters);
 }
 
+void LogOutput::PrintClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime, TIntV &OldTopClusters) {
+  if (!ShouldLog) return;
+  TStr CurDateString = PresentTime.GetDtYmdStr();
+  Err("Writing cluster information...\n");
+
+  // PREVIOUS RANKING SETUP
+  THash<TInt, TInt> OldRankings;
+  if (OldTopClusters.Len() > 0) {
+    for (int i = 0; i < OldTopClusters.Len(); i++) {
+      OldRankings.AddDat(OldTopClusters[i], i + 1);
+    }
+  }
+
+  TStrV RankStr;
+  for (int i = 0; i < ClusterIds.Len(); i++) {
+    TStr OldRankStr;
+    ComputeOldRankString(OldRankings, ClusterIds[i], i+1, OldRankStr);
+    RankStr.Add(OldRankStr);
+  }
+
+  TStr JSONTableFileName = Directory + "/web/json/daily/" + CurDateString + ".json";
+  TPrintJson::PrintClusterTableJSON(QB, DB, CB, JSONTableFileName, ClusterIds, RankStr);
+}
+
 void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime, TIntV &OldTopClusters) {
   if (!ShouldLog) return;
   TStr CurDateString = PresentTime.GetDtYmdStr();
   fprintf(stderr, "Writing cluster information ...\n");
-  TStr FileName = WebDirectory + TimeStamp + "/output/top_clusters_" + CurDateString + ".txt";
-  TStr HTMLFileName = WebDirectory + TimeStamp + "/web/clusters_" + CurDateString + ".html";
-  TStr Command = "mkdir -p " + WebDirectory + TimeStamp + "/web/cluster_" + CurDateString;
+  TStr FileName = Directory + "/text/top/top_clusters_" + CurDateString + ".txt";
+  TStr HTMLFileName = Directory + "/web/clusters_" + CurDateString + ".html";
+  TStr Command = "mkdir -p " + Directory + "/web/cluster_" + CurDateString;
   system(Command.CStr());
   FILE *F = fopen(FileName.CStr(), "w");
   FILE *H = fopen(HTMLFileName.CStr(), "w");
@@ -155,8 +194,8 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
       TStr OldRankStr;
       ComputeOldRankString(OldRankings, ClusterIds[i], Rank, OldRankStr);
       fprintf(H, "<tr><td>%d</td><td>%s</td><td>%d</td><td>%d</td><td>%s</td></tr>\n", Rank, OldRankStr.CStr(), Cluster.GetNumQuotes().Val, QuotesInCluster.Len(), URLLink.CStr());
-      TStr ClusterFileName = WebDirectory + TimeStamp + "/web/cluster_" + CurDateString + "/" + TInt(Rank).GetStr() + ".html";
-      TStr ImageFileName = WebDirectory + TimeStamp + "/web/cluster_" + CurDateString + "/" + TInt(Rank).GetStr();
+      TStr ClusterFileName = Directory + "/web/cluster_" + CurDateString + "/" + TInt(Rank).GetStr() + ".html";
+      TStr ImageFileName = Directory + "/web/cluster_" + CurDateString + "/" + TInt(Rank).GetStr();
       //fprintf(stderr, "Cluster: %s\n", RepQuoteStr.CStr());
       Cluster.GraphFreqOverTime(DB, QB, ImageFileName, 2, 1, PresentTime);
       FILE *C = fopen(ClusterFileName.CStr(), "w");
@@ -240,7 +279,7 @@ void LogOutput::ComputeOldRankString(THash<TInt, TInt>& OldRankings, TInt& Clust
 }
 
 void LogOutput::OutputDiscardedClusters(TQuoteBase *QB, TVec<TPair<TCluster, TInt> >& DiscardedClusters, TSecTm& Date) {
-  TStr DiscardedFileName = WebDirectory + TimeStamp + "/output/discarded_clusters_" + Date.GetDtYmdStr() + ".txt";
+  TStr DiscardedFileName = Directory + "/text/discarded/discarded_by_peaks_" + Date.GetDtYmdStr() + ".txt";
   FILE *D = fopen(DiscardedFileName.CStr(), "w");
 
   for (int i = 0; i < DiscardedClusters.Len(); ++i) {
@@ -253,7 +292,7 @@ void LogOutput::OutputDiscardedClusters(TQuoteBase *QB, TVec<TPair<TCluster, TIn
 }
 
 void LogOutput::OutputDiscardedClustersBySize(TQuoteBase *QB, TVec<TCluster>& DiscardedClusters, TSecTm& Date) {
-  TStr DiscardedFileName = WebDirectory + TimeStamp + "/output/discarded_clusters_by_size_" + Date.GetDtYmdStr() + ".txt";
+  TStr DiscardedFileName = Directory + "/text/discarded/discarded_by_size_" + Date.GetDtYmdStr() + ".txt";
   FILE *D = fopen(DiscardedFileName.CStr(), "w");
 
   for (int i = 0; i < DiscardedClusters.Len(); ++i) {
@@ -266,7 +305,7 @@ void LogOutput::OutputDiscardedClustersBySize(TQuoteBase *QB, TVec<TCluster>& Di
 }
 
 void LogOutput::SetupQBDBCBSizeFile() {
-  TStr QBDBCB = WebDirectory + TimeStamp + "/QBDBCB_info.txt";
+  TStr QBDBCB = Directory + "/text/QBDBCB_info.txt";
   QBDBCBSizeFile = fopen(QBDBCB.CStr(), "w");
 }
 

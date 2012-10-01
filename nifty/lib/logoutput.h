@@ -7,11 +7,11 @@
 class LogOutput {
 private:
   THash<TStr, TStr> OutputValues;
-  TStr TimeStamp;
+  // TODO: Make constructor with proper load
   TBool ShouldLog;
   FILE *QBDBCBSizeFile;
+  TStr Directory;
 public:
-  static const TStr OutputDirectory;
   static const TStr PercentEdgesDeleted;
   static const TStr PercentEdgesDeletedNotFromSubgraphs;
   static const TStr PercentEdgesDeletedNFSBaseline;
@@ -26,8 +26,8 @@ public:
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   void DisableLogging();
-  void SetupNewOutputDirectory();
-  void SetDirectory(const TStr &Directory);
+  void SetupNewOutputDirectory(TStr Directory);
+  void SetDirectory(TStr &Directory);
   void GetDirectory(TStr& Directory);
   void LogValue(const TStr Key, TStr Value);
   void LogValue(const TStr Key, TInt Value);
@@ -35,6 +35,7 @@ public:
   void WriteClusteringOutputToFile(TSecTm& Date);
   void OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime);
   void OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV &ClusterIds, TSecTm PresentTime, TIntV &OldTopClusters);
+  void PrintClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime, TIntV &OldTopClusters);
   void ComputeOldRankString(THash<TInt, TInt>& OldRankings, TInt& ClusterId, TInt CurRank, TStr& OldRankStr);
   void OutputDiscardedClusters(TQuoteBase *QB, TVec<TPair<TCluster, TInt> >& DiscardedClusters, TSecTm& Date);
   void OutputDiscardedClustersBySize(TQuoteBase *QB, TVec<TCluster>& DiscardedClusters, TSecTm& Date);

@@ -1,6 +1,54 @@
 #include "stdafx.h"
 #include "printjson.h"
 
+void TPrintJson::PrintJSON(TStr& FileName, THash<TStr, TStrV> JSON) {
+  FILE *F = fopen(FileName.CStr(), "w");
+  TStrV Keys;
+  JSON.GetKeyV(Keys);
+  fprintf(F, "{");
+  for (int i = 0; i < Keys.Len(); i++) {
+    fprintf(F, "\"%s\": [", Keys[i].CStr());
+    TStrV Values = JSON.GetDat(Keys[i]);
+    for (int j = 0; j < Values.Len(); j++) {
+      fprintf(F, "\"%s\"", Values[j].CStr());
+      if (j + 1 < Values.Len()) fprintf(F, ", ");
+    }
+    fprintf(F, "]");
+    if (i + 1 < Keys.Len()) fprintf(F, ", ");
+  }
+  fprintf(F, "}");
+  fclose(F);
+}
+
+void TPrintJson::PrintClusterTableJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
+                                       TStr& FileName, TIntV& Clusters, TStrV& RankStr) {
+  TStrV Label, Quote, Frequency, NumVariants;
+  int NumClusters = Clusters.Len();
+  for (int i = 0; i < NumClusters; i++) {
+    Label.Add(Clusters[i].GetStr());
+    TCluster C;
+    CB->GetCluster(Clusters[i], C);
+    TStr CRepQuote;
+    C.GetRepresentativeQuoteString(CRepQuote, QB);
+    Quote.Add(CRepQuote);
+
+    TIntV CQuoteIds, CUniqueSources;
+    C.GetQuoteIds(CQuoteIds);
+    TCluster::GetUniqueSources(CUniqueSources, CQuoteIds, QB);
+    Frequency.Add(TInt(CUniqueSources.Len()).GetStr());
+    NumVariants.Add(C.GetNumUniqueQuotes().GetStr());
+  }
+
+  THash<TStr, TStrV> JSON;
+  JSON.AddDat("label", Label);
+  if (RankStr.Len() > 0)
+    JSON.AddDat("prev", RankStr);
+  JSON.AddDat("frequency", Frequency);
+  JSON.AddDat("numvariants", NumVariants);
+  JSON.AddDat("quote", Quote);
+  PrintJSON(FileName, JSON);
+}
+
 void TPrintJson::PrintClustersJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
                                    TIntV& ClustersToGraph, TIntV& ClustersToTable, const TStr& GraphDir, const TStr& TableDir, TSecTm& StartDate, TSecTm& EndDate) {
   PrintClustersGraphJson(QB, DB, CB, ClustersToGraph, GraphDir, StartDate, EndDate);
@@ -17,7 +65,6 @@ void TPrintJson::GetTopPeakClustersPerDay(TQuoteBase *QB, TDocBase *DB, TCluster
   for (int i = 0; i < 50 && i < ClusterIdsByFreq.Len(); i++) {
     ClustersToPrint.Add(ClusterIdsByFreq[i]);
   }
-
 }
 
 void TPrintJson::PrintClustersGraphJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,

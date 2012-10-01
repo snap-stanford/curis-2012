@@ -89,8 +89,7 @@ int main(int argc, char *argv[]) {
 
   LogOutput Log;
   THash<TStr, TStr> Arguments;
-  TStr BaseString;
-  ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
+  ArgumentParser::ParseArguments(argc, argv, Arguments, Log);
 
   TStr Date, QBDBDirectory, Spinn3rDirectory;
   if (!Arguments.IsKeyGetDat("date", Date)) {

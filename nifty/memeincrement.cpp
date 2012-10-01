@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
   TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", "/lfs/1/tmp/curis/QBDB/");
 
   if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
-    Log.SetupNewOutputDirectory();
+    Log.SetupNewOutputDirectory("");
   } else {
     Log.SetDirectory(OutputDirectory);
   }

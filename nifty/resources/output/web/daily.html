@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>NIFTY</title>
+    <link rel="stylesheet" media="all" type="text/css" href="webresources/css/bootstrap.css" />
+    <link rel="stylesheet" media="all" type="text/css" href="webresources/css/quotes.css" />
+    <!--[if lte IE 7]>
+      <link rel="stylesheet" media="all" type="text/css" href="css/ie7.css" />
+    <![endif]-->
+    <meta charset='utf-8' />
+  </head>
+  <body>
+    <div id="log-panel" style="display:none;">
+      <span id="log-message"></span>
+    </div>
+    
+    <div class="page-header">
+    <center>
+      <h1>
+        <a id="prev-day" href="#">&laquo;</a> &middot; 
+        Top Clusters for <span class="today"></span> &middot; 
+        <a id="next-day" href="#">&raquo;</a>
+      </h1>
+    </center>
+    </div>
+
+    <div id="container">
+      <table id="cluster-table" border="1" class="table table-condensed table-striped"> </table>
+    </div>
+
+    <div class="footer" id='footer'>
+      Source: <a href='https://twitter.com/philogb'>@philogb</a>
+    </div>
+
+  <div class="tooltip hide" id="tooltip" style="width:auto;"></div>
+
+  <div id='background' style='display: none'></div>
+
+  <script src="webresources/js/mootools-core-1.4.5.cc.js"></script>
+  <script src="webresources/js/mootools-more-1.4.0.1.cc.js"></script>
+  <!--[if IE]>
+    <script src="js/excanvas.cc.js"></script>
+  <![endif]-->
+  <!--<script src="../../../resources/js/jit.cc.js"></script>-->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
+  <script src="webresources/js/jit-areachart.cc.js"></script>
+  <script src="webresources/js/daily.js" charset="utf-8"></script>
+</body>
+</html>

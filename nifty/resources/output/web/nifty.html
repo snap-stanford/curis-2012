@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>NIFTY</title>
+    <!--<link rel="stylesheet" href="../../../resources/css/bootstrap.css" /> -->
+    <link rel="stylesheet" media="all" type="text/css" href="webresources/css/quotes.css" />
+    <!--[if lte IE 7]>
+      <link rel="stylesheet" media="all" type="text/css" href="css/ie7.css" />
+    <![endif]-->
+    <meta charset='utf-8' />
+  </head>
+  <body>
+    <div id="log-panel" style="display:none;">
+      <span id="log-message"></span>
+    </div>
+
+    <div id="container">
+      <div id="title">
+        <div class='main-title'>NIFTY</div>
+        <div id='main-desc' class="description">A visualization of monthly NIFTY output. (Inspiration: https://euro2012.twitter.com/)</div>
+        <div id='quote-graph-currdate' class="description"></div>
+        <div id='currdate-error' class="description"></div>
+        <!--[if lte IE 8]>
+          <div class='warning'>
+            Warning: Your browser is only partially supported. Please use either <a href='http://www.google.com/chrome/'>Google Chrome</a>, <a href='http://www.opera.com/download/'>Opera</a>, <a href='http://www.apple.com/safari/'>Safari</a>, <a href='http://www.mozilla.org/en-US/firefox/new/'>Firefox</a> or <a href='http://windows.microsoft.com/en-us/internet-explorer/products/ie/home'>IE 9+</a>.
+          </div>
+        <![endif]-->
+      </div>
+
+      <div class='stream'>
+        <div class='stream-title' id='quote-graph-desc'>
+          The graph below shows quote popularity over a month.
+          <br />
+          <b>Hover over an area to see the full quote, and click on an area to see only that quote's graph.</b>
+        </div>
+        <div id='stream-viz'>
+        </div>
+        <div class='stream-nav'>
+          <a href='#' id='all-quotes' class='selected'>All Quotes</a>
+          <a href='#' id='top-20-quotes'>Top 20 Quotes</a>
+          <a href='#' id='top-10-quotes'>Top 10 Quotes</a>
+        </div>
+      </div>
+      <div class='nav-buttons'>
+          <button onclick='graphPrevDay()' id='prev-day'>Previous Month</a>
+          <button onclick='graphNextDay()' id='next-day'>Next Month</a>
+      </div>
+
+      <div class="stream-table">
+        <table id="cluster-table" border="1" class="table table-condensed table-striped"> </table>
+      </div>
+
+    </div>
+
+    <div class="footer" id='footer'>
+      Source: <a href='https://twitter.com/philogb'>@philogb</a>
+    </div>
+
+  <div class="tooltip hide" id="tooltip" style="width:auto;"></div>
+
+  <div id='background' style='display: none'></div>
+
+  <script src="webresources/js/mootools-core-1.4.5.cc.js"></script>
+  <script src="webresources/js/mootools-more-1.4.0.1.cc.js"></script>
+  <!--[if IE]>
+    <script src="js/excanvas.cc.js"></script>
+  <![endif]-->
+  <!--<script src="../../../resources/js/jit.cc.js"></script>-->
+  <script src="webresources/js/jit-areachart.cc.js"></script>
+  <script src="webresources/js/nifty.cc.js" charset="utf-8"></script>
+</body>
+</html>

@@ -163,8 +163,7 @@ int main(int argc, char *argv[]) {
   // Parse Arguments
   LogOutput Log;
   THash<TStr, TStr> Arguments;
-  TStr BaseString;
-  ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
+  ArgumentParser::ParseArguments(argc, argv, Arguments, Log);
 
   TStr StartString;
   if (!Arguments.IsKeyGetDat("start", StartString)) {

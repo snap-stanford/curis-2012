@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
   ClusterJob.BuildClusters(&CB, &QB, &DB, Log, PresentTime);
 
   // #### POST CLUSTERING STEP YO
-  Log.SetupNewOutputDirectory(); // safe to make files now.
+  Log.SetupNewOutputDirectory(""); // safe to make files now.
   TIntV TopFilteredClusters;
   //CB.GetAllClusterIdsSortByFreq(TopFilteredClusters);
   PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, PresentTime, QGraph);
@@ -44,7 +44,8 @@ int main(int argc, char *argv[]) {
   QGraph->Save(FOut);
 
   // TODO: consider if quote is dead?
-  Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime);
+  TIntV Temp;
+  Log.PrintClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime, Temp);
   Log.WriteClusteringOutputToFile(PresentTime);
 
   return 0;

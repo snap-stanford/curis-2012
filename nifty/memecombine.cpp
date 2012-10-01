@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     //TDataLoader::MergeQBDBCB(QBCumulative, DBCumulative, CBCumulative, QB, DB, CB, CurrentDate);
   }
 
-  Log.SetupNewOutputDirectory();
+  Log.SetupNewOutputDirectory("");
   TIntV TopFilteredClusters;
   CBCumulative.GetTopClusterIdsByFreq(TopFilteredClusters);
   PostCluster::FilterAndCacheClusterSize(&DBCumulative, &QBCumulative, &CBCumulative, Log, TopFilteredClusters, EndDate);

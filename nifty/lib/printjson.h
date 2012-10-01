@@ -6,11 +6,14 @@
 
 class TPrintJson {
   private:
+    static void PrintJSON(TStr& FileName, THash<TStr, TStrV> JSON);
     static void PrintClustersGraphJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
                                        TIntV& ClustersToPrint, const TStr& Directory, TSecTm& StartDate, TSecTm& EndDate);
     static void PrintClustersTableJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
                                        TIntV& ClustersToPrint, const TStr& Directory, TSecTm& StartDate, TSecTm& EndDate);
   public:
+    static void PrintClusterTableJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
+                                               TStr& FileName, TIntV& Clusters, TStrV& RankStr);
     static void PrintClustersJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, TIntV& ClustersToGraph,
                                   TIntV& ClustersToTable,
                                   const TStr& GraphDir, const TStr& TableDir, TSecTm& StartDate, TSecTm& EndDate);
