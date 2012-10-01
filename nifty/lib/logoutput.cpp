@@ -279,9 +279,9 @@ void LogOutput::ComputeOldRankString(THash<TInt, TInt>& OldRankings, TInt& Clust
   if (OldRankings.IsKeyGetDat(ClusterId, OldRanking)) {
     TInt Difference = OldRanking - CurRank;
     if (Difference < 0) {
-      OldRankStr = "<b><center><font color=\"red\">" + Difference.GetStr() + "</font></center></b>";
+      OldRankStr = "<b><center><font color=\\\"red\\\">" + Difference.GetStr() + "</font></center></b>";
     } else if (Difference > 0) {
-      OldRankStr = "<b><center><font color=\"green\">+" + Difference.GetStr() + "</font></center></b>";
+      OldRankStr = "<b><center><font color=\\\"green\\\">+" + Difference.GetStr() + "</font></center></b>";
     } else {
       OldRankStr = "<b><center>0</center></b>";
     }

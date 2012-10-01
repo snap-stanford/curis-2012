@@ -1,31 +1,11 @@
-window.addEvent("domready", init);
-function init() {
+$(document).ready(function() {
 	clusterID = GetParameters()["id"];
 	if (!clusterID) {
 		PostError("Please specify a cluster ID.");
 	} else {
 		SetupCluster(clusterID);
 	}
-}
-
-function SetupDate(id) {
-	$(".today").text(dateString);
-	date = new Date(dateString);
-	
-	// set navigation links
-	$('#prev-day').click(function(e) { 
-		e.preventDefault();
-		date.setDate(date.getDate() - 1);
-		GetTable(GetDateString(date));
-	});
-	$('#next-day').click(function(e) { 
-		e.preventDefault();
-		date.setDate(date.getDate() + 1);
-		GetTable(GetDateString(date));
-	});
-	
-	GetTable(id);
-}
+});
 
 function GetParameters() {
     var vars = {};
@@ -73,7 +53,7 @@ function SetupCluster(clusterID) {
 		// ### GRAPH
 		var options = {
 	        yaxis: { axisLabel: "Frequency of Cluster", axisLabelUseCanvas: true, min: 0 },
-	        xaxis: { axisLabel: "Hour offset From Present Time", axisLabelUseCanvas: true, max: 0, tickDecimals: 0, tickSize: 24 },
+	        xaxis: { axisLabel: "Hour Offset From Present Time", axisLabelUseCanvas: true, max: 0, tickDecimals: 0, tickSize: 24 },
 	        legend: { position: "nw" }
 	    };
 		var graphData = [{

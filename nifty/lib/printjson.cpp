@@ -56,10 +56,13 @@ void TPrintJson::PrintClusterTableJSON(TQuoteBase *QB, TDocBase *DB, TClusterBas
 
 void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
                                   TStr& FolderName, TInt& ClusterId, TSecTm PresentTime) {
+  Err("getting peaks\n");
   TCluster C;
   CB->GetCluster(ClusterId, C);
   TFreqTripleV PeakV, FreqV;
   C.GetPeaks(DB, QB, PeakV, FreqV, PEAK_BUCKET, PEAK_WINDOW, PresentTime);
+
+  //Err("before peak\n");
 
   TStr Plots = "\"plot\": [";
 
@@ -73,6 +76,8 @@ void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB
     if (i + 1 < PeakV.Len()) Plots += ", ";
   }
   Plots += "]";
+
+  //Err("after peak\n");
 
   TStrV Quote, Urls, Frequencies, Quotes;
   TStr CRepQuote;
@@ -94,6 +99,8 @@ void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB
     }
   }
 
+  //Err("after filling\n");
+
   THash<TStr, TStrV> JSON;
   JSON.AddDat("quote", Quote);
   JSON.AddDat("urls", Urls);
@@ -102,11 +109,12 @@ void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB
 
   TInt FirstIndex = ClusterId / 10000;
   TInt SecondIndex = FirstIndex / 1000;
-  FolderName = FolderName + SecondIndex.GetStr() + "/" + FirstIndex.GetStr();
-  TStr FileName = FolderName + "/" + ClusterId.GetStr() + ".json";
-  TStr Command = "mkdir -p " + FolderName;
+  TStr NestedFolderName = FolderName + SecondIndex.GetStr() + "/" + FirstIndex.GetStr();
+  TStr FileName = NestedFolderName + "/" + ClusterId.GetStr() + ".json";
+  TStr Command = "mkdir -p " + NestedFolderName;
   system(Command.CStr());
   PrintJSON(FileName, JSON, Plots);
+  //Err("after JSON\n");
 }
 
 void TPrintJson::PrintClustersJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,

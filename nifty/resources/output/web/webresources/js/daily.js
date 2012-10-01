@@ -1,11 +1,10 @@
-window.addEvent("domready", init);
-function init() {
+$(document).ready(function() {
 	var dateString = GetParameters()["date"];
 	if (!dateString) {
 		$.ajax({
             url: 'currentdate.txt',
             type: 'GET',
-            dataType: 'txt',
+            dataType: 'text',
             success: function(data) {
             	SetupDate(data);
             },
@@ -16,6 +15,10 @@ function init() {
 	} else {
 		SetupDate(dateString)
 	}
+});
+
+function PostError(message) {
+	$('#error-log').html("Error: " + message);
 }
 
 function SetupDate(dateString) {
@@ -79,6 +82,9 @@ function GetTable(dateString) {
         }
 		
 		$('#cluster-table').html(table);
+	})
+	.error(function() { 
+		PostError("Table information either does not exist for given date or cannot be obtained at this time.");
 	});
 }
 

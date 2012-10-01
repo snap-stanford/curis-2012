@@ -83,6 +83,7 @@ void TCluster::GetRepresentativeQuoteIds(TIntV& RepQuoteIds) const {
 }
 
 void TCluster::GetRepresentativeQuoteString(TStr& RepStr, TQuoteBase *QB) const {
+  if(RepresentativeQuoteIds.Len() == 0) return;
   TQuote FirstQuote;
   QB->GetQuote(RepresentativeQuoteIds[0], FirstQuote);
   TStr FirstContentString;
