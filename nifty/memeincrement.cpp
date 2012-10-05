@@ -73,8 +73,8 @@ int main(int argc, char *argv[]) {
     
     //Log.OutputClusterInformation(&DB, &QB, &NewCB, TopFilteredClusters, CurrentDate, OldTopClusters);
     //Log.WriteClusteringOutputToFile(CurrentDate);
-    Log.PrintClusterInformation(&DB, &QB, &CB, TopFilteredClusters, CurrentDate, OldTopClusters);
-    Log.LogQBDBCBSize(&DB, &QB, &CB);
+    Log.PrintClusterInformation(&DB, &QB, &NewCB, TopFilteredClusters, CurrentDate, OldTopClusters);
+    Log.LogQBDBCBSize(&DB, &QB, &NewCB);
 
     // ## SAVE CLUSTERS OR SAVE THEM TO VARIABLES.
     OldQGraph = QGraph;

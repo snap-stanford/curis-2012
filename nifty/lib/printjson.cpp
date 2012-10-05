@@ -57,6 +57,7 @@ void TPrintJson::PrintClusterTableJSON(TQuoteBase *QB, TDocBase *DB, TClusterBas
 void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
                                   TStr& FolderName, TInt& ClusterId, TSecTm PresentTime) {
   Err("getting peaks\n");
+  TStr CurDateString = PresentTime.GetDtYmdStr();
   TCluster C;
   CB->GetCluster(ClusterId, C);
   TFreqTripleV PeakV, FreqV;
@@ -76,6 +77,7 @@ void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB
     if (i + 1 < PeakV.Len()) Plots += ", ";
   }
   Plots += "]";
+  Plots += ", \"modified\": \"" + CurDateString + "\"";
 
   //Err("after peak\n");
 
@@ -260,7 +262,6 @@ void TPrintJson::PrintClustersTableJson(TQuoteBase *QB, TDocBase *DB, TClusterBa
 }
 
 void TPrintJson::PrintClustersDataJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, TIntV& ClustersToPrint, const TStr& ClusterDataDir, TSecTm& EndDate) {
-
   for (int i = 0; i < ClustersToPrint.Len(); ++i) {
     TCluster C;
     CB->GetCluster(ClustersToPrint[i], C);

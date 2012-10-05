@@ -1,4 +1,8 @@
 $(document).ready(function() {
+	curDateString = GetParameters()["date"];
+	if (curDateString) {
+		curDate = new Date(curDateString);
+	}
 	clusterID = GetParameters()["id"];
 	if (!clusterID) {
 		PostError("Please specify a cluster ID.");
@@ -50,10 +54,28 @@ function SetupCluster(clusterID) {
 		
 		$('#cluster-table').html(table);
 		
+		// ### SETUP GRAPH TIME
+		var originalDate = new Date(data.modified);
+		if (curDateString && curDate > originalDate) {
+			$('.status-message').text("This cluster has ended its lifecycle and is no longer being updated!")
+		}
+		originalDate.setDate(originalDate.getDate() + 1);
+		for (var i = 0; i < data.peak.length; i++) {
+			var newDate = new Date(originalDate);
+			newDate.setHours(newDate.getHours() + data.peak[i][0]);
+			data.peak[i][0] = newDate.getTime();
+		}
+		for (var i = 0; i < data.plot.length; i++) {
+			var newDate = new Date(originalDate);
+			newDate.setHours(newDate.getHours() + data.plot[i][0]);
+			data.plot[i][0] = newDate.getTime();
+		}
+		
+		
 		// ### GRAPH
 		var options = {
 	        yaxis: { axisLabel: "Frequency of Cluster", axisLabelUseCanvas: true, min: 0 },
-	        xaxis: { axisLabel: "Hour Offset From Present Time", axisLabelUseCanvas: true, max: 0, tickDecimals: 0, tickSize: 24 },
+	        xaxis: { axisLabelUseCanvas: true, mode: "time", timeformat: "%m/%d", tickSize: [1, "day"]},
 	        legend: { position: "nw" }
 	    };
 		var graphData = [{

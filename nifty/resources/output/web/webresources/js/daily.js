@@ -19,6 +19,7 @@ $(document).ready(function() {
 
 function PostError(message) {
 	$('#error-log').html("Error: " + message);
+	$('#error-log').show();
 }
 
 function SetupDate(dateString) {
@@ -29,12 +30,16 @@ function SetupDate(dateString) {
 	$('#prev-day').click(function(e) { 
 		e.preventDefault();
 		date.setDate(date.getDate() - 1);
-		GetTable(GetDateString(date));
+		var dateString = GetDateString(date);
+		$(".today").text(dateString);
+		GetTable(dateString);
 	});
 	$('#next-day').click(function(e) { 
 		e.preventDefault();
 		date.setDate(date.getDate() + 1);
-		GetTable(GetDateString(date));
+		var dateString = GetDateString(date);
+		$(".today").text(dateString);
+		GetTable(dateString);
 	});
 	
 	GetTable(dateString);
@@ -55,6 +60,7 @@ function GetDateString(date) {
 function GetTable(dateString) {
 	history.pushState({date:dateString}, document.title, "daily.html?date=" + dateString);
 	$.getJSON('json/daily/' + dateString + '.json', function(data) {
+		$("#error-log").hide();
 		var table = document.createElement("tbody");
 		
 		// Write the heading
@@ -77,7 +83,7 @@ function GetTable(dateString) {
             $(tr).append("<td>" + data.prev[i] + "</td>") // previous
             $(tr).append("<td>" + data.frequency[i] + "</td>") // frequency
             $(tr).append("<td>" + data.numvariants[i] + "</td>") // variants
-            $(tr).append("<td><a href=\"cluster.html?id=" + data.label[i] + "\">" + data.quote[i] + "</a></td>") // quote
+            $(tr).append("<td><a href=\"cluster.html?date=" + dateString + "&id=" + data.label[i] + "\">" + data.quote[i] + "</a></td>") // quote
             $(table).append(tr);
         }
 		
