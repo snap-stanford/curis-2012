@@ -45,8 +45,7 @@ int main(int argc, char *argv[]) {
 
   // TODO: consider if quote is dead?
   TIntV Temp;
-  Log.PrintClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime, Temp);
-  Log.WriteClusteringOutputToFile(PresentTime);
+  Log.LogAllInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime, Temp);
 
   TStr Directory;
   Log.GetDirectory(Directory);

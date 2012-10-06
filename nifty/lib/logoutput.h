@@ -32,7 +32,8 @@ public:
   void LogValue(const TStr Key, TStr Value);
   void LogValue(const TStr Key, TInt Value);
   void LogValue(const TStr Key, TFlt Value);
-  void WriteClusteringOutputToFile(TSecTm& Date);
+  void LogAllInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime, TIntV &OldTopClusters);
+  void WriteClusteringStatisticsToFile(TSecTm& Date);
   void OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime);
   void OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV &ClusterIds, TSecTm PresentTime, TIntV &OldTopClusters);
   void PrintClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime, TIntV &OldTopClusters);

@@ -51,12 +51,6 @@ void LogOutput::SetupNewOutputDirectory(TStr Directory) {
   Commands.Add("mkdir -p " + this->Directory);
   Commands.Add("cp -r resources/output/text " + this->Directory);
   Commands.Add("cp -r resources/output/web " + this->Directory);
-  /*Commands.Add("mkdir -p " + Directory + "/text/removed");
-  Commands.Add("mkdir -p " + Directory + "/text/statistics");
-  Commands.Add("mkdir -p " + Directory + "/text/top");
-  Commands.Add("mkdir -p " + Directory + "/text/discarded/peaks");
-  Commands.Add("mkdir -p " + Directory + "/text/discarded/variants");
-  Commands.Add("mkdir -p " + Directory + "/web");*/
 
   for (int i = 0; i < Commands.Len(); i++) {
     system(Commands[i].CStr());
@@ -83,7 +77,13 @@ void LogOutput::LogValue(const TStr Key, TFlt Value) {
   OutputValues.AddDat(Key, Value.GetStr());
 }
 
-void LogOutput::WriteClusteringOutputToFile(TSecTm& Date) {
+void LogOutput::LogAllInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime, TIntV &OldTopClusters) {
+  WriteClusteringStatisticsToFile(PresentTime);
+  PrintClusterInformation(DB, QB, CB, ClusterIds, PresentTime, OldTopClusters);
+  LogQBDBCBSize(DB, QB, CB);
+}
+
+void LogOutput::WriteClusteringStatisticsToFile(TSecTm& Date) {
   if (!ShouldLog) return;
   TStr FileName = Directory + "/text/statistics/statistics_" + Date.GetDtYmdStr() + ".txt";
   FILE *F = fopen(FileName.CStr(), "w");
@@ -143,11 +143,11 @@ void LogOutput::OutputClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterB
   if (!ShouldLog) return;
   TStr CurDateString = PresentTime.GetDtYmdStr();
   fprintf(stderr, "Writing cluster information ...\n");
-  TStr FileName = Directory + "/text/top/top_clusters_" + CurDateString + ".txt";
+  TStr TopFileName = Directory + "/text/top/top_clusters_" + CurDateString + ".txt";
   TStr HTMLFileName = Directory + "/web/clusters_" + CurDateString + ".html";
   TStr Command = "mkdir -p " + Directory + "/web/cluster_" + CurDateString;
   system(Command.CStr());
-  FILE *F = fopen(FileName.CStr(), "w");
+  FILE *F = fopen(TopFileName.CStr(), "w");
   FILE *H = fopen(HTMLFileName.CStr(), "w");
 
   // PREVIOUS RANKING SETUP
