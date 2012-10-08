@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
   TSecTm CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(CurDateStr);
 
   // Setup Output Directory
-  QBDBDirectory = QBDBDirectory + TStr::Fmt("%d/", CurrentDate.GetYearN());
+  TStr QBDBDirectory = QBDBDir + TStr::Fmt("%d/", CurrentDate.GetYearN());
   TStr Command = TStr::Fmt("mkdir -p %sLOG/", QBDBDirectory.CStr());
   system(Command.CStr());
   Command = TStr::Fmt("mkdir -p %sQFREQ/", QBDBDirectory.CStr());
@@ -101,15 +101,15 @@ int main(int argc, char *argv[]) {
 
   // Calculate start hour, taking into account daylight savings
   if (IsDayLightSaving(CurrentDate)) {
-    CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(Date + " 07:00:00");
+    CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(CurDateStr + " 07:00:00");
   } else {
-    CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(Date + " 08:00:00");
+    CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(CurDateStr + " 08:00:00");
   }
 
   // Setup logging
   int NSkipBlackList = 0, NSkipDuplicate = 0, NSkipInvalidTime = 0, NSkipNoValidQuote = 0;
   int NSkipNonEnglish = 0, NSkipTooShort = 0, NSkipTooLong = 0;
-  FILE *FLog = fopen((QBDBDirectory + "LOG/FILTER" + Date + ".log").CStr(), "w");
+  FILE *FLog = fopen((QBDBDirectory + "LOG/FILTER" + CurDateStr + ".log").CStr(), "w");
   fprintf(FLog, "Initial Filtering:\n");
 
   // Start first pass through the data
@@ -123,7 +123,7 @@ int main(int argc, char *argv[]) {
 	// File name must be in the form: web-{year}-{month}-{day}T{hour}-{minute}-{second}Z.rar
     TStr MonDir = CurrentDate.GetDtYmdStr().GetSubStr(0, 6);
     TStr CurFile = "web-" + CurrentDate.GetDtYmdStr() + TStr::Fmt("T%02d-00-00Z.rar", CurrentDate.GetHourN());
-    if(!Memes.LoadFile(Spinn3rDirectory + MonDir + "/", CurFile)) { CurrentDate.AddHours(1); continue; }
+    if(!Memes.LoadFile(Spinn3rDir + MonDir + "/", CurFile)) { CurrentDate.AddHours(1); continue; }
 
     // Load entries from the file
     while (Memes.LoadNextEntry()) {
@@ -246,10 +246,10 @@ int main(int argc, char *argv[]) {
 
   // Save logs and results
   printf("Writing quote frequencies...\n");
-  OutputQuoteInformation(QB, QBDBDirectory + "QFREQ/QFREQ" + Date + ".txt");
+  OutputQuoteInformation(QB, QBDBDirectory + "QFREQ/QFREQ" + CurDateStr + ".txt");
   printf("Done!\n");
   printf("Writing QuoteBase and DocBase\n");
-  TFOut FOut(QBDBDirectory + "QBDB" + Date + ".bin");
+  TFOut FOut(QBDBDirectory + "QBDB" + CurDateStr + ".bin");
   QB.Save(FOut);
   DB.Save(FOut);
   printf("Done!\n");

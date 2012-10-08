@@ -80,13 +80,7 @@ int main(int argc, char *argv[]) {
     CB = NewCB;
     OldTopClusters = TopFilteredClusters;
     TStr FileName = QBDBCDirectory + "QBDBC" + CurrentDate.GetDtYmdStr() + ".bin";
-    fprintf(stderr, "Saving Cluster information to file: %s\n", FileName.CStr());
-    TFOut FOut(FileName);
-    IAssert(!QB.IsContainNullQuote());
-    QB.Save(FOut);
-    DB.Save(FOut);
-    CB.Save(FOut);
-    QGraph->Save(FOut);
+    TDataLoader::SaveQBDBCQ(FileName, &QB, &DB, &CB, QGraph);
 
     CurrentDate.AddDays(1);
   }

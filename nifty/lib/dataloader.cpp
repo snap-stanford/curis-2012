@@ -357,3 +357,20 @@ TSecTm TDataLoader::LoadQBDBByWindow(const TStr& Prefix, const TStr& StartDate, 
   }
   return CurrentDate;
 }
+
+void TDataLoader::SaveQBDBC(TStr FileName, TQuoteBase *QB, TDocBase *DB, TClusterBase *CB) {
+  TFOut FOut(FileName);
+  QB->Save(FOut);
+  DB->Save(FOut);
+  CB->Save(FOut);
+}
+
+
+void TDataLoader::SaveQBDBCQ(TStr FileName, TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, PNGraph QGraph) {
+  Err("Saving Cluster information to file: %s\n", FileName.CStr());
+  TFOut FOut(FileName);
+  QB->Save(FOut);
+  DB->Save(FOut);
+  CB->Save(FOut);
+  QGraph->Save(FOut);
+}
