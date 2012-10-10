@@ -57,6 +57,7 @@ public:
   void Load(TSIn& SIn);
   static TStr GetDescription();
   static TStr GetQuoteString(TDocBase *DB, TQuote& Quote, TSecTm &PresentTime);
+  static void GetQuoteSources(TDocBase *DB, TQuote& Quote, TStrV& SourceStrings);
 };
 
 //##### COMPARISON FUNCTIONS YO

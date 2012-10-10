@@ -149,6 +149,19 @@ TStr DQuote::GetQuoteString(TDocBase *DB, TQuote& Quote, TSecTm &PresentTime) {
   return Response;
 }
 
+void DQuote::GetQuoteSources(TDocBase *DB, TQuote& Quote, TStrV& SourceStrings) {
+  TIntV Sources;
+  Quote.GetSources(Sources);
+
+  for (int i = 0; i < Sources.Len(); i++) {
+    TDoc Doc;
+    DB->GetDoc(Sources[i], Doc);
+    TStr URL;
+    Doc.GetUrl(URL);
+    SourceStrings.Add(Doc.GetId().GetStr() + "\t" + Doc.GetDate().GetYmdTmStr() + "\t" + URL);
+  }
+}
+
 TStr DQuote::GetDescription() {
   return "# Quotes: Id\tSize\tPeaks\tNumWords\tQuote String\tRepresentative URL\tFirst Mention\tLast Mention\tPeak Time";
 }

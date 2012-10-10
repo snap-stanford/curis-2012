@@ -349,12 +349,9 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
   TStr CurDateString = PresentTime.GetDtYmdStr();
   TStr Directory;
   Log.GetDirectory(Directory);
-  TStr DeleteClustersFile = Directory + "/text/completed/deleted_clusters_detailed_" + CurDateString + ".txt";
+  TStr DeleteClustersFile = Directory + "/text/completed/completed_clusters_" + CurDateString + ".txt";
   Err("Directory: %s\n", DeleteClustersFile.CStr());
   FILE *F2 = fopen(DeleteClustersFile.CStr(), "w");
-
-  fprintf(F2, "%s\n", DCluster::GetDescription().CStr());
-  fprintf(F2, "%s\n", DQuote::GetDescription().CStr());
 
   TInt NumArchived = 0;
   TInt TotalRemainingQuotes = 0;
@@ -407,13 +404,15 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
       for (int j = 0; j < ClusterQuoteIds.Len(); j++) {
         TQuote Q;
         QB->GetQuote(ClusterQuoteIds[j], Q);
-        fprintf(F2, "%s\n", DQuote::GetQuoteString(DB, Q, NextDay).CStr());
+        fprintf(F2, "\t%s\n", DQuote::GetQuoteString(DB, Q, NextDay).CStr());
+        TStrV SourceStrings;
+        DQuote::GetQuoteSources(DB, Q, SourceStrings);
+        for (int k = 0; k < SourceStrings.Len(); k++) {
+          fprintf(F2, "\t\t%s\n", SourceStrings[k].CStr());
+        }
         QB->RemoveQuote(ClusterQuoteIds[j]);
-        //Err("Deleting quote: %d\n", ClusterQuoteIds[j].Val);
         QGraph->DelNode(ClusterQuoteIds[j]);
       }
-      fprintf(F2, "\n"); // empty line signifies next cluster!
-      //Err("Deleting cluster: %d\n", AllClusterIds[i].Val);
       CB->RemoveCluster(AllClusterIds[i]);
     } else {
       TotalRemainingQuotes++;
