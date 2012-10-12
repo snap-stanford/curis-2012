@@ -24,6 +24,11 @@ html, body {
   /*color: black;*/
 }
 
+body {
+	padding-top: 60px;
+	padding-bottom: 40px;
+}
+
 .warning {
   text-align: center;
   background-color: darkred;
@@ -65,11 +70,6 @@ a:link, a:visited {
 
 a:hover, a:active {
   color: #6EC3FF;
-}
-
-h1 {
-    font-weight: none;
-    font-size: 36px;
 }
 
 a.selected {
