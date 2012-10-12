@@ -154,7 +154,8 @@ function GetGraphData(dateString) {
 		
 		dates = [];		
 		for (var i = 0; i < data.values.length; i++) {
-			var curDate = new Date(data.values[i].label);
+			var curDate = new Date(data.values[i].label.replace(" ", "T"));
+			//alert(data.values[i].label);
 			var curDateTime = curDate.getTime();
 			dates.push(curDateTime);
 			var values = data.values[i].values;
@@ -174,12 +175,10 @@ function GetGraphData(dateString) {
 		
 		// ### GRAPH
 		options = {
-			// pink blue purple aqua 
 			colors: ["#CAA4FC", "#92D7FC", "#FF3DB8", "#74E8E0", "#FFC88A", "#BE95FC", "#FFC3B5"], 
 	        yaxis: { axisLabel: "Frequency of Cluster", axisLabelUseCanvas: true, min: 0 },
 	        xaxis: { min: dates[0], max:dates[dates.length-1], axisLabelUseCanvas: true, mode: "time", timeformat: "%m/%d", tickSize: [2, "day"]},
 	        legend: { show: false }, 
-	        //stack: true,
 	        series: {
 				stack: true
 			},
