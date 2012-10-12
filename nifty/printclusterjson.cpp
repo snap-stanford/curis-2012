@@ -164,6 +164,7 @@ int main(int argc, char *argv[]) {
   LogOutput Log;
   THash<TStr, TStr> Arguments;
   ArgumentParser::ParseArguments(argc, argv, Arguments, Log);
+  Log.SetupNewOutputDirectory("");  // safe to make files now
 
   TStr StartString;
   if (!Arguments.IsKeyGetDat("start", StartString)) {
@@ -173,7 +174,7 @@ int main(int argc, char *argv[]) {
   }
   TStr EndString = "2012-07-08";
 
-  TStr TopClusterSelection;  // Can be "cumulative" or "daily" 
+  TStr TopClusterSelection = "daily";  // Can be "cumulative" or "daily" 
   if (!Arguments.IsKeyGetDat("topclusters", TopClusterSelection)) {
     TopClusterSelection = TStr("cumulative");
   }
@@ -265,13 +266,15 @@ int main(int argc, char *argv[]) {
       for (int j = 0; j < 50; j++) {
         ClustersToPrint.Add(TopFilteredClusters[j]);
       }
+
+      // Instead of calling UpdateData, call TPrintJson::PrintClustersJson and TPrintJson::PrintClustersDataJson
       UpdateDataForJsonPrinting(&QBCumulative, &DBCumulative, &CBCumulative, FreqOverTime, Times, ClustersToPrint,
                                 ClustersRepQuote, CurrentDate, i + 1, Type);
     }
 
     if (CurrentDate == EndPeriodDate) {
       TStr OutputFilename = "../../../public_html/curis/output/clustering/visualization-" + Type + "-ext/data/clusterinfo-" +
-                        StartPeriodDate.GetDtYmdStr() + ".json";
+                        StartPeriodDate.GetDtYmdStr() + "-new.json";
       PrintClustersInJson(FreqOverTime, Times, ClustersToPrint, ClustersRepQuote, OutputFilename);
     }
   }
