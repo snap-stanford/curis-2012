@@ -3,6 +3,7 @@
 
 const int NumDaysInMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 int NumTopClustersPerDay = 20;
+TStr OutputJsonDir = "../../../public_html/curis/output/clustering/webdata/";
 
 // For testing
 void PrintFreqOverTime(THash<TSecTm, TFltV>& FreqOverTime) {
@@ -268,14 +269,19 @@ int main(int argc, char *argv[]) {
       }
 
       // Instead of calling UpdateData, call TPrintJson::PrintClustersJson and TPrintJson::PrintClustersDataJson
-      UpdateDataForJsonPrinting(&QBCumulative, &DBCumulative, &CBCumulative, FreqOverTime, Times, ClustersToPrint,
-                                ClustersRepQuote, CurrentDate, i + 1, Type);
-    }
+      // Graph the clusters in ClustersToPrint, and include all the TopFilteredClusters in the table
+      TStr OutputJsonDirFinal = OutputJsonDir + Type + "/";
+      TPrintJson::PrintClustersJson(&QBCumulative, &DBCumulative, &CBCumulative, ClustersToPrint, TopFilteredClusters,
+                                    OutputJsonDirFinal, OutputJsonDirFinal, StartPeriodDate, EndPeriodDate);
+      //UpdateDataForJsonPrinting(&QBCumulative, &DBCumulative, &CBCumulative, FreqOverTime, Times, ClustersToPrint,
+       //                         ClustersRepQuote, CurrentDate, i + 1, Type);
+    } else {
 
-    if (CurrentDate == EndPeriodDate) {
-      TStr OutputFilename = "../../../public_html/curis/output/clustering/visualization-" + Type + "-ext/data/clusterinfo-" +
-                        StartPeriodDate.GetDtYmdStr() + "-new.json";
-      PrintClustersInJson(FreqOverTime, Times, ClustersToPrint, ClustersRepQuote, OutputFilename);
+      if (CurrentDate == EndPeriodDate) {
+        TStr OutputFilename = "../../../public_html/curis/output/clustering/visualization-" + Type + "-ext/data/clusterinfo-" +
+                          StartPeriodDate.GetDtYmdStr() + "-new.json";
+        PrintClustersInJson(FreqOverTime, Times, ClustersToPrint, ClustersRepQuote, OutputFilename);
+      }
     }
   }
 

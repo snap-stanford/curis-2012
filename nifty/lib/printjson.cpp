@@ -121,6 +121,11 @@ void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB
 
 void TPrintJson::PrintClustersJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
                                    TIntV& ClustersToGraph, TIntV& ClustersToTable, const TStr& GraphDir, const TStr& TableDir, TSecTm& StartDate, TSecTm& EndDate) {
+  // Make the directories if they don't already exist
+  TStr Command = "mkdir -p " + GraphDir;
+  system(Command.CStr());
+  Command = "mkdir -p " + TableDir;
+  system(Command.CStr());
   PrintClustersGraphJson(QB, DB, CB, ClustersToGraph, GraphDir, StartDate, EndDate);
   PrintClustersTableJson(QB, DB, CB, ClustersToTable, TableDir, StartDate, EndDate);
 }
