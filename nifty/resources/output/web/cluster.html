@@ -7,12 +7,33 @@
     <meta charset='utf-8' />
   </head>
   <body>
-    <div id='container'>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
+    <div class="container">
+      <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </a>
+      <a class="brand" href="#">NIFTY</a>
+      <div class="nav-collapse collapse">
+        <ul class="nav">
+          <li><a class="chart-link" href="daily">Daily</a></li>
+          <li><a class="chart-link" href="weekly.html">Weekly</a></li>
+          <li><a class="chart-link" href="monthly.html">Monthly</a></li>
+          <li><a class="chart-link" href="daily.html">3 Months</a></li>
+          <li><a href="about.html">About</a></li>
+        </ul>
+      </div><!--/.nav-collapse -->
+    </div>
+    </div>
+    </div>
+  
+    <div id='container' class='main'>
       <b><div id='error-log'></div></b>
       <div id='contents'>
-		     <h1>NIFTY</h1>
-		     <b>Quote: <span class="quote-container"></span></b><br />
-		     <div class="status-message"></div><br /><br />
+		     <h3>Quote: <span class="quote-container"></span></h2><br />
+		     <div class="status-message"></div>
 		     <center><div id='cluster-graph' style="width:800px;height:400px;"></div></center><br />
 		     Warning: News links change rapidly, so the following links may be out of date or expired.
 		     <table id="cluster-table" border="1" class="table table-condensed table-striped"> </table>
