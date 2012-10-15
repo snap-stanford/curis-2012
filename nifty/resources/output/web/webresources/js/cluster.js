@@ -2,6 +2,9 @@ $(document).ready(function() {
 	curDateString = GetParameters()["date"];
 	if (curDateString) {
 		curDate = new Date(curDateString);
+		$(".chart-link").each(function(){
+		  this.href = this.href.split('?')[0] + "?date=" + curDateString;
+		});
 	}
 	clusterID = GetParameters()["id"];
 	if (!clusterID) {
