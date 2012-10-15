@@ -53,8 +53,14 @@ function PrintData(start, end, allowClicking) {
 /// TABLE CODE
 ///////////////////////////////////////////////////////////////////////////////////////
 
+var headings = ["rank", "prev", "frequency", "numvariants", "quote"];
+var headingStrings = { rank:"Rank", prev:"Previous", frequency: "Frequency", numvariants: "#Variants", quote: "Quote" };
+var sortTableBy = "rank";
+var tableAscending = true;
+
 function GetTableData(fileName) {
 	$.getJSON(fileName, function(data) {
+		curStart = 0, curEnd = data.label.length;
 		// rewire data
 		tableData = [];
 		for (var i = 0; i < data.label.length; ++i) {
@@ -81,36 +87,44 @@ function GetTableData(fileName) {
 	});
 }
 
-//inclusive, exclusive
 function PrintTable(start, end) {
+	SortTable();
+	//PrintGivenTable(start, end, tableData);
+}
+
+//inclusive, exclusive
+function PrintGivenTable(start, end, curTable) {
+	if (curTable.length == 0) return;
 	var table = document.createElement("tbody");
 	
 	// Write the heading
-	var headings = ["Rank", "Frequency", "#Variants", "Quote"];
-	if (tableData.length > 0 && tableData[0].prev) {
-		headings = ["Rank", "Prev", "Frequency", "#Variants", "Quote"];
-	}
 	var tr_heading = document.createElement("tr");
 	$(tr_heading).attr("id", "heading");
 	for (var i = 0; i < headings.length; ++i) {
-		var td_heading = document.createElement("td");
-		$(tr_heading).click(function() { HeadingClicked(headings[i]); });
-		$(td_heading).html("<b>" + headings[i] + "</b>")
-		$(tr_heading).append(td_heading);
+		if (tableData[0][headings[i]]) {
+			var td_heading = document.createElement("td");
+			$(td_heading).click(function() { HeadingClicked(this); });
+			$(td_heading).attr("id", headings[i]);
+			if (headings[i] == sortTableBy) {
+				$(td_heading).addClass("selected");
+			}
+			$(td_heading).html("<b>" + headingStrings[headings[i]] + "</b>")
+			$(tr_heading).append(td_heading);
+		}
 	}
 	$(table).append(tr_heading);
 	
 	// Write everything else
-	for (var i = start; i < tableData.length && i < end; ++i) {
+	for (var i = start; i < curTable.length && i < end; ++i) {
 		var tr = document.createElement("tr");
-        $(tr).attr("id", tableData[i].label);
-        $(tr).append("<td>" + tableData[i].rank + "</td>") // rank
+        $(tr).attr("id", curTable[i].label);
+        $(tr).append("<td>" + curTable[i].rank + "</td>") // rank
         if (tableData[i].prev) {
-        	$(tr).append("<td>" + tableData[i].prev + "</td>") // previous
+        	$(tr).append("<td>" + curTable[i].prev + "</td>") // previous
 		}
-        $(tr).append("<td>" + tableData[i].frequency + "</td>") // frequency
-        $(tr).append("<td>" + tableData[i].numvariants + "</td>") // variants
-        $(tr).append("<td><a href=\"cluster.html?date=" + parameterDateString + "&id=" + tableData[i].label + "\">" + tableData[i].quote + "</a></td>") // quote
+        $(tr).append("<td>" + curTable[i].frequency + "</td>") // frequency
+        $(tr).append("<td>" + curTable[i].numvariants + "</td>") // variants
+        $(tr).append("<td><a href=\"cluster.html?date=" + parameterDateString + "&id=" + curTable[i].label + "\">" + curTable[i].quote + "</a></td>") // quote
         $(table).append(tr);
     }
 	
@@ -118,6 +132,68 @@ function PrintTable(start, end) {
 	$('#cluster-table').show();
 }
 
+function HeadingClicked(header) {
+	var curHeading = $(header).attr("id");
+	if (curHeading == sortTableBy) {
+		tableAscending = !tableAscending;
+	} else {
+		$("#" + sortTableBy).removeClass("selected");
+		sortTableBy = curHeading;
+		$("#" + sortTableBy).addClass("selected");
+		tableAscending = true;
+	}
+	SortTable();
+}
+
+function SortTable() {
+	if (sortTableBy == "rank" && tableAscending) {
+		PrintGivenTable(curStart, curEnd, tableData);
+	}
+	var tableCopy = tableData.slice(curStart, curEnd);
+	if (sortTableBy != "prev") {
+		//alert(curStart + "-" + curEnd + " sort by: " + sortTableBy);
+		if (sortTableBy != "quote") {
+			tableCopy.sort(function(a,b) { 
+				if (tableAscending) {
+					return parseInt(a[sortTableBy]) - parseInt(b[sortTableBy]);
+				} else {
+					return parseInt(b[sortTableBy]) - parseInt(a[sortTableBy]);
+				}
+			});
+		} else {
+			tableCopy.sort(function(a, b) {
+				if (tableAscending) {
+					return strcmp(a[sortTableBy], b[sortTableBy]);
+					//return a[sortTableBy] > b[sortTableBy];
+				} else {
+					return strcmp(b[sortTableBy], a[sortTableBy]);
+					//return a[sortTableBy] < b[sortTableBy];
+				}
+			});
+		}
+	} else {
+		tableCopy.sort(function(a, b) {
+			var aText = $(a[sortTableBy]).text(), bText = $(b[sortTableBy]).text();
+			//alert(aText + " vs. " + bText);
+			// new checking
+			if (aText == 'new!') {
+				return (tableAscending) ? -1 : 1;
+			} else if (bText == 'new!') {
+				return (tableAscending) ? 1 : -1;
+			}
+			if (tableAscending) {
+				return parseInt(aText) - parseInt(bText);
+			} else {
+				return parseInt(bText) - parseInt(aText);
+			}
+		});
+	}
+	PrintGivenTable(0, tableCopy.length, tableCopy);
+}
+
+function strcmp(str1, str2) {
+	return (str1 < str2) ? -1 : (str1 > str2 ? 1 : 0 );
+}
 ///////////////////////////////////////////////////////////////////////////////////////
 /// GRAPHING CODE
 ///////////////////////////////////////////////////////////////////////////////////////
