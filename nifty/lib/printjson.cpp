@@ -119,10 +119,16 @@ void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB
   //Err("after JSON\n");
 }
 
+/// If the parameter IncludeDate = true, the date is included in the output file's name
 void TPrintJson::PrintClustersJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
-                                   TIntV& ClustersToGraph, TIntV& ClustersToTable, const TStr& GraphDir, const TStr& TableDir, TSecTm& StartDate, TSecTm& EndDate) {
-  PrintClustersGraphJson(QB, DB, CB, ClustersToGraph, GraphDir, StartDate, EndDate);
-  PrintClustersTableJson(QB, DB, CB, ClustersToTable, TableDir, StartDate, EndDate);
+                                   TIntV& ClustersToGraph, TIntV& ClustersToTable, const TStr& GraphDir, const TStr& TableDir, TSecTm& StartDate, TSecTm& EndDate, bool IncludeDate) {
+  // Make the directories if they don't already exist
+  TStr Command = "mkdir -p " + GraphDir;
+  system(Command.CStr());
+  Command = "mkdir -p " + TableDir;
+  system(Command.CStr());
+  PrintClustersGraphJson(QB, DB, CB, ClustersToGraph, GraphDir, StartDate, EndDate, IncludeDate);
+  PrintClustersTableJson(QB, DB, CB, ClustersToTable, TableDir, StartDate, EndDate, IncludeDate);
 }
 
 /// Returns in ClustersToPrint the top NumPerDay clusters per day, ordered by frequency.
@@ -138,7 +144,7 @@ void TPrintJson::GetTopPeakClustersPerDay(TQuoteBase *QB, TDocBase *DB, TCluster
 }
 
 void TPrintJson::PrintClustersGraphJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
-                                        TIntV& ClustersToPrint, const TStr& Directory, TSecTm& StartDate, TSecTm& EndDate) {
+                                        TIntV& ClustersToPrint, const TStr& Directory, TSecTm& StartDate, TSecTm& EndDate, bool IncludeDate) {
   fprintf(stderr, "Preparing to write JSON graph data to file\n");
   THash<TSecTm, TFltV> FreqOverTime;
   TVec<TSecTm> Times;
@@ -173,7 +179,12 @@ void TPrintJson::PrintClustersGraphJson(TQuoteBase *QB, TDocBase *DB, TClusterBa
   }
   fprintf(stderr, "Writing JSON graph data to file\n");
 
-  TStr OutputFilename = Directory + "clusterinfo-" + StartDate.GetDtYmdStr() + ".json";
+  TStr StartDateStr = StartDate.GetDtYmdStr();
+  if (!IncludeDate) {
+    StartDateStr = StartDateStr.Left(StartDateStr.Len() - 3);
+  }
+
+  TStr OutputFilename = Directory + "clusterinfo-" + StartDateStr + ".json";
   FILE *F = fopen(OutputFilename.CStr(), "w");
   fprintf(F, "{\"values\": [");
   TInt NumTimesToPrint = Times.Len() - 1;  // Skip the last time stamp, because it is all zeroes and will 
@@ -209,10 +220,15 @@ void TPrintJson::PrintClustersGraphJson(TQuoteBase *QB, TDocBase *DB, TClusterBa
 }
 
 void TPrintJson::PrintClustersTableJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
-                                        TIntV& ClustersToPrint, const TStr& Directory, TSecTm& StartDate, TSecTm& EndDate) {
+                                        TIntV& ClustersToPrint, const TStr& Directory, TSecTm& StartDate, TSecTm& EndDate, bool IncludeDate) {
   fprintf(stderr, "Writing JSON table data to file\n");
 
-  TStr OutputFilename = Directory + "clustertable-" + StartDate.GetDtYmdStr() + ".json";
+  TStr StartDateStr = StartDate.GetDtYmdStr();
+  if (!IncludeDate) {
+    StartDateStr = StartDateStr.Left(StartDateStr.Len() - 3);
+  }
+
+  TStr OutputFilename = Directory + "clustertable-" + StartDateStr + ".json";
   FILE *F = fopen(OutputFilename.CStr(), "w");
   fprintf(F, "{\"label\": [");
   for (int i = 0; i < ClustersToPrint.Len(); i++) {

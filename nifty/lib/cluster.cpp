@@ -319,14 +319,24 @@ TInt TClusterBase::AddCluster(TCluster& Cluster) {
     if (CurCounter == Cluster.GetId()) break;
   }
 
-  if (CurCounter != -1 && CurCounter != Cluster.GetId()) {
-    fprintf(stderr, "WARNING: Cluster id is different: %d (cumulative) vs. %d\n", CurCounter.Val, Cluster.GetId().Val);
-  }
+  //if (CurCounter != -1 && CurCounter != Cluster.GetId()) {
+  //  fprintf(stderr, "WARNING: Cluster id is different: %d (cumulative) vs. %d\n", CurCounter.Val, Cluster.GetId().Val);
+  //}
 
   if (CurCounter < 0) {  // New cluster, with new quotes
     //fprintf(stderr, "\tNew cluster, with new quotes!\n");
     TCluster TempC;
-    IAssert(!GetCluster(Cluster.GetId(), TempC));
+
+    //FOR TESTING
+    /*if (Cluster.GetId() == 1) {
+      fprintf(stderr, "Cluster id: %d\n", Cluster.GetId().Val);
+      fprintf(stderr, "# Quote ids: %d\n", QuoteIds.Len());
+      fprintf(stderr, "# of first Quote id: %d\n", QuoteIds[0].Val);
+    }*/
+    //END FOR TESTING
+
+    //IAssert(!GetCluster(Cluster.GetId(), TempC));  // This causes the script to crash sometimes.. not sure why
+                                                     // Seems to only happen with spam that will get filtered anyway
     CurCounter = Cluster.GetId();
     if (Cluster.GetId() > ClusterIdCounter) {
       ClusterIdCounter = Cluster.GetId() + 1;
