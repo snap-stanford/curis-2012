@@ -31,9 +31,4 @@ function UpdateDate(date) {
 	});
 	$(".today").text(dayDateString);
 	GetTableData('json/daily/' + dayDateString + '.json');
-	GetData(dayDateString);
-}
-
-function HeadingClicked(heading) {
-	alert(heading);
 }

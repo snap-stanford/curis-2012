@@ -45,3 +45,12 @@ a:hover {
   color: #005580;
   text-decoration: underline;
 }
+
+#heading {
+	text-decoration: underline;
+}
+
+td.selected {
+	text-transform:uppercase;
+	color: #FF0066;
+}
