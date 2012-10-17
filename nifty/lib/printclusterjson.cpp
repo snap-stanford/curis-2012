@@ -1,12 +1,25 @@
 #include "stdafx.h"
-#include <stdio.h>
+#include "quote.h"
+#include "doc.h"
+#include "cluster.h"
+#include "printjson.h"
+#include "dataloader.h"
+#include "postcluster.h"
+#include "printclusterjson.h"
 
-const int NumDaysInMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+const int TPrintClusterJson::NumDaysInMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 int NumTopClustersPerDay = 20;
 TStr OutputJsonDir = "../../../public_html/curis/output/clustering/webdata/";
 
-// For testing
-void PrintFreqOverTime(THash<TSecTm, TFltV>& FreqOverTime) {
+TPrintClusterJson::TPrintClusterJson() {
+}
+
+TPrintClusterJson::TPrintClusterJson(TStr& OutputJsonDir) {
+  this->OutputJsonDir = OutputJsonDir;
+}
+
+/// For testing
+void TPrintClusterJson::PrintFreqOverTime(THash<TSecTm, TFltV>& FreqOverTime) {
   TVec<TSecTm> Times;
   FreqOverTime.GetKeyV(Times);
   Times.Sort();
@@ -21,8 +34,8 @@ void PrintFreqOverTime(THash<TSecTm, TFltV>& FreqOverTime) {
   }
 }
 
-// Adds the frequency data for CurrDate to the data structures
-void UpdateDataForJsonPrinting(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, THash<TSecTm, TFltV>& FreqOverTime, TVec<TSecTm>& Times, TIntV& ClustersToPrint, THash<TInt, TStr>& ClustersRepQuote, TSecTm& CurrentDate, TInt DaysPassed, TStr& Type) {
+/// Adds the frequency data for CurrDate to the data structures
+void TPrintClusterJson::UpdateDataForJsonPrinting(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, THash<TSecTm, TFltV>& FreqOverTime, TVec<TSecTm>& Times, TIntV& ClustersToPrint, THash<TInt, TStr>& ClustersRepQuote, TSecTm& CurrentDate, TInt DaysPassed, TStr& Type) {
   if (Type == "day") {
     DaysPassed = 7;
   }
@@ -101,7 +114,7 @@ void UpdateDataForJsonPrinting(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, T
 }
 
 
-void PrintClustersInJson(THash<TSecTm, TFltV>& FreqOverTime, TVec<TSecTm>& Times, TIntV& ClustersToPrint, THash<TInt, TStr>& ClustersRepQuote, TStr& OutputFilename) {
+void TPrintClusterJson::PrintClustersInJson(THash<TSecTm, TFltV>& FreqOverTime, TVec<TSecTm>& Times, TIntV& ClustersToPrint, THash<TInt, TStr>& ClustersRepQuote, TStr& OutputFilename) {
   fprintf(stderr, "Writing JSON to file: %s\n", OutputFilename.CStr());
 
   FILE *F = fopen(OutputFilename.CStr(), "w");
@@ -138,13 +151,13 @@ void PrintClustersInJson(THash<TSecTm, TFltV>& FreqOverTime, TVec<TSecTm>& Times
   fclose(F);
 }
 
-bool IsLeapYear(TInt Year) {
+bool TPrintClusterJson::IsLeapYear(TInt Year) {
   if (Year % 4 != 0) return false;
   if (Year % 100 != 0 || Year % 400 == 0) return true;
   return false;
 }
 
-TSecTm RoundStartDate(TSecTm& StartDate, TStr& Type) {
+TSecTm TPrintClusterJson::RoundStartDate(TSecTm& StartDate, TStr& Type) {
   TSecTm NewStartDate = StartDate;
   if (Type == "week") {  // Round to next Saturday (or don't round if StartDate is a Saturday)
     NewStartDate.AddDays(7 - StartDate.GetDayOfWeekN());  // DayOfWeekN = 7 for Sat, = 1 for Sun
@@ -160,7 +173,7 @@ TSecTm RoundStartDate(TSecTm& StartDate, TStr& Type) {
   return NewStartDate;
 }
 
-TSecTm CalculateEndPeriodDate(TSecTm& CurrentDate, TStr& Type) {
+TSecTm TPrintClusterJson::CalculateEndPeriodDate(TSecTm& CurrentDate, TStr& Type) {
   TSecTm EndPeriodDate = CurrentDate;
   if (Type == "day") {
     EndPeriodDate.AddDays(1);
@@ -184,42 +197,16 @@ TSecTm CalculateEndPeriodDate(TSecTm& CurrentDate, TStr& Type) {
   return EndPeriodDate;
 }
 
-int main(int argc, char *argv[]) {
-  // Parse Arguments
-  LogOutput Log;
-  THash<TStr, TStr> Arguments;
-  ArgumentParser::ParseArguments(argc, argv, Arguments, Log);
-  Log.SetupNewOutputDirectory("");  // safe to make files now
+/// StartString and EndString must be in the form "YYYY-MM-DD", e.g. "2012-02-22"
+void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndString, LogOutput& Log, TStr& Type, TStr QBDBCDirectory) {
 
-  TStr StartString;
-  if (!Arguments.IsKeyGetDat("start", StartString)) {
-    StartString = "2012-02-01";
-    //StartString = "2012-06-01";
-    //StartString = "2012-06-30";
-  }
-  
-  TStr EndString;
-  if (!Arguments.IsKeyGetDat("end", EndString)) {
-    EndString = "2012-07-08";
-  }
-
-  TStr TopClusterSelection = "daily";  // Can be "cumulative" or "daily" 
-  if (!Arguments.IsKeyGetDat("topclusters", TopClusterSelection)) {
-    TopClusterSelection = TStr("cumulative");
-  }
+  TStr TopClusterSelection = "cumulative";  // Can be "cumulative" or "daily" 
+  //if (UseDailyTopClusters) {  // Not using this feature, so commenting it out for now
+  //  TopClusterSelection = TStr("daily");
+  //}
 
   fprintf(stderr, "Top Cluster Selection: %s\n", TopClusterSelection.CStr());
   IAssert(TopClusterSelection == "cumulative" || TopClusterSelection == "daily");
-
-  TStr QBDBCDirectory;
-  if (!Arguments.IsKeyGetDat("qbdbc", QBDBCDirectory)) {
-      QBDBCDirectory = "/lfs/1/tmp/curis/QBDBC/";
-  }
-
-  TStr Type;  // Can be day, week, month, or 3month
-  if (!Arguments.IsKeyGetDat("type", Type)) {
-    Type = TStr("day");
-  }
 
   fprintf(stderr, "Type: %s\n", Type.CStr());
   IAssert(Type == "day" || Type == "week" || Type == "month" || Type == "3month");
@@ -318,5 +305,5 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  return 0;
+  return;
 }

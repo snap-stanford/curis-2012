@@ -34,3 +34,4 @@
 
 // visualization
 #include "printjson.cpp"
+#include "printclusterjson.cpp"

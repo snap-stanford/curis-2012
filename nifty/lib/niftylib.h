@@ -36,4 +36,5 @@
 
 // visualization
 #include "printjson.h"
+#include "printclusterjson.h"
 #endif
