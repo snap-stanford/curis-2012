@@ -36,6 +36,6 @@ function UpdateDate(date) {
 }
 
 function GetData(dateString) {
-	GetTableData('json/monthly/clustertable-' + dateString + '.json');
-	GetGraphData('json/monthly/clusterinfo-' + dateString + '.json', [2, "day"], 84);
+	GetTableData('json/month/clustertable-' + dateString + '.json');
+	GetGraphData('json/month/clusterinfo-' + dateString + '.json', [2, "day"], 84);
 }

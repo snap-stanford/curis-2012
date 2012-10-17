@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
 
   // TODO: consider if quote is dead?
   TIntV Temp;
-  Log.LogAllInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime, Temp);
+  Log.LogAllInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime, Temp, QBDBCDirectory);
 
   TStr Directory;
   Log.GetDirectory(Directory);

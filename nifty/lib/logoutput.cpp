@@ -31,6 +31,10 @@ void LogOutput::DisableLogging() {
   ShouldLog = false;
 }
 
+void LogOutput::EnableLogging() {
+  ShouldLog = true;
+}
+
 // Directory is timestamped in the web directory by default.
 void LogOutput::SetupNewOutputDirectory(TStr Directory) {
   if (!ShouldLog) return;
@@ -77,10 +81,22 @@ void LogOutput::LogValue(const TStr Key, TFlt Value) {
   OutputValues.AddDat(Key, Value.GetStr());
 }
 
-void LogOutput::LogAllInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime, TIntV &OldTopClusters) {
+void LogOutput::LogAllInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime, TIntV& OldTopClusters, TStr& QBDBCDirectory) {
+  if (!ShouldLog) return;
   WriteClusteringStatisticsToFile(PresentTime);
   PrintClusterInformation(DB, QB, CB, ClusterIds, PresentTime, OldTopClusters);
-  LogQBDBCBSize(DB, QB, CB);
+  LogQBDBCBSize(DB, QB, CB, PresentTime);
+  TStr JSONDirectory = Directory + "/web/json/";
+  TStr CurDateString = PresentTime.GetDtYmdStr();
+  TSecTm NextDay = PresentTime;
+  NextDay.AddDays(1);
+  TStr NextDayString = NextDay.GetDtYmdStr();
+  TPrintClusterJson JSONJob(JSONDirectory);
+  LogOutput TmpLog;
+  TmpLog.DisableLogging();
+  JSONJob.PrintClusterJsonForPeriod(CurDateString, NextDayString, TmpLog, "week", QBDBCDirectory);
+  JSONJob.PrintClusterJsonForPeriod(CurDateString, NextDayString, TmpLog, "month", QBDBCDirectory);
+  JSONJob.PrintClusterJsonForPeriod(CurDateString, NextDayString, TmpLog, "3month", QBDBCDirectory);
 }
 
 void LogOutput::WriteClusteringStatisticsToFile(TSecTm& Date) {
@@ -291,6 +307,7 @@ void LogOutput::ComputeOldRankString(THash<TInt, TInt>& OldRankings, TInt& Clust
 }
 
 void LogOutput::OutputDiscardedClusters(TQuoteBase *QB, TVec<TPair<TCluster, TInt> >& DiscardedClusters, TSecTm& Date) {
+  if (!ShouldLog) return;
   TStr DiscardedFileName = Directory + "/text/discarded/peaks/discarded_by_peaks_" + Date.GetDtYmdStr() + ".txt";
   FILE *D = fopen(DiscardedFileName.CStr(), "w");
 
@@ -304,6 +321,7 @@ void LogOutput::OutputDiscardedClusters(TQuoteBase *QB, TVec<TPair<TCluster, TIn
 }
 
 void LogOutput::OutputDiscardedClustersBySize(TQuoteBase *QB, TVec<TCluster>& DiscardedClusters, TSecTm& Date) {
+  if (!ShouldLog) return;
   TStr DiscardedFileName = Directory + "/text/discarded/variants/discarded_by_size_" + Date.GetDtYmdStr() + ".txt";
   FILE *D = fopen(DiscardedFileName.CStr(), "w");
 
@@ -316,10 +334,12 @@ void LogOutput::OutputDiscardedClustersBySize(TQuoteBase *QB, TVec<TCluster>& Di
   fclose(D);
 }
 
-void LogOutput::LogQBDBCBSize(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB) {
+void LogOutput::LogQBDBCBSize(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TSecTm PresentTime) {
+  if (!ShouldLog) return;
+  TStr CurDateString = PresentTime.GetDtYmdStr();
   TStr QBDBCB = Directory + "/text/QBDBCB_info.txt";
   QBDBCBSizeFile = fopen(QBDBCB.CStr(), "a");
-  fprintf(QBDBCBSizeFile, "DB\t%d\tQB\t%d\tCB\t%d\n", DB->Len(), QB->Len(), CB->Len());
+  fprintf(QBDBCBSizeFile, "%s\tDB\t%d\tQB\t%d\tCB\t%d\n", CurDateString.CStr(), DB->Len(), QB->Len(), CB->Len());
   fprintf(stderr, "DB\t%d\tQB\t%d\tCB\t%d\n", DB->Len(), QB->Len(), CB->Len());
   fclose(QBDBCBSizeFile);
 }

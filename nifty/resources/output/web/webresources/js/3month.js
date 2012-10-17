@@ -31,9 +31,11 @@ function UpdateDate(date) {
 	});
 	
 	var Month3Date = new Date(date);
-	Month3Date.setMonth(Month3Date.getMonth() - Month3Date.getMonth() % 3);
+	Month3Date.setUTCMonth(Month3Date.getUTCMonth() - (Month3Date.getUTCMonth()) % 3);
+	
+	
 	var Month3End = new Date(Month3Date);
-	Month3End.setMonth(Month3End.getMonth() + 2);
+	Month3End.setUTCMonth(Month3End.getUTCMonth() + 2);
 	
 	var monthDateString = GetMonthString(Month3Date);
 	var ThreeMonthString = monthDateString + " to " + GetMonthString(Month3End);

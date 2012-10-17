@@ -21,11 +21,12 @@ private:
   bool IsLeapYear(TInt Year);
   TSecTm RoundStartDate(TSecTm& StartDate, TStr& Type);
   TSecTm CalculateEndPeriodDate(TSecTm& CurrentDate, TStr& Type);
+  TInt GetNumDaysInMonth(TSecTm& Date);
 
 public:
   TPrintClusterJson();
   TPrintClusterJson(TStr& OutputJsonDir);
-  void PrintClusterJsonForPeriod(TStr& StartString, TStr& EndString, LogOutput& Log, TStr& Type, TStr QBDBCDirectory = TStr("/lfs/1/tmp/curis/QBDBC/"));
+  void PrintClusterJsonForPeriod(TStr& StartString, TStr& EndString, LogOutput& Log, TStr Type, TStr QBDBCDirectory = TStr("/lfs/1/tmp/curis/QBDBC/"));
 };
 
 #endif

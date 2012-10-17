@@ -30,7 +30,7 @@ function UpdateDate(date) {
 	  this.href = this.href.split('?')[0] + "?date=" + dayDateString;
 	});
 	
-	var targetDate = 2; // CHANGE TO WHATEVER IT ENDS UP BEING!
+	var targetDate = 6; // CHANGE TO WHATEVER IT ENDS UP BEING!
 	var dateBegin = new Date(date);
 	var difference = (dateBegin.getUTCDay() + 7 - targetDate) % 7;
 	dateBegin.setDate(dateBegin.getDate() - difference);

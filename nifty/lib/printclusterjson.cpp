@@ -8,10 +8,10 @@
 #include "printclusterjson.h"
 
 const int TPrintClusterJson::NumDaysInMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-int NumTopClustersPerDay = 20;
-TStr OutputJsonDir = "../../../public_html/curis/output/clustering/webdata/";
+TStr StandardJsonDir = "../../../public_html/curis/output/clustering/webdata/";
 
 TPrintClusterJson::TPrintClusterJson() {
+  OutputJsonDir = StandardJsonDir;
 }
 
 TPrintClusterJson::TPrintClusterJson(TStr& OutputJsonDir) {
@@ -157,16 +157,24 @@ bool TPrintClusterJson::IsLeapYear(TInt Year) {
   return false;
 }
 
+TInt TPrintClusterJson::GetNumDaysInMonth(TSecTm& Date) {
+  if (Date.GetMonthN() == 2 && IsLeapYear(Date.GetYearN())) {
+    return 29;
+  } else {
+    return NumDaysInMonth[Date.GetMonthN() - 1];
+  }
+}
+
+// rounding down.
 TSecTm TPrintClusterJson::RoundStartDate(TSecTm& StartDate, TStr& Type) {
   TSecTm NewStartDate = StartDate;
   if (Type == "week") {  // Round to next Saturday (or don't round if StartDate is a Saturday)
-    NewStartDate.AddDays(7 - StartDate.GetDayOfWeekN());  // DayOfWeekN = 7 for Sat, = 1 for Sun
-  } else if (Type == "month" || Type == "3month") {  // Round to nearest 1st (or don't round if StartDate is a 1st)
-    if (StartDate.GetDayN() != 1) {
-      if (StartDate.GetMonthN() == 2 && IsLeapYear(StartDate.GetYearN())) {
-        NewStartDate.AddDays(29 - StartDate.GetDayN() + 1);
-      } else {
-        NewStartDate.AddDays(NumDaysInMonth[StartDate.GetMonthN() - 1] - StartDate.GetDayN() + 1);
+    NewStartDate.AddDays(-1 * StartDate.GetDayOfWeekN());  // DayOfWeekN = 7 for Sat, = 1 for Sun
+  } else if (Type == "month" || Type == "3month") {
+    NewStartDate.AddDays(-1 * StartDate.GetDayN() + 1); // Round to nearest 1st (or don't round if StartDate is a 1st)
+    if (Type == "3month") {
+      while ((NewStartDate.GetMonthN() - 1) % 3 != 0) {
+        NewStartDate.AddDays(-1 * GetNumDaysInMonth(NewStartDate)); // go back another month
       }
     }
   }
@@ -180,25 +188,17 @@ TSecTm TPrintClusterJson::CalculateEndPeriodDate(TSecTm& CurrentDate, TStr& Type
   } else if (Type == "week") {
     EndPeriodDate.AddDays(7);
   } else if (Type == "month") {
-    if (CurrentDate.GetMonthN() == 2 && IsLeapYear(CurrentDate.GetYearN())) {
-      EndPeriodDate.AddDays(29);
-    } else {
-      EndPeriodDate.AddDays(NumDaysInMonth[CurrentDate.GetMonthN() - 1]);
-    }
+    EndPeriodDate.AddDays(GetNumDaysInMonth(EndPeriodDate));
   } else if (Type == "3month") {
     for (int i = 0; i < 3; i++) {
-      if (EndPeriodDate.GetMonthN() == 2 && IsLeapYear(EndPeriodDate.GetYearN())) {
-        EndPeriodDate.AddDays(29);
-      } else {
-        EndPeriodDate.AddDays(NumDaysInMonth[EndPeriodDate.GetMonthN() - 1]);
-      }
+      EndPeriodDate.AddDays(GetNumDaysInMonth(EndPeriodDate));
     }
   }
   return EndPeriodDate;
 }
 
 /// StartString and EndString must be in the form "YYYY-MM-DD", e.g. "2012-02-22"
-void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndString, LogOutput& Log, TStr& Type, TStr QBDBCDirectory) {
+void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndString, LogOutput& Log, TStr Type, TStr QBDBCDirectory) {
 
   TStr TopClusterSelection = "cumulative";  // Can be "cumulative" or "daily" 
   //if (UseDailyTopClusters) {  // Not using this feature, so commenting it out for now
@@ -255,7 +255,7 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
       if (TopClusterSelection == "daily") {
         // Get top clusters
         TIntV TopClusters;
-        PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopClusters, CurrentDate, QGraph);
+        PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopClusters, CurrentDate, QGraph, false);
 
         for (int j = 0; j < NumTopClustersPerDay && j < TopClusters.Len(); j++) {
           if (ClustersToPrint.SearchForw(TopClusters[j]) < 0) {
@@ -282,7 +282,7 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
       PostCluster::FilterAndCacheClusterSize(&DBCumulative, &QBCumulative, &CBCumulative, Log, TopFilteredClusters, CurrentDate);
       PostCluster::FilterAndCacheClusterPeaks(&DBCumulative, &QBCumulative, &CBCumulative, Log, TopFilteredClusters, CurrentDate);
 
-      for (int j = 0; j < 50; j++) {
+      for (int j = 0; j < 50 && j < TopFilteredClusters.Len(); j++) {
         ClustersToPrint.Add(TopFilteredClusters[j]);
       }
 

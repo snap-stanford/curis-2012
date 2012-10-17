@@ -19,7 +19,7 @@ void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteB
   //MergeClustersWithCommonSources(QB, TopFilteredClusters, CB);
   FilterAndCacheClusterSize(DB, QB, CB, Log, TopFilteredClusters, PresentTime);
   FilterAndCacheClusterPeaks(DB, QB, CB, Log, TopFilteredClusters, PresentTime);
-  fprintf(stderr, "Number of top clusters: %d\n", TopFilteredClusters.Len());
+  fprintf(stderr, "Number of top clusters remaining after 2 passes: %d\n", TopFilteredClusters.Len());
 
   // sort by popularity
   // Sort remaining clusters by popularity
@@ -299,7 +299,7 @@ void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClus
 
   // log the discarded clusters in a log file.
   Log.OutputDiscardedClusters(QB, DiscardedClusters, PresentTime);
-  fprintf(stderr, "Done!\n");
+  fprintf(stderr, "Done with peak filtering!\n");
 }
 
 void PostCluster::FilterAndCacheClusterSize(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV& TopClusters, TSecTm& PresentTime) {
