@@ -8,9 +8,15 @@ int main(int argc, char *argv[]) {
   ArgumentParser::ParseArguments(argc, argv, Arguments, Log);
 
   TStr StartString = ArgumentParser::GetArgument(Arguments, "start", "2009-02-01");
-  TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", "/lfs/1/tmp/curis/QBDBC/");
-  TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", "/lfs/1/tmp/curis/QBDB/");
+  TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", QBDBC_DIR_DEFAULT);
+  TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
   TInt WindowSize = ArgumentParser::GetArgument(Arguments, "window", "14").GetInt();
+
+  if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
+    Log.SetupNewOutputDirectory("");
+  } else {
+    Log.SetDirectory(OutputDirectory);
+  }
 
   // #### DATA LOADING: Load everything!
   TQuoteBase QB;
@@ -29,7 +35,6 @@ int main(int argc, char *argv[]) {
   ClusterJob.BuildClusters(&CB, &QB, &DB, Log, PresentTime);
 
   // #### POST CLUSTERING STEP YO
-  Log.SetupNewOutputDirectory(""); // safe to make files now.
   TIntV TopFilteredClusters;
   //CB.GetAllClusterIdsSortByFreq(TopFilteredClusters);
   PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, PresentTime, QGraph);

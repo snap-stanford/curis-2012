@@ -8,8 +8,8 @@ int main(int argc, char *argv[]) {
   ArgumentParser::ParseArguments(argc, argv, Arguments, Log);
 
   TStr StartString = ArgumentParser::GetArgument(Arguments, "date", "2009-02-01");
-  TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", "/lfs/1/tmp/curis/QBDBC/");
-  TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", "/lfs/1/tmp/curis/QBDB/");
+  TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", QBDBC_DIR_DEFAULT);
+  TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
 
   TQuoteBase QB;
   TDocBase DB;

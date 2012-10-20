@@ -88,8 +88,8 @@ int main(int argc, char *argv[]) {
   THash<TStr, TStr> Arguments;
   ArgumentParser::ParseArguments(argc, argv, Arguments, Log);
   TStr CurDateStr = ArgumentParser::GetArgument(Arguments, "date", "2012-01-01");
-  TStr QBDBDir = ArgumentParser::GetArgument(Arguments, "qbdb", "/lfs/1/tmp/curis/QBDB/");
-  TStr Spinn3rDir = ArgumentParser::GetArgument(Arguments, "spinn3r", "/lfs/1/tmp/curis/spinn3r/");
+  TStr QBDBDir = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
+  TStr Spinn3rDir = ArgumentParser::GetArgument(Arguments, "spinn3r", SPINNER_DIR_DEFAULT);
   TSecTm CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(CurDateStr);
 
   // Setup Output Directory

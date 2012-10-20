@@ -2,7 +2,7 @@
 #include "quote.h"
 #include "doc.h"
 
-const TStr LogOutput::WebDirectory = "../../public_html/curis/output/clustering/";
+const TStr LogOutput::WebDirectory = WEB_DIR_DEFAULT;
 const TStr LogOutput::PercentEdgesDeleted = "PercentEdgesDeleted";
 const TStr LogOutput::PercentEdgesDeletedNotFromSubgraphs = "PercentEdgesDeletedNotFromSubgraphs";
 const TStr LogOutput::PercentEdgesDeletedNFSBaseline = "PercentEdgesDeletedNFSBaseline";

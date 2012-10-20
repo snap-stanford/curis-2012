@@ -8,10 +8,9 @@
 #include "printclusterjson.h"
 
 const int TPrintClusterJson::NumDaysInMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-TStr StandardJsonDir = "../../../public_html/curis/output/clustering/webdata/";
 
 TPrintClusterJson::TPrintClusterJson() {
-  OutputJsonDir = StandardJsonDir;
+  OutputJsonDir = JSON_DIR_DEFAULT;
 }
 
 TPrintClusterJson::TPrintClusterJson(TStr& OutputJsonDir) {
@@ -297,6 +296,7 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
        //                         ClustersRepQuote, CurrentDate, i + 1, Type);
     } else {
 
+      // TODO: wtf is this?! o.o
       if (CurrentDate == EndPeriodDate) {
         TStr OutputFilename = "../../../public_html/curis/output/clustering/visualization-" + Type + "-ext/data/clusterinfo-" +
                           StartPeriodDate.GetDtYmdStr() + "-new.json";

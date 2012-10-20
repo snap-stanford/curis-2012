@@ -11,8 +11,8 @@ int main(int argc, char *argv[]) {
   TStr OutputDirectory;
   TStr StartString = ArgumentParser::GetArgument(Arguments, "start", "2009-02-01");
   TStr EndString = ArgumentParser::GetArgument(Arguments, "end", "2009-02-06");
-  TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", "/lfs/1/tmp/curis/QBDBC/");
-  TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", "/lfs/1/tmp/curis/QBDB/");
+  TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", QBDBC_DIR_DEFAULT);
+  TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
 
   if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
     Log.SetupNewOutputDirectory("");
