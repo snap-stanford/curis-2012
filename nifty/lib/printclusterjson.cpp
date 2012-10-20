@@ -221,12 +221,12 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
 
   TSecTm StartDate = TSecTm::GetDtTmFromYmdHmsStr(StartString);
   StartDate = RoundStartDate(StartDate, Type);
-  fprintf(stderr, "Start date: %s\n", StartDate.GetDtYmdStr().CStr());
+  Err("start date: %s\n", StartDate.GetDtYmdStr().CStr());
   TSecTm EndDate = TSecTm::GetDtTmFromYmdHmsStr(EndString);
   fprintf(stderr, "End date: %s\n", EndDate.GetDtYmdStr().CStr());
   TSecTm CurrentDate = StartDate;
 
-  while(CurrentDate < EndDate) {
+  while (CurrentDate < EndDate) {
     // Writes cluster information to JSON file for the current day/week/month interval
     TSecTm StartPeriodDate = CurrentDate;
     TSecTm EndPeriodDate = CalculateEndPeriodDate(CurrentDate, Type);

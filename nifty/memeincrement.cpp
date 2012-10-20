@@ -74,15 +74,13 @@ int main(int argc, char *argv[]) {
     // ## SAVE CLUSTERS OR SAVE THEM TO VARIABLES.
     OldQGraph = QGraph;
     CB = NewCB;
-    OldTopClusters = TopFilteredClusters;
     TStr FileName = QBDBCDirectory + "QBDBC" + CurrentDate.GetDtYmdStr() + ".bin";
     TDataLoader::SaveQBDBCQ(FileName, &QB, &DB, &CB, QGraph);
 
     // ## LOG.
     Log.LogAllInformation(&DB, &QB, &NewCB, TopFilteredClusters, CurrentDate, OldTopClusters, QBDBCDirectory);
 
-
-
+    OldTopClusters = TopFilteredClusters;
     CurrentDate.AddDays(1);
   }
   // plot output

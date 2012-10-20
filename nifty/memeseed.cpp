@@ -36,14 +36,8 @@ int main(int argc, char *argv[]) {
 
   // #### SAVE THE DOLPHINS! I MEAN CLUSTERS
   TStr FileName = QBDBCDirectory + "QBDBC" + PresentTime.GetDtYmdStr() + ".bin";
-  fprintf(stderr, "Saving Cluster information to file: %s", FileName.CStr());
-  TFOut FOut(FileName);
-  QB.Save(FOut);
-  DB.Save(FOut);
-  CB.Save(FOut);
-  QGraph->Save(FOut);
+  TDataLoader::SaveQBDBCQ(FileName, &QB, &DB, &CB, QGraph);
 
-  // TODO: consider if quote is dead?
   TIntV Temp;
   Log.LogAllInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime, Temp, QBDBCDirectory);
 

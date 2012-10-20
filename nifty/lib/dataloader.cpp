@@ -342,15 +342,13 @@ void TDataLoader::FilterOldData(TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, 
 
 void TDataLoader::LoadCumulative(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, PNGraph& P) {
   TStr CurFileName = Prefix + "QBDBC" + Date + ".bin";
-  if (FILE * file = fopen(CurFileName.CStr(), "r"))
-  {
-      fclose(file);
-      TFIn CurFile(CurFileName);
-      QB.Load(CurFile);
-      DB.Load(CurFile);
-      CB.Load(CurFile);
-      P = TNGraph::Load(CurFile);
-      IAssert(!QB.IsContainNullQuote());
+  if (TFile::Exists(CurFileName)) {
+    TFIn CurFile(CurFileName);
+    QB.Load(CurFile);
+    DB.Load(CurFile);
+    CB.Load(CurFile);
+    P = TNGraph::Load(CurFile);
+    IAssert(!QB.IsContainNullQuote());
   }
 }
 
@@ -403,9 +401,11 @@ void TDataLoader::SaveQBDBC(TStr FileName, TQuoteBase *QB, TDocBase *DB, TCluste
 
 void TDataLoader::SaveQBDBCQ(TStr FileName, TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, PNGraph QGraph) {
   Err("Saving Cluster information to file: %s\n", FileName.CStr());
-  TFOut FOut(FileName);
-  QB->Save(FOut);
-  DB->Save(FOut);
-  CB->Save(FOut);
-  QGraph->Save(FOut);
+  {
+    TFOut FOut(FileName);
+    QB->Save(FOut);
+    DB->Save(FOut);
+    CB->Save(FOut);
+    QGraph->Save(FOut);
+  }
 }
