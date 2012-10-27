@@ -7,12 +7,15 @@ int main(int argc, char *argv[]) {
   THash<TStr, TStr> Arguments;
   ArgumentParser::ParseArguments(argc, argv, Arguments, Log);
 
+  TStr OutputDirectory;
   TStr StartString = ArgumentParser::GetArgument(Arguments, "start", "2009-02-01");
   TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", QBDBC_DIR_DEFAULT);
   TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
   TInt WindowSize = ArgumentParser::GetArgument(Arguments, "window", "14").GetInt();
 
-  if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
+  if (ArgumentParser::GetArgument(Arguments, "nolog", "") == "") {
+    Log.DisableLogging();
+  } else if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
     Log.SetupNewOutputDirectory("");
   } else {
     Log.SetDirectory(OutputDirectory);

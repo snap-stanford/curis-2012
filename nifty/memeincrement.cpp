@@ -14,7 +14,9 @@ int main(int argc, char *argv[]) {
   TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", QBDBC_DIR_DEFAULT);
   TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
 
-  if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
+  if (ArgumentParser::GetArgument(Arguments, "nolog", "") == "") {
+    Log.DisableLogging();
+  } else if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
     Log.SetupNewOutputDirectory("");
   } else {
     Log.SetDirectory(OutputDirectory);
