@@ -510,3 +510,24 @@ TStr TClusterBase::ContainsEmptyClusters() {
   }
   return "safe!";
 }
+
+void TClusterBase::SortClustersByPopularity(TDocBase *DB, TQuoteBase *QB, TIntV& Clusters, TSecTm& CurrentTime) {
+  Err("Sorting by popularity...\n");
+  TVec<TPair<TInt, TFlt> > PopularityVec;
+  for (int i = 0; i < Clusters.Len(); i++) {
+    TCluster C;
+    GetCluster(Clusters[i], C);
+    // Only add good clusters
+    if (C.GetDiscardState() == 0) {
+      TFlt Score = C.GetPopularity(QB, DB, CurrentTime);
+      PopularityVec.Add(TPair<TInt, TFlt>(Clusters[i], Score));
+    }
+  }
+  PopularityVec.SortCmp(TCmpTClusterByPopularity(false));
+
+  TIntV TopFilteredClustersByPopularity;
+  for (int i = 0; i < PopularityVec.Len(); i++) {
+    TopFilteredClustersByPopularity.Add(PopularityVec[i].Val1);
+  }
+  Clusters = TopFilteredClustersByPopularity;
+}

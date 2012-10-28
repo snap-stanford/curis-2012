@@ -95,9 +95,9 @@ void LogOutput::LogAllInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB
   TPrintClusterJson JSONJob(JSONDirectory);
   LogOutput TmpLog;
   TmpLog.DisableLogging();
-  JSONJob.PrintClusterJsonForPeriod(CurDateString, NextDayString, TmpLog, "week", QBDBCDirectory);
-  JSONJob.PrintClusterJsonForPeriod(CurDateString, NextDayString, TmpLog, "month", QBDBCDirectory);
-  JSONJob.PrintClusterJsonForPeriod(CurDateString, NextDayString, TmpLog, "3month", QBDBCDirectory);
+  JSONJob.PrintClusterJSONForPeriod(CurDateString, "week", QBDBCDirectory);
+  JSONJob.PrintClusterJSONForPeriod(CurDateString, "month", QBDBCDirectory);
+  JSONJob.PrintClusterJSONForPeriod(CurDateString, "3month", QBDBCDirectory);
 }
 
 void LogOutput::WriteClusteringStatisticsToFile(TSecTm& Date) {

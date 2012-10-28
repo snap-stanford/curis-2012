@@ -26,7 +26,8 @@ private:
 public:
   TPrintClusterJson();
   TPrintClusterJson(TStr& OutputJsonDir);
-  void PrintClusterJsonForPeriod(TStr& StartString, TStr& EndString, LogOutput& Log, TStr Type, TStr QBDBCDirectory = TStr("/lfs/1/tmp/curis/QBDBC/"));
+  void PrintClusterJSONForPeriod(TStr& CurTimeString, TStr Type, TStr QBDBCDirectory);
+  void PrintClusterJsonForPeriod(TStr& StartString, TStr& EndString, LogOutput& Log, TStr Type, TStr QBDBCDirectory);
 };
 
 #endif

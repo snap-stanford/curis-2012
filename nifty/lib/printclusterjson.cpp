@@ -196,6 +196,52 @@ TSecTm TPrintClusterJson::CalculateEndPeriodDate(TSecTm& CurrentDate, TStr& Type
   return EndPeriodDate;
 }
 
+void TPrintClusterJson::PrintClusterJSONForPeriod(TStr& CurTimeString, TStr Type, TStr QBDBCDirectory) {
+  if (Type != "week" || Type != "month" || Type != "3month") return;
+  TSecTm CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(CurTimeString);
+  TSecTm StartDate = RoundStartDate(CurrentDate, Type);
+  TSecTm EndDate = CalculateEndPeriodDate(StartDate, Type);
+  CurrentDate = StartDate;
+
+  TQuoteBase QBCumulative;
+  TDocBase DBCumulative;
+  TClusterBase CBCumulative;
+
+  TIntSet TopClusters;
+
+  while (CurrentDate < EndDate) {
+    TQuoteBase QB;
+    TDocBase DB;
+    TClusterBase CB;
+    PNGraph QGraph;
+    Err("Loading top QBDBCB for %s from file...\n", CurrentDate.GetDtYmdStr().CStr());
+    TDataLoader::LoadCumulative(QBDBCDirectory, CurrentDate.GetDtYmdStr(), QB, DB, CB, QGraph);
+
+    TIntV TopFilteredClusters;
+    CB.GetTopClusterIdsByFreq(TopFilteredClusters);
+    CB.SortClustersByPopularity(&DB, &QB, TopFilteredClusters, CurrentDate);
+    int NumClusters = 24; // #clusters per day to remember
+    if (Type == "month") NumClusters = 6;
+    else if (Type == "3month") NumClusters = 2;
+    for (int i = 0; i < NumClusters && i < TopFilteredClusters.Len(); i++) {
+      TopClusters.AddKey(TopFilteredClusters[i]);
+    }
+
+    TDataLoader::MergeQBDBCB(QBCumulative, DBCumulative, CBCumulative, QB, DB, CB, CurrentDate);
+    CurrentDate.AddDays(1);
+  }
+
+  TIntV TopClustersV;
+  TopClusters.GetKeyV(TopClustersV);
+  TopClustersV.Sort(true);
+
+  TStr OutputJsonDirFinal = OutputJsonDir + Type + "/";
+  bool IncludeDate = (Type == "week");  // Have filename contain YYYY-MM instead of YYYY-MM-DD
+  TPrintJson::PrintClustersJson(&QBCumulative, &DBCumulative, &CBCumulative, TopClustersV, TopClustersV,
+                                OutputJsonDirFinal, OutputJsonDirFinal, StartDate, EndDate, IncludeDate);
+
+}
+
 /// StartString and EndString must be in the form "YYYY-MM-DD", e.g. "2012-02-22"
 void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndString, LogOutput& Log, TStr Type, TStr QBDBCDirectory) {
 

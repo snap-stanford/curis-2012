@@ -21,10 +21,11 @@ int main(int argc, char *argv[]) {
     Log.SetDirectory(OutputDirectory);
   }
 
-  // #### DATA LOADING: Load everything!
+  // #### DATA LOADING: Load ALL the things!
   TQuoteBase QB;
   TDocBase DB;
   fprintf(stderr, "Loading QB and DB from file for %d days, starting from %s...\n", WindowSize.Val, StartString.CStr());
+  Err("%s\n", QBDBDirectory.CStr());
   TSecTm PresentTime = TDataLoader::LoadQBDBByWindow(QBDBDirectory, StartString, WindowSize, QB, DB);
   fprintf(stderr, "\tQBDB successfully loaded!\n");
 

@@ -89,6 +89,7 @@ public:
   TInt GetCounter();
   TStr ContainsEmptyClusters();
   bool IsQuoteInArchivedCluster(TInt& QuoteId);
+  void SortClustersByPopularity(TDocBase *DB, TQuoteBase *QB, TIntV& Clusters, TSecTm& CurrentTime);
 };
 
 // Compares TClusters by sum of quote frequencies

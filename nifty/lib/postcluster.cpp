@@ -20,26 +20,8 @@ void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteB
   FilterAndCacheClusterSize(DB, QB, CB, Log, TopFilteredClusters, PresentTime);
   FilterAndCacheClusterPeaks(DB, QB, CB, Log, TopFilteredClusters, PresentTime);
   fprintf(stderr, "Number of top clusters remaining after 2 passes: %d\n", TopFilteredClusters.Len());
-
-  // sort by popularity
-  // Sort remaining clusters by popularity
-  TVec<TPair<TInt, TFlt> > PopularityVec;
-  fprintf(stderr, "Sorting by popularity...\n");
-  for (int i = 0; i < TopFilteredClusters.Len(); i++) {
-    //fprintf(stderr, "Calculating popularity for quote %d of %d\n", i, TopFilteredClusters.Len());
-    TCluster C;
-    CB->GetCluster(TopFilteredClusters[i], C);
-    TFlt Score = C.GetPopularity(QB, DB, PresentTime);
-    PopularityVec.Add(TPair<TInt, TFlt>(TopFilteredClusters[i], Score));
-  }
-  PopularityVec.SortCmp(TCmpTClusterByPopularity(false));
-
-  TIntV TopFilteredClustersByPopularity;
-  for (int i = 0; i < PopularityVec.Len(); i++) {
-    TopFilteredClustersByPopularity.Add(PopularityVec[i].Val1);
-  }
-  TopFilteredClusters = TopFilteredClustersByPopularity;
-  fprintf(stderr, "Done!\n");
+  CB->SortClustersByPopularity(DB, QB, TopFilteredClusters, PresentTime);
+  Err("Done!\n");
 }
 
 /// Merges pairs of clusters if any quote of one is a substring of a quote
