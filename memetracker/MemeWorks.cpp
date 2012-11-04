@@ -11,7 +11,7 @@ int main(int argc, char* argv[]) {
   printf("MemeWorks. build: %s, %s. Start time: %s\n\n", __TIME__, __DATE__, TExeTm::GetCurTm());
   //TSysProc::SetLowPriority();
   TExeTm ExeTm;  TInt::Rnd.PutSeed(0);  Try
-  //BigMain(argc, argv); return 0;
+  BigMain(argc, argv); return 0;
   //char *ToDo [] = {"QuotesApp", "-do:mkdataset", "-i:_files.txt"};  BigMain(3, ToDo);  return 0;
   //char *ToDo [] = {"QuotesApp", "-do:memestoqtbs", "-i:f.txt"};  BigMain(3, ToDo);  return 0;
   //char *ToDo [] = {"QuotesApp", "-do:mksentences", "-i:f.txt"};  BigMain(3, ToDo);  return 0;
