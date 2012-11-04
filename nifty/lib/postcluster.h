@@ -20,7 +20,7 @@ public:
   static const int DayThreshold;
   static const int QuoteThreshold;
 
-  static void GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm& PresentTime, PNGraph& QGraph);
+  static void GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm& PresentTime, PNGraph& QGraph, bool RemoveClusters = true);
   static void MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TIntV& TopClusters, TClusterBase *CB);
   static void MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV& TopClusters, TClusterBase *CB);
   static void MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClusters, TClusterBase *CB);

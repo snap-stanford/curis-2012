@@ -32,6 +32,9 @@ public:
   static void LoadQBDB(const TStr&, const TStr&, TQuoteBase&, TDocBase&);
   static TSecTm LoadBulkQBDB(const TStr&, const TStr&, TQuoteBase&, TDocBase&);
   static TSecTm LoadQBDBByWindow(const TStr& Prefix, const TStr& StartDate, const TInt WindowSize, TQuoteBase& QB, TDocBase& DB);
+
+  static void SaveQBDBC(TStr FileName, TQuoteBase *QB, TDocBase *DB, TClusterBase *CB);
+  static void SaveQBDBCQ(TStr FileName, TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, PNGraph QGraph);
 };
 
 #endif

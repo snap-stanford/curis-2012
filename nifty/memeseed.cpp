@@ -5,29 +5,27 @@ int main(int argc, char *argv[]) {
   // #### SETUP: Parse Arguments
   LogOutput Log;
   THash<TStr, TStr> Arguments;
-  TStr BaseString;
-  ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
+  ArgumentParser::ParseArguments(argc, argv, Arguments, Log);
 
-  TStr StartString, QBDBDirectory, QBDBCDirectory, WindowString;
-  if (!Arguments.IsKeyGetDat("start", StartString)) {
-    StartString = "2012-06-24";
-  }
-  if (!Arguments.IsKeyGetDat("qbdb", QBDBDirectory)) {
-    QBDBDirectory = "/lfs/1/tmp/curis/QBDB/";
-  }
-  if (!Arguments.IsKeyGetDat("qbdbc", QBDBCDirectory)) {
-    QBDBCDirectory = "/lfs/1/tmp/curis/QBDBC/";
-  }
+  TStr OutputDirectory;
+  TStr StartString = ArgumentParser::GetArgument(Arguments, "start", "2009-02-01");
+  TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", QBDBC_DIR_DEFAULT);
+  TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
+  TInt WindowSize = ArgumentParser::GetArgument(Arguments, "window", "14").GetInt();
 
-  TInt WindowSize = 14;
-  if (Arguments.IsKeyGetDat("window", WindowString)) {
-    WindowSize = WindowString.GetInt();
+  if (ArgumentParser::GetArgument(Arguments, "nolog", "") == "") {
+    Log.DisableLogging();
+  } else if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
+    Log.SetupNewOutputDirectory("");
+  } else {
+    Log.SetDirectory(OutputDirectory);
   }
 
-  // #### DATA LOADING: Load everything!
+  // #### DATA LOADING: Load ALL the things!
   TQuoteBase QB;
   TDocBase DB;
   fprintf(stderr, "Loading QB and DB from file for %d days, starting from %s...\n", WindowSize.Val, StartString.CStr());
+  Err("%s\n", QBDBDirectory.CStr());
   TSecTm PresentTime = TDataLoader::LoadQBDBByWindow(QBDBDirectory, StartString, WindowSize, QB, DB);
   fprintf(stderr, "\tQBDB successfully loaded!\n");
 
@@ -41,23 +39,19 @@ int main(int argc, char *argv[]) {
   ClusterJob.BuildClusters(&CB, &QB, &DB, Log, PresentTime);
 
   // #### POST CLUSTERING STEP YO
-  Log.SetupNewOutputDirectory(); // safe to make files now.
   TIntV TopFilteredClusters;
   //CB.GetAllClusterIdsSortByFreq(TopFilteredClusters);
   PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, PresentTime, QGraph);
 
   // #### SAVE THE DOLPHINS! I MEAN CLUSTERS
   TStr FileName = QBDBCDirectory + "QBDBC" + PresentTime.GetDtYmdStr() + ".bin";
-  fprintf(stderr, "Saving Cluster information to file: %s", FileName.CStr());
-  TFOut FOut(FileName);
-  QB.Save(FOut);
-  DB.Save(FOut);
-  CB.Save(FOut);
-  QGraph->Save(FOut);
+  TDataLoader::SaveQBDBCQ(FileName, &QB, &DB, &CB, QGraph);
 
-  // TODO: consider if quote is dead?
-  Log.OutputClusterInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime);
-  Log.WriteClusteringOutputToFile(PresentTime);
+  TIntV Temp;
+  Log.LogAllInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime, Temp, QBDBCDirectory);
 
+  TStr Directory;
+  Log.GetDirectory(Directory);
+  Err("Done with memeseed! Directory created at: %s\n", Directory.CStr());
   return 0;
 }

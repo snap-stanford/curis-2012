@@ -1,10 +1,134 @@
 #include "stdafx.h"
 #include "printjson.h"
 
+void TPrintJson::PrintJSON(TStr& FileName, THash<TStr, TStrV> JSON, TStr& Extra) {
+  FILE *F = fopen(FileName.CStr(), "w");
+  TStrV Keys;
+  JSON.GetKeyV(Keys);
+  fprintf(F, "{");
+  if (Extra.Len() > 0) {
+    fprintf(F, "%s", Extra.CStr());
+    if(Keys.Len() > 0) fprintf(F, ", ");
+  }
+  for (int i = 0; i < Keys.Len(); i++) {
+    TStrV Values = JSON.GetDat(Keys[i]);
+    fprintf(F, "\"%s\": [", Keys[i].CStr());
+    for (int j = 0; j < Values.Len(); j++) {
+      fprintf(F, "\"%s\"", Values[j].CStr());
+      if (j + 1 < Values.Len()) fprintf(F, ", ");
+    }
+    fprintf(F, "]");
+    if (i + 1 < Keys.Len()) fprintf(F, ", ");
+  }
+  fprintf(F, "}");
+  fclose(F);
+}
+
+void TPrintJson::PrintClusterTableJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
+                                       TStr& FileName, TIntV& Clusters, TStrV& RankStr) {
+  TStrV Label, Quote, Frequency, NumVariants;
+  int NumClusters = Clusters.Len();
+  for (int i = 0; i < NumClusters; i++) {
+    Label.Add(Clusters[i].GetStr());
+    TCluster C;
+    CB->GetCluster(Clusters[i], C);
+    TStr CRepQuote;
+    C.GetRepresentativeQuoteString(CRepQuote, QB);
+    Quote.Add(CRepQuote);
+
+    TIntV CQuoteIds, CUniqueSources;
+    C.GetQuoteIds(CQuoteIds);
+    TCluster::GetUniqueSources(CUniqueSources, CQuoteIds, QB);
+    Frequency.Add(TInt(CUniqueSources.Len()).GetStr());
+    NumVariants.Add(C.GetNumUniqueQuotes().GetStr());
+  }
+
+  THash<TStr, TStrV> JSON;
+  JSON.AddDat("label", Label);
+  if (RankStr.Len() > 0)
+    JSON.AddDat("prev", RankStr);
+  JSON.AddDat("frequency", Frequency);
+  JSON.AddDat("numvariants", NumVariants);
+  JSON.AddDat("quote", Quote);
+  TStr Empty;
+  PrintJSON(FileName, JSON, Empty);
+}
+
+void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
+                                  TStr& FolderName, TInt& ClusterId, TSecTm PresentTime) {
+  Err("getting peaks\n");
+  TStr CurDateString = PresentTime.GetDtYmdStr();
+  TCluster C;
+  CB->GetCluster(ClusterId, C);
+  TFreqTripleV PeakV, FreqV;
+  C.GetPeaks(DB, QB, PeakV, FreqV, PEAK_BUCKET, PEAK_WINDOW, PresentTime);
+
+  //Err("before peak\n");
+
+  TStr Plots = "\"plot\": [";
+
+  for (int i = 0; i < FreqV.Len(); i++) {
+    Plots += "[" + FreqV[i].Val1.GetStr() + ", " + FreqV[i].Val2.GetStr() + "]";
+    if (i + 1 < FreqV.Len()) Plots += ", ";
+  }
+  Plots += "], \"peak\": [";
+  for (int i = 0; i < PeakV.Len(); i++) {
+    Plots += "[" + PeakV[i].Val1.GetStr() + ", " + PeakV[i].Val2.GetStr() + "]";
+    if (i + 1 < PeakV.Len()) Plots += ", ";
+  }
+  Plots += "]";
+  Plots += ", \"modified\": \"" + CurDateString + "\"";
+
+  //Err("after peak\n");
+
+  TStrV Quote, Urls, Frequencies, Quotes;
+  TStr CRepQuote;
+  C.GetRepresentativeQuoteString(CRepQuote, QB);
+  Quote.Add(CRepQuote);
+
+  TIntV QuoteIds;
+  C.GetQuoteIds(QuoteIds);
+  for (int j = 0; j < QuoteIds.Len(); j++) {
+    TQuote Q;
+    if (QB->GetQuote(QuoteIds[j], Q)) {
+      TStr QuoteStr, QuoteURL;
+      Q.GetContentString(QuoteStr);
+      QB->GetRepresentativeUrl(DB, Q.GetId(), QuoteURL);
+
+      Urls.Add(QuoteURL);
+      Frequencies.Add(Q.GetNumSources().GetStr());
+      Quotes.Add(QuoteStr);
+    }
+  }
+
+  //Err("after filling\n");
+
+  THash<TStr, TStrV> JSON;
+  JSON.AddDat("quote", Quote);
+  JSON.AddDat("urls", Urls);
+  JSON.AddDat("frequencies", Frequencies);
+  JSON.AddDat("quotes", Quotes);
+
+  TInt FirstIndex = ClusterId / 10000;
+  TInt SecondIndex = FirstIndex / 1000;
+  TStr NestedFolderName = FolderName + SecondIndex.GetStr() + "/" + FirstIndex.GetStr();
+  TStr FileName = NestedFolderName + "/" + ClusterId.GetStr() + ".json";
+  TStr Command = "mkdir -p " + NestedFolderName;
+  system(Command.CStr());
+  PrintJSON(FileName, JSON, Plots);
+  //Err("after JSON\n");
+}
+
+/// If the parameter IncludeDate = true, the date is included in the output file's name
 void TPrintJson::PrintClustersJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
-                                   TIntV& ClustersToGraph, TIntV& ClustersToTable, const TStr& GraphDir, const TStr& TableDir, TSecTm& StartDate, TSecTm& EndDate) {
-  PrintClustersGraphJson(QB, DB, CB, ClustersToGraph, GraphDir, StartDate, EndDate);
-  PrintClustersTableJson(QB, DB, CB, ClustersToTable, TableDir, StartDate, EndDate);
+                                   TIntV& ClustersToGraph, TIntV& ClustersToTable, const TStr& GraphDir, const TStr& TableDir, TSecTm& StartDate, TSecTm& EndDate, bool IncludeDate) {
+  // Make the directories if they don't already exist
+  TStr Command = "mkdir -p " + GraphDir;
+  system(Command.CStr());
+  Command = "mkdir -p " + TableDir;
+  system(Command.CStr());
+  PrintClustersGraphJson(QB, DB, CB, ClustersToGraph, GraphDir, StartDate, EndDate, IncludeDate);
+  PrintClustersTableJson(QB, DB, CB, ClustersToTable, TableDir, StartDate, EndDate, IncludeDate);
 }
 
 /// Returns in ClustersToPrint the top NumPerDay clusters per day, ordered by frequency.
@@ -17,11 +141,10 @@ void TPrintJson::GetTopPeakClustersPerDay(TQuoteBase *QB, TDocBase *DB, TCluster
   for (int i = 0; i < 50 && i < ClusterIdsByFreq.Len(); i++) {
     ClustersToPrint.Add(ClusterIdsByFreq[i]);
   }
-
 }
 
 void TPrintJson::PrintClustersGraphJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
-                                        TIntV& ClustersToPrint, const TStr& Directory, TSecTm& StartDate, TSecTm& EndDate) {
+                                        TIntV& ClustersToPrint, const TStr& Directory, TSecTm& StartDate, TSecTm& EndDate, bool IncludeDate) {
   fprintf(stderr, "Preparing to write JSON graph data to file\n");
   THash<TSecTm, TFltV> FreqOverTime;
   TVec<TSecTm> Times;
@@ -35,7 +158,7 @@ void TPrintJson::PrintClustersGraphJson(TQuoteBase *QB, TDocBase *DB, TClusterBa
     TFreqTripleV CFreqV;
     uint StartDays = StartDate.GetInUnits(tmuDay);
     uint EndDays = EndDate.GetInUnits(tmuDay);
-    Peaks::GetFrequencyVector(DB, CSources, CFreqV, 12, 3, EndDate, TInt(EndDays - StartDays + 1));
+    Peaks::GetFrequencyVector(DB, CSources, CFreqV, 4, 2, EndDate, TInt(EndDays - StartDays + 1));
 
     if (FreqOverTime.Len() == 0) {  // Initialize the values in the hash table
       for (int j = 0; j < CFreqV.Len(); j++) {
@@ -56,7 +179,12 @@ void TPrintJson::PrintClustersGraphJson(TQuoteBase *QB, TDocBase *DB, TClusterBa
   }
   fprintf(stderr, "Writing JSON graph data to file\n");
 
-  TStr OutputFilename = Directory + "clusterinfo-" + StartDate.GetDtYmdStr() + ".json";
+  TStr StartDateStr = StartDate.GetDtYmdStr();
+  if (!IncludeDate) {
+    StartDateStr = StartDateStr.Left(StartDateStr.Len() - 3);
+  }
+
+  TStr OutputFilename = Directory + "clusterinfo-" + StartDateStr + ".json";
   FILE *F = fopen(OutputFilename.CStr(), "w");
   fprintf(F, "{\"values\": [");
   TInt NumTimesToPrint = Times.Len() - 1;  // Skip the last time stamp, because it is all zeroes and will 
@@ -92,10 +220,15 @@ void TPrintJson::PrintClustersGraphJson(TQuoteBase *QB, TDocBase *DB, TClusterBa
 }
 
 void TPrintJson::PrintClustersTableJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
-                                        TIntV& ClustersToPrint, const TStr& Directory, TSecTm& StartDate, TSecTm& EndDate) {
+                                        TIntV& ClustersToPrint, const TStr& Directory, TSecTm& StartDate, TSecTm& EndDate, bool IncludeDate) {
   fprintf(stderr, "Writing JSON table data to file\n");
 
-  TStr OutputFilename = Directory + "clustertable-" + StartDate.GetDtYmdStr() + ".json";
+  TStr StartDateStr = StartDate.GetDtYmdStr();
+  if (!IncludeDate) {
+    StartDateStr = StartDateStr.Left(StartDateStr.Len() - 3);
+  }
+
+  TStr OutputFilename = Directory + "clustertable-" + StartDateStr + ".json";
   FILE *F = fopen(OutputFilename.CStr(), "w");
   fprintf(F, "{\"label\": [");
   for (int i = 0; i < ClustersToPrint.Len(); i++) {
@@ -119,7 +252,6 @@ void TPrintJson::PrintClustersTableJson(TQuoteBase *QB, TDocBase *DB, TClusterBa
     Frequencies.Add(CUniqueSources.Len());
 
     NumVariants.Add(C.GetNumUniqueQuotes());
-
   }
 
   fprintf(F, "], \"quote\": [");
@@ -146,7 +278,6 @@ void TPrintJson::PrintClustersTableJson(TQuoteBase *QB, TDocBase *DB, TClusterBa
 }
 
 void TPrintJson::PrintClustersDataJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, TIntV& ClustersToPrint, const TStr& ClusterDataDir, TSecTm& EndDate) {
-
   for (int i = 0; i < ClustersToPrint.Len(); ++i) {
     TCluster C;
     CB->GetCluster(ClustersToPrint[i], C);

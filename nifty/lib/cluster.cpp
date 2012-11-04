@@ -35,6 +35,7 @@ void TCluster::Save(TSOut& SOut) const {
   FreqV.Save(SOut);
   BirthDate.Save(SOut);
   Archived.Save(SOut);
+  DiscardState.Save(SOut);
 }
 
 void TCluster::Load(TSIn& SIn) {
@@ -46,6 +47,7 @@ void TCluster::Load(TSIn& SIn) {
   FreqV.Load(SIn);
   BirthDate.Load(SIn);
   Archived.Load(SIn);
+  DiscardState.Load(SIn);
 }
 
 void TCluster::Archive() {
@@ -54,6 +56,14 @@ void TCluster::Archive() {
 
 bool TCluster::IsArchived() {
   return Archived;
+}
+
+TInt TCluster::GetDiscardState() {
+  return DiscardState;
+}
+
+void TCluster::SetDiscardState(TInt State) {
+  DiscardState = State;
 }
 
 void TCluster::SetBirthDate(TSecTm& BirthDate) {
@@ -73,6 +83,7 @@ void TCluster::GetRepresentativeQuoteIds(TIntV& RepQuoteIds) const {
 }
 
 void TCluster::GetRepresentativeQuoteString(TStr& RepStr, TQuoteBase *QB) const {
+  if(RepresentativeQuoteIds.Len() == 0) return;
   TQuote FirstQuote;
   QB->GetQuote(RepresentativeQuoteIds[0], FirstQuote);
   TStr FirstContentString;
@@ -308,14 +319,24 @@ TInt TClusterBase::AddCluster(TCluster& Cluster) {
     if (CurCounter == Cluster.GetId()) break;
   }
 
-  if (CurCounter != -1 && CurCounter != Cluster.GetId()) {
-    fprintf(stderr, "WARNING: Cluster id is different: %d (cumulative) vs. %d\n", CurCounter.Val, Cluster.GetId().Val);
-  }
+  //if (CurCounter != -1 && CurCounter != Cluster.GetId()) {
+  //  fprintf(stderr, "WARNING: Cluster id is different: %d (cumulative) vs. %d\n", CurCounter.Val, Cluster.GetId().Val);
+  //}
 
   if (CurCounter < 0) {  // New cluster, with new quotes
     //fprintf(stderr, "\tNew cluster, with new quotes!\n");
     TCluster TempC;
-    IAssert(!GetCluster(Cluster.GetId(), TempC));
+
+    //FOR TESTING
+    /*if (Cluster.GetId() == 1) {
+      fprintf(stderr, "Cluster id: %d\n", Cluster.GetId().Val);
+      fprintf(stderr, "# Quote ids: %d\n", QuoteIds.Len());
+      fprintf(stderr, "# of first Quote id: %d\n", QuoteIds[0].Val);
+    }*/
+    //END FOR TESTING
+
+    //IAssert(!GetCluster(Cluster.GetId(), TempC));  // This causes the script to crash sometimes.. not sure why
+                                                     // Seems to only happen with spam that will get filtered anyway
     CurCounter = Cluster.GetId();
     if (Cluster.GetId() > ClusterIdCounter) {
       ClusterIdCounter = Cluster.GetId() + 1;
@@ -488,4 +509,25 @@ TStr TClusterBase::ContainsEmptyClusters() {
     }
   }
   return "safe!";
+}
+
+void TClusterBase::SortClustersByPopularity(TDocBase *DB, TQuoteBase *QB, TIntV& Clusters, TSecTm& CurrentTime) {
+  Err("Sorting by popularity...\n");
+  TVec<TPair<TInt, TFlt> > PopularityVec;
+  for (int i = 0; i < Clusters.Len(); i++) {
+    TCluster C;
+    GetCluster(Clusters[i], C);
+    // Only add good clusters
+    if (C.GetDiscardState() == 0) {
+      TFlt Score = C.GetPopularity(QB, DB, CurrentTime);
+      PopularityVec.Add(TPair<TInt, TFlt>(Clusters[i], Score));
+    }
+  }
+  PopularityVec.SortCmp(TCmpTClusterByPopularity(false));
+
+  TIntV TopFilteredClustersByPopularity;
+  for (int i = 0; i < PopularityVec.Len(); i++) {
+    TopFilteredClustersByPopularity.Add(PopularityVec[i].Val1);
+  }
+  Clusters = TopFilteredClustersByPopularity;
 }

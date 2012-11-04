@@ -209,6 +209,17 @@ void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
         NewCQuoteIds.Add(NewId);
       }
     }
+      //FOR TESTING
+    /*for (int j = 0; j < CQuoteIds.Len(); j++) {
+      if (ClusterIds2[i] == 1) {
+        TQuote TestQ;
+        QB2.GetQuote(CQuoteIds[j], TestQ);
+        TStr TestQContent;
+        TestQ.GetContentString(TestQContent);
+        fprintf(stderr, "New quote: %s\n", TestQContent.CStr());
+      }
+    }*/
+      //END FOR TESTING
 
     TIntV CRepQuoteIds, NewCRepQuoteIds;
     C.GetRepresentativeQuoteIds(CRepQuoteIds);
@@ -222,6 +233,26 @@ void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
     if (NewCQuoteIds.Len() != 0 && NewCRepQuoteIds.Len() != 0) {
       C.SetQuoteIds(&QB1, NewCQuoteIds);
       C.SetRepresentativeQuoteIds(NewCRepQuoteIds);
+
+      //FOR TESTING
+      /*
+      if (ClusterIds2[i] == 1) {
+        fprintf(stderr, "New cluster id: %d\n", ClusterIds2[i].Val);
+        TCluster TestC;
+        if (CB1.GetCluster(1, TestC)) {
+          TIntV TestCRepQuoteIds;
+          TestC.GetQuoteIds(TestCRepQuoteIds);
+          TQuote TestQ;
+          for (int k = 0; k < TestCRepQuoteIds.Len(); k++) {
+            QB1.GetQuote(TestCRepQuoteIds[k], TestQ);
+            TStr TestQContent;
+            TestQ.GetContentString(TestQContent);
+            fprintf(stderr, "Old quote: %s\n", TestQContent.CStr());
+          }
+        }
+      }*/
+      //END FOR TESTING
+
       CB1.AddCluster(C);
     }
   }
@@ -310,13 +341,15 @@ void TDataLoader::FilterOldData(TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, 
 }
 
 void TDataLoader::LoadCumulative(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, PNGraph& P) {
-  TStr CurFileName = "QBDBC" + Date + ".bin";
-  TFIn CurFile(Prefix + CurFileName);
-  QB.Load(CurFile);
-  DB.Load(CurFile);
-  CB.Load(CurFile);
-  P = TNGraph::Load(CurFile);
-  IAssert(!QB.IsContainNullQuote());
+  TStr CurFileName = Prefix + "QBDBC" + Date + ".bin";
+  if (TFile::Exists(CurFileName)) {
+    TFIn CurFile(CurFileName);
+    QB.Load(CurFile);
+    DB.Load(CurFile);
+    CB.Load(CurFile);
+    P = TNGraph::Load(CurFile);
+    IAssert(!QB.IsContainNullQuote());
+  }
 }
 
 void TDataLoader::LoadQBDB(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB) {
@@ -356,4 +389,23 @@ TSecTm TDataLoader::LoadQBDBByWindow(const TStr& Prefix, const TStr& StartDate, 
     }
   }
   return CurrentDate;
+}
+
+void TDataLoader::SaveQBDBC(TStr FileName, TQuoteBase *QB, TDocBase *DB, TClusterBase *CB) {
+  TFOut FOut(FileName);
+  QB->Save(FOut);
+  DB->Save(FOut);
+  CB->Save(FOut);
+}
+
+
+void TDataLoader::SaveQBDBCQ(TStr FileName, TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, PNGraph QGraph) {
+  Err("Saving Cluster information to file: %s\n", FileName.CStr());
+  {
+    TFOut FOut(FileName);
+    QB->Save(FOut);
+    DB->Save(FOut);
+    CB->Save(FOut);
+    QGraph->Save(FOut);
+  }
 }

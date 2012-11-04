@@ -2,33 +2,25 @@
 #include <stdio.h>
 
 /// Must pass in argument for the new day to be added, in format YYYY-MM-DD (-newday)
-//  TODO: Add framework for Log file (as in memecluster.cpp)
 int main(int argc, char *argv[]) {
   // #### SETUP: Parse Arguments
   LogOutput Log;
   THash<TStr, TStr> Arguments;
-  TStr BaseString;
-  ArgumentParser::ParseArguments(argc, argv, Arguments, Log, BaseString);
+  ArgumentParser::ParseArguments(argc, argv, Arguments, Log);
 
-  TStr StartString, EndString, OutputDirectory, QBDBDirectory, QBDBCDirectory;
-  if (!Arguments.IsKeyGetDat("start", StartString)) {
-    StartString = "2012-07-01";
-  }
-  if (!Arguments.IsKeyGetDat("end", EndString)) {
-    EndString = "2012-07-08";
-  }
-  if (!Arguments.IsKeyGetDat("qbdb", QBDBDirectory)) {
-    QBDBDirectory = "/lfs/1/tmp/curis/QBDB/";
-  }
-  if (!Arguments.IsKeyGetDat("qbdbc", QBDBCDirectory)) {
-    QBDBCDirectory = "/lfs/1/tmp/curis/QBDBC/";
-  }
-  if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
-    Log.SetupNewOutputDirectory();
+  TStr OutputDirectory;
+  TStr StartString = ArgumentParser::GetArgument(Arguments, "start", "2009-02-01");
+  TStr EndString = ArgumentParser::GetArgument(Arguments, "end", "2009-02-06");
+  TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", QBDBC_DIR_DEFAULT);
+  TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
+
+  if (ArgumentParser::GetArgument(Arguments, "nolog", "") == "") {
+    Log.DisableLogging();
+  } else if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
+    Log.SetupNewOutputDirectory("");
   } else {
     Log.SetDirectory(OutputDirectory);
   }
-  Log.SetupQBDBCBSizeFile();
 
   TSecTm StartDate = TSecTm::GetDtTmFromYmdHmsStr(StartString);
   TSecTm EndDate = TSecTm::GetDtTmFromYmdHmsStr(EndString);
@@ -46,7 +38,7 @@ int main(int argc, char *argv[]) {
 
   // #### GET TOP FILTERED CLUSTERS FROM PREVIOUS DAY WHYY
   TIntV OldTopClusters;
-  PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, OldTopClusters, OldDate, OldQGraph);
+  PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, OldTopClusters, OldDate, OldQGraph, false);
 
   // #### MAIN CLUSTERING STEP.
   TSecTm CurrentDate = StartDate;
@@ -81,23 +73,16 @@ int main(int argc, char *argv[]) {
     TIntV TopFilteredClusters;
     PostCluster::GetTopFilteredClusters(&NewCB, &DB, &QB, Log, TopFilteredClusters, CurrentDate, QGraph);
     
-    Log.OutputClusterInformation(&DB, &QB, &NewCB, TopFilteredClusters, CurrentDate, OldTopClusters);
-    Log.WriteClusteringOutputToFile(CurrentDate);
-    Log.LogQBDBCBSize(&DB, &QB, &CB);
-
     // ## SAVE CLUSTERS OR SAVE THEM TO VARIABLES.
     OldQGraph = QGraph;
     CB = NewCB;
-    OldTopClusters = TopFilteredClusters;
     TStr FileName = QBDBCDirectory + "QBDBC" + CurrentDate.GetDtYmdStr() + ".bin";
-    fprintf(stderr, "Saving Cluster information to file: %s\n", FileName.CStr());
-    TFOut FOut(FileName);
-    IAssert(!QB.IsContainNullQuote());
-    QB.Save(FOut);
-    DB.Save(FOut);
-    CB.Save(FOut);
-    QGraph->Save(FOut);
+    TDataLoader::SaveQBDBCQ(FileName, &QB, &DB, &CB, QGraph);
 
+    // ## LOG.
+    Log.LogAllInformation(&DB, &QB, &NewCB, TopFilteredClusters, CurrentDate, OldTopClusters, QBDBCDirectory);
+
+    OldTopClusters = TopFilteredClusters;
     CurrentDate.AddDays(1);
   }
   // plot output
@@ -112,7 +97,6 @@ int main(int argc, char *argv[]) {
   system(Command.CStr());
   TFOut FOut2("output/cumulativeclusters" + NewDayDate.CStr() + ".bin");
   MergedClusterSummaries.Save(FOut2);*/
-  Log.ShutDown();
   printf("Done with POST CLUSTERING!\n");
   return 0;
 }

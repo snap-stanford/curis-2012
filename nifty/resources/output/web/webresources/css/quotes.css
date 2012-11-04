@@ -1,0 +1,56 @@
+body {
+  margin: 0 auto;
+  padding: 0;
+  padding-top: 60px;
+}
+
+a:link, a:visited {
+  color: #23A4FF;
+}
+
+a:hover, a:active {
+  color: #6EC3FF;
+}
+
+.main {
+  margin: auto;
+  position: relative;
+  width: 900px;
+  overflow-x: hidden;
+  margin-bottom: 50px;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  color: #333333;
+}
+
+.table thead th {
+  vertical-align: bottom;
+}
+
+.table-condensed th,
+.table-condensed td {
+  padding: 4px 5px;
+}
+
+.error {
+	text-align:center;
+}
+
+a {
+  color: #0088cc;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #005580;
+  text-decoration: underline;
+}
+
+#heading {
+	text-decoration: underline;
+}
+
+td.selected {
+	text-transform:uppercase;
+	color: #FF0066;
+}

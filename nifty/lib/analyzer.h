@@ -8,6 +8,7 @@ class DQuote;
 
 class DCluster {
 public:
+  TInt Id;
   TSecTm Start;
   TSecTm End;
   TInt DiffDay;
@@ -20,22 +21,25 @@ public:
   TSecTm First;
   TSecTm Last;
   TSecTm Peak;
-  TBool Archived; // TODO: calculate if should be discarded
+  TBool Archived; // TODO: add a "discarded" flag
+  TInt DiscardState;
   TVec<DQuote> Quotes;
 
   DCluster() {}
   DCluster(TStr LineInput);
-  DCluster(TSIn& SIn) : Start(SIn), End(SIn), DiffDay(SIn), Unique(SIn), Size(SIn),
+  DCluster(TSIn& SIn) : Id(SIn), Start(SIn), End(SIn), DiffDay(SIn), Unique(SIn), Size(SIn),
       NumPeaks(SIn), RepStrLen(SIn), RepStr(SIn), RepURL(SIn), First(SIn), Last(SIn),
-      Peak(SIn), Archived(SIn), Quotes(SIn) { }
+      Peak(SIn), Archived(SIn), DiscardState(SIn), Quotes(SIn) { }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
+  static TStr GetDescription();
   static TStr GetClusterString(TQuoteBase *QB, TDocBase *DB, TCluster& C, TFreqTripleV &FreqV, TInt NumPeaks, TStr &End);
   static void GetFMP(TFreqTripleV& FreqV, TSecTm& First, TSecTm& Last, TSecTm& Peak, TStr &Quote);
 };
 
 class DQuote {
 public:
+  TInt Id;
   TInt Size;
   TInt NumPeaks;
   TInt StrLen;
@@ -47,11 +51,13 @@ public:
 
   DQuote() {}
   DQuote(TStr LineInput);
-  DQuote(TSIn& SIn) : Size(SIn), NumPeaks(SIn), StrLen(SIn), Str(SIn),
+  DQuote(TSIn& SIn) : Id(SIn), Size(SIn), NumPeaks(SIn), StrLen(SIn), Str(SIn),
       RepURL(SIn), First(SIn), Last(SIn), Peak(SIn) { }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
+  static TStr GetDescription();
   static TStr GetQuoteString(TDocBase *DB, TQuote& Quote, TSecTm &PresentTime);
+  static void GetQuoteSources(TDocBase *DB, TQuote& Quote, TStrV& SourceStrings);
 };
 
 //##### COMPARISON FUNCTIONS YO
