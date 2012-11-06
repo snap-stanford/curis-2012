@@ -154,7 +154,7 @@ public:
   TQuote& GetQt(const int& QtId) { return QuoteH.GetDat(QtId); }
   const TQuote& GetQtN(const int& QtN) const { return QuoteH[QtN]; }
   TQuote& GetQtN(const int& QtN) { return QuoteH[QtN]; }
-  void DelQtId(const int& QtId) { return QuoteH.DelKey(QtId); }
+  void DelQtId(const int& QtId) { QuoteH.DelKey(QtId); }
 
   TUrlTy GetUrlTy(const int& UrlId) const;
   void SetUrlTy(const TStr& InFNm, const TUrlTy& SetTy);
@@ -170,8 +170,11 @@ public:
   void GetMinMaxTm(const TIntV& QtIdV, TSecTm& MinTm, TSecTm&MaxTm) const;
   void GetQtPageUrl(const TIntV& QtIdV, TIntH& QtUrlIdH) const;
 
+  void Temp();
+  void AddQuote2(const TChA& Quote, const TChA& PostUrlStr, const TSecTm& PubTm);
   void AddQuote(const TQuote& Quote, const TQuoteBs& CurQtBs);
   void AddQuote(const TVec<TChA>& QuoteV, const TVec<TChA>& LinkV, const TChA& PostUrlStr, const TSecTm& PubTm, const int& MinQtWrdLen=4);
+  void AddLinks(const TVec<TChA>& LinkV, const TChA& PostUrlStr);
   PQuoteBs GetQuoteBs(const TIntV& QtIdV) const;
 
   int GetClusts() const { return ClustQtIdVH.Len(); }

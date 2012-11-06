@@ -668,6 +668,43 @@ void TQuoteBs::AddQuote(const TQuote& Quote, const TQuoteBs& CurQtBs) {
   }
 }
 
+void TQuoteBs::AddLinks(const TVec<TChA>& LinkV, const TChA& PostUrlStr) {
+  const TChA PostDomain = TStrUtil::GetDomNm(PostUrlStr);
+  for (int l = 0; l < LinkV.Len(); l++) {
+    const TChA& Url = LinkV[l];
+    if (TStrUtil::GetDomNm(Url) == PostDomain) { continue; } // link inside same domain
+    if (IsStr(Url.CStr())) { UrlInDegH.AddDat(GetStrId(Url.CStr())) += 1; }
+  }
+}
+
+void TQuoteBs::Temp() {
+  fprintf(stderr, "Hello World\n");
+}
+
+void TQuoteBs::AddQuote2(const TChA& Quote, const TChA& PostUrlStr, const TSecTm& PubTm) {
+  TIntH QtCntH; // qid --> cnt
+  int QtId = GetQtId(Quote.CStr());
+  if (QtId == -1) { // new quote
+    IAssert(! IsStr(Quote.CStr()));
+    QtId = QuoteH.Len();
+    TQuote& Qt = QuoteH.AddDat(QtId);
+    Qt.QtCIdTy = TQuote::TQtIdTy(QtId, qtQuote);
+    Qt.QtStr = Quote;
+    StrQtIdH.AddDat(Quote.CStr(), QtId);
+  } else {
+    IAssert(IsStr(Quote.CStr()));
+  }
+  IAssert(IsQtId(QtId));
+  QtCntH.AddDat(QtId) += 1; // count appearances of each quote
+
+  if (QtCntH.Len() > 0) {
+    const int PostUrlId = AddStr(PostUrlStr);
+    for (int i = 0; i < QtCntH.Len(); i++) {
+      QuoteH.GetDat(QtCntH.GetKey(i)).TmUrlCntV.Add(TQuote::TTmUrlCnt(PubTm, PostUrlId, QtCntH[i]));
+    }
+  }
+}
+
 void TQuoteBs::AddQuote(const TVec<TChA>& QuoteV, const TVec<TChA>& LinkV, const TChA& PostUrlStr, const TSecTm& PubTm, const int& MinQtWrdLen) {
   TIntH QtCntH; // qid --> cnt
   for (int q = 0; q < QuoteV.Len(); q++) {

@@ -2,6 +2,8 @@
 #include <spinn3r.h>
 #include <memes.h>
 
+// Run using this: ./MemeWorks -do:mkclustnet -i:/lfs/1/tmp/curis/memetracker.QtBs -l:0 -o:output
+
 void BigMain(int argc, char* argv[]);
 void QuotesForDepression();
 void DelSpam(PQuoteBs& QtBs, PClustNet& Net, TSecTm BeforeTm);
