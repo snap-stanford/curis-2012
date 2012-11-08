@@ -47,6 +47,8 @@ public:
     DocUrlToId = QB.DocUrlToId;
     return *this;
   };
+  TDocBase(TInt OldCounter);
+  TInt GetCounter();
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   int Len() const;

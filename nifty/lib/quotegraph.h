@@ -11,6 +11,7 @@ public:
   void CreateGraph(PNGraph& QGraph);
   static bool EdgeShouldBeFromOneToTwo(TQuote& Quote1, TQuote& Quote2);
   static bool EdgeShouldBeCreated(TQuote& Quote1, TQuote& Quote2);
+  void LogEdges(TStr FileName);
 
 protected:
   TInt EdgeCount;
@@ -19,6 +20,8 @@ protected:
   TClusterBase *CB;
   void CreateNodes();
   void CreateEdges();
+  void LSHCreateEdges();
+  void ElCheapoCreateEdges();
   virtual void AddEdgeIfSimilar(TInt Id1 , TInt Id2);
 };
 

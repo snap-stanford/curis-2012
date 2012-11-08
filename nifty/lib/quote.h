@@ -58,6 +58,9 @@ public:
     QuoteToId = QB.QuoteToId;
     return *this;
   };
+  TQuoteBase(TInt OldCounter);
+
+  TInt GetCounter();
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   TInt AddQuote(const TStr &ContentString);

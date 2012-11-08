@@ -7,23 +7,47 @@ int main(int argc, char *argv[]) {
   THash<TStr, TStr> Arguments;
   ArgumentParser::ParseArguments(argc, argv, Arguments, Log);
 
-  TStr OutputDirectory;
+  TStr OutputDirectory = ArgumentParser::GetArgument(Arguments, "directory", "");
   TStr StartString = ArgumentParser::GetArgument(Arguments, "start", "2009-02-01");
   TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", QBDBC_DIR_DEFAULT);
   TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
   TInt WindowSize = ArgumentParser::GetArgument(Arguments, "window", "14").GetInt();
 
-  if (ArgumentParser::GetArgument(Arguments, "nolog", "") == "") {
+  if (ArgumentParser::GetArgument(Arguments, "nolog", "") != "") {
     Log.DisableLogging();
-  } else if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
+  } else if (OutputDirectory == "") {
     Log.SetupNewOutputDirectory("");
+  } else if (ArgumentParser::GetArgument(Arguments, "nosetup", "") == ""){
+    Log.SetupNewOutputDirectory(OutputDirectory);
   } else {
     Log.SetDirectory(OutputDirectory);
   }
 
-  // #### DATA LOADING: Load ALL the things!
   TQuoteBase QB;
   TDocBase DB;
+  TClusterBase CB;
+
+  // Start memeseed after a break in the middle
+  TStr LastDate = ArgumentParser::GetArgument(Arguments, "last", "");
+  if (LastDate != "") {
+    {
+    TQuoteBase OldQB;
+    TDocBase OldDB;
+    TClusterBase OldCB;
+    PNGraph OldQGraph;
+    TDataLoader::LoadCumulative(QBDBCDirectory, LastDate, OldQB, OldDB, OldCB, OldQGraph);
+    QB = TQuoteBase(OldQB.GetCounter());
+    DB = TDocBase(OldDB.GetCounter());
+    CB = TClusterBase(OldCB.GetCounter());
+    }
+    Err("Counters updated!\n");
+  }
+
+  TStr LogDirectory;
+  Log.GetDirectory(LogDirectory);
+  Err("Output directory: %s\n", LogDirectory.CStr());
+
+  // #### DATA LOADING: Load ALL the things!
   fprintf(stderr, "Loading QB and DB from file for %d days, starting from %s...\n", WindowSize.Val, StartString.CStr());
   Err("%s\n", QBDBDirectory.CStr());
   TSecTm PresentTime = TDataLoader::LoadQBDBByWindow(QBDBDirectory, StartString, WindowSize, QB, DB);
@@ -31,12 +55,12 @@ int main(int argc, char *argv[]) {
 
   // #### CLUSTERING STEP
   fprintf(stderr, "Creating clusters\n");
-  TClusterBase CB;
   QuoteGraph GraphCreator(&QB, &CB);
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
   Clustering ClusterJob(QGraph);
   ClusterJob.BuildClusters(&CB, &QB, &DB, Log, PresentTime);
+  //GraphCreator.LogEdges("ElCheapoAfter.txt");
 
   // #### POST CLUSTERING STEP YO
   TIntV TopFilteredClusters;

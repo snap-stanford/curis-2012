@@ -79,6 +79,14 @@ void TDoc::AddLink(const TStr &Link) {
 TDocBase::TDocBase() {
 }
 
+TDocBase::TDocBase(TInt OldCounter) {
+  NextId = OldCounter;
+}
+
+TInt TDocBase::GetCounter() {
+  return NextId;
+}
+
 void TDocBase::Save(TSOut& SOut) const {
   IdToDoc.Save(SOut);
   DocUrlToId.Save(SOut);

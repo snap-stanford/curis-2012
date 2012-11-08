@@ -22,6 +22,15 @@ void QuoteGraph::CreateGraph(PNGraph& QGraph) {
   QGraph = this->QGraph;
 }
 
+void QuoteGraph::LogEdges(TStr FileName) {
+  FILE *Q = fopen(FileName.CStr(), "w"); // Skyfall!!!!
+  TNGraph::TEdgeI End = QGraph->EndEI();
+  for (TNGraph::TEdgeI iter = QGraph->BegEI(); iter != End; iter++) {
+    fprintf(Q, "%d\t%d\n", iter.GetSrcNId(), iter.GetDstNId());
+  }
+  fclose(Q);
+}
+
 void QuoteGraph::CreateNodes() {
   TIntV QuoteIds;
   QB->GetAllQuoteIds(QuoteIds);
@@ -31,13 +40,15 @@ void QuoteGraph::CreateNodes() {
   }
 }
 
-void QuoteGraph::CreateEdges() {
+void QuoteGraph::LSHCreateEdges() {
   THash<TMd5Sig, TShingleIdSet> Shingles;
   LSH::HashShingles(QB, CB, LSH::ShingleLen, Shingles);
   TVec<THash<TIntV, TIntSet> > BucketsVector;
   LSH::MinHash(Shingles, BucketsVector);
 
-  THash<TIntPr, TBool> EdgeCache;
+  THashSet<TIntPr> EdgeCache;
+  int Count = 0;
+  int RealCount = 0;
 
   printf("Beginning edge creation step...\n");
   for (int i = 0; i < BucketsVector.Len(); i++) {
@@ -47,32 +58,83 @@ void QuoteGraph::CreateEdges() {
     TVec<TIntV>::TIter BucketEnd = Buckets.EndI();
     for (TVec<TIntV>::TIter BucketSig = Buckets.BegI(); BucketSig < BucketEnd; BucketSig++) {
       TIntSet Bucket  = BucketsVector[i].GetDat(*BucketSig);
+      Count += Bucket.Len() * (Bucket.Len() - 1) / 2;
       for (TIntSet::TIter Quote1 = Bucket.BegI(); Quote1 < Bucket.EndI(); Quote1++) {
         TIntSet::TIter Quote1Copy = Quote1;
         Quote1Copy++;
         for (TIntSet::TIter Quote2 = Quote1Copy; Quote2 < Bucket.EndI(); Quote2++) {
           if (!EdgeCache.IsKey(TIntPr(Quote1.GetKey(), Quote2.GetKey())) && !EdgeCache.IsKey(TIntPr(Quote2.GetKey(), Quote1.GetKey()))) {
+            EdgeCache.AddKey(TIntPr(Quote1.GetKey(), Quote2.GetKey()));
+            EdgeCache.AddKey(TIntPr(Quote2.GetKey(), Quote1.GetKey()));
+            RealCount++;
             AddEdgeIfSimilar(Quote1.GetKey(), Quote2.GetKey());
           }
         }
       }
     }
   }
-  /*printf("Edge creation complete! %d edges created.\n", EdgeCount.Val);
+  fprintf(stderr, "NUMBER OF COMPARES: %d\n", Count);
+  fprintf(stderr, "NUMBER OF REAL COMPARES: %d\n", RealCount);
+  LogEdges("LSHBefore.txt");
+}
 
+void QuoteGraph::ElCheapoCreateEdges() {
   THash<TMd5Sig, TIntSet> Shingles;
   LSH::ElCheapoHashing(QB, LSH::ShingleLen, Shingles);
   int Count = 0;
+  int RealCount = 0;
   TVec<TMd5Sig> ShingleKeys;
   Shingles.GetKeyV(ShingleKeys);
+  THashSet<TIntPr> EdgeCache;
+
   for (int i = 0; i < ShingleKeys.Len(); i++) {
-    TIntSet CurSet;
-    Shingles.IsKeyGetDat(ShingleKeys[i], CurSet);
-    int Len = CurSet.Len();
+    if (i % 100 == 0) {
+      Err("Processed %d out of %d shingles, count = %d\n", i, ShingleKeys.Len(), Count);
+    }
+    TIntSet Bucket;
+    Shingles.IsKeyGetDat(ShingleKeys[i], Bucket);
+
+    for (TIntSet::TIter Quote1 = Bucket.BegI(); Quote1 < Bucket.EndI(); Quote1++) {
+      TIntSet::TIter Quote1Copy = Quote1;
+      Quote1Copy++;
+      for (TIntSet::TIter Quote2 = Quote1Copy; Quote2 < Bucket.EndI(); Quote2++) {
+        if (!EdgeCache.IsKey(TIntPr(Quote1.GetKey(), Quote2.GetKey())) && !EdgeCache.IsKey(TIntPr(Quote2.GetKey(), Quote1.GetKey()))) {
+          EdgeCache.AddKey(TIntPr(Quote1.GetKey(), Quote2.GetKey()));
+          EdgeCache.AddKey(TIntPr(Quote2.GetKey(), Quote1.GetKey()));
+          RealCount++;
+          AddEdgeIfSimilar(Quote1.GetKey(), Quote2.GetKey());
+        }
+      }
+    }
+    int Len = Bucket.Len() * (Bucket.Len() - 1) / 2;
     Count += Len;
   }
   fprintf(stderr, "NUMBER OF COMPARES: %d\n", Count);
-  exit(0);*/
+  fprintf(stderr, "NUMBER OF REAL COMPARES: %d\n", RealCount);
+  //LogEdges("ElCheapoBefore.txt");
+}
+
+void QuoteGraph::CreateEdges() {
+  if (USE_LSH) {
+    LSHCreateEdges();
+  } else {
+    ElCheapoCreateEdges();
+//    printf("Edge creation complete! %d edges created.\n", EdgeCount.Val);
+//
+//    THash<TMd5Sig, TIntSet> Shingles;
+//    LSH::ElCheapoHashing(QB, LSH::ShingleLen, Shingles);
+//    int Count = 0;
+//    TVec<TMd5Sig> ShingleKeys;
+//    Shingles.GetKeyV(ShingleKeys);
+//    for (int i = 0; i < ShingleKeys.Len(); i++) {
+//      TIntSet CurSet;
+//      Shingles.IsKeyGetDat(ShingleKeys[i], CurSet);
+//      int Len = CurSet.Len() * CurSet.Len();
+//      Count += Len;
+//    }
+//    fprintf(stderr, "NUMBER OF COMPARES: %d\n", Count);
+//    exit(0);
+  }
 }
 
 void QuoteGraph::AddEdgeIfSimilar(TInt Id1, TInt Id2) {
