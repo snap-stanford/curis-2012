@@ -434,3 +434,7 @@ void TQuoteBase::GetRepresentativeUrl(TDocBase *DocBase, TInt QuoteId, TStr& Rep
   Q.GetRepresentativeUrl(DocBase, RepUrl);
 }
 
+void TQuoteBase::GetIdToTQuotes(THash<TInt, TQuote>& Pointer) {
+  Pointer = IdToTQuotes;
+}
+

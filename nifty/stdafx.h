@@ -34,7 +34,7 @@
 
 
 // ##################### EXPERIMENTAL OPTIONS ###########################
-#define USE_LSH true
+#define EDGE_CREATION_STYLE "lsh"
 
 // ###################################################################################################
 // ## ANY CODE PAST THIS LINE IS THE SAME FOR EVERY COPY OF THE PROGRAM AND SHOULD NOT BE CHANGED

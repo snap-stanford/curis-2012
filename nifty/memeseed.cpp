@@ -12,6 +12,9 @@ int main(int argc, char *argv[]) {
   TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", QBDBC_DIR_DEFAULT);
   TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
   TInt WindowSize = ArgumentParser::GetArgument(Arguments, "window", "14").GetInt();
+  TStr EdgeString = ArgumentParser::GetArgument(Arguments, "edge", EDGE_CREATION_STYLE);
+  QuoteGraph::SetEdgeCreation(EdgeString);
+
 
   if (ArgumentParser::GetArgument(Arguments, "nolog", "") != "") {
     Log.DisableLogging();

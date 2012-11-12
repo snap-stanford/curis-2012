@@ -78,6 +78,7 @@ public:
   void GetRepresentativeUrl(TDocBase *DocBase, TInt QuoteId, TStr& RepUrl);
   bool IsContainNullQuote();
   static bool IsUrlTopNewsSource(TStr Url);
+  void GetIdToTQuotes(THash<TInt, TQuote>& Pointer);
 };
 
 // Compares two quotes by their frequency
