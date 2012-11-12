@@ -33,13 +33,13 @@ TSecTm TDataLoader::GetFileTime(const TStr &FileName) {
 
 
 void TDataLoader::Clr() {
-	PostUrlStr.Clr();
-	ContentStr.Clr();
-	PubTm = TSecTm();
-	MemeV.Clr(false);
-	MemePosV.Clr(false);
-	LinkV.Clr(false);
-	LinkPosV.Clr(false);
+    PostUrlStr.Clr();
+    ContentStr.Clr();
+    PubTm = TSecTm();
+    MemeV.Clr(false);
+    MemePosV.Clr(false);
+    LinkV.Clr(false);
+    LinkPosV.Clr(false);
 }
 
 // FORMAT:
@@ -50,70 +50,70 @@ void TDataLoader::Clr() {
 //L \t Index \t URL      (URL starts at Content[Index])
 //Q \t Index \t Length \t Quote (Quote starts at Content[Index])
 bool TDataLoader::LoadNextEntry() {
-	Clr();
-	if (SInPt.Empty() || SInPt->Eof()) {
-		return false;
-	}
-	TSIn& SIn = *SInPt;
-	CurLn.Clr();
+    Clr();
+    if (SInPt.Empty() || SInPt->Eof()) {
+        return false;
+    }
+    TSIn& SIn = *SInPt;
+    CurLn.Clr();
 
-	// Keep reading until line starts with P\t
-	while (SIn.GetNextLn(CurLn) && (CurLn.Empty() || (CurLn[0]!='U' || CurLn[1]!='\t'))) {
-		printf("SKIP: L: %s\n", CurLn.CStr()); LineCnt++; }
-	LineCnt++;
-	if (CurLn.Empty()) { return LoadNextEntry(); }
-	if (!((! CurLn.Empty()) && CurLn[0]=='U' && CurLn[1]=='\t'))
-		{printf("Error reading this file, return\n"); return false;}
-	IAssertR((! CurLn.Empty()) && CurLn[0]=='U' && CurLn[1]=='\t',
-			TStr::Fmt("ERROR1: %s [line %llu]: '%s'\n", SIn.GetSNm().CStr(), LineCnt, CurLn.CStr()).CStr());
-	PostUrlStr = CurLn.CStr()+2;
-	TStringUtil::RemoveNonEnglish(PostUrlStr);
-	while (SIn.GetNextLn(CurLn) && (CurLn.Empty() || (CurLn[0]!='D' || CurLn[1]!='\t'))) { LineCnt++; }
+    // Keep reading until line starts with P\t
+    while (SIn.GetNextLn(CurLn) && (CurLn.Empty() || (CurLn[0]!='U' || CurLn[1]!='\t'))) {
+        printf("SKIP: L: %s\n", CurLn.CStr()); LineCnt++; }
+    LineCnt++;
+    if (CurLn.Empty()) { return LoadNextEntry(); }
+    if (!((! CurLn.Empty()) && CurLn[0]=='U' && CurLn[1]=='\t'))
+        {printf("Error reading this file, return\n"); return false;}
+    IAssertR((! CurLn.Empty()) && CurLn[0]=='U' && CurLn[1]=='\t',
+            TStr::Fmt("ERROR1: %s [line %llu]: '%s'\n", SIn.GetSNm().CStr(), LineCnt, CurLn.CStr()).CStr());
+    PostUrlStr = CurLn.CStr()+2;
+    TStringUtil::RemoveNonEnglish(PostUrlStr);
+    while (SIn.GetNextLn(CurLn) && (CurLn.Empty() || (CurLn[0]!='D' || CurLn[1]!='\t'))) { LineCnt++; }
 
-	if (!((! CurLn.Empty()) && CurLn[0]=='D' && CurLn[1]=='\t' && CurLn[2] <'A'))
-	  	  {printf("Error reading this file, return\n"); return false;}
-	IAssertR((! CurLn.Empty()) && CurLn[0]=='D',
-			TStr::Fmt("ERROR2: %s [line %llu]: '%s'\n", SIn.GetSNm().CStr(), LineCnt, CurLn.CStr()).CStr());  LineCnt++;
-	try {
-		PubTm = TSecTm::GetDtTmFromStr(CurLn);
-	} catch (PExcept Except){ PubTm = 1; ErrNotify(Except->GetStr());
-    	printf("ERROR3: %s [line %llu]: '%s'\n", SIn.GetSNm().CStr(), LineCnt, CurLn.CStr());
-	}
+    if (!((! CurLn.Empty()) && CurLn[0]=='D' && CurLn[1]=='\t' && CurLn[2] <'A'))
+          {printf("Error reading this file, return\n"); return false;}
+    IAssertR((! CurLn.Empty()) && CurLn[0]=='D',
+            TStr::Fmt("ERROR2: %s [line %llu]: '%s'\n", SIn.GetSNm().CStr(), LineCnt, CurLn.CStr()).CStr());  LineCnt++;
+    try {
+        PubTm = TSecTm::GetDtTmFromStr(CurLn);
+    } catch (PExcept Except){ PubTm = 1; ErrNotify(Except->GetStr());
+        printf("ERROR3: %s [line %llu]: '%s'\n", SIn.GetSNm().CStr(), LineCnt, CurLn.CStr());
+    }
 
-	IAssertR(SIn.GetNextLn(CurLn) && (! CurLn.Empty()) && (CurLn[0]=='C' || CurLn[0]=='T'),
-			TStr::Fmt("ERROR4: %s [line %llu]: '%s'\n", SIn.GetSNm().CStr(), LineCnt, CurLn.CStr()).CStr());  LineCnt++;
-	if (!CurLn.Empty() && CurLn[0] == 'T') { SIn.GetNextLn(CurLn);  LineCnt++; }
-	if (!CurLn.Empty() && CurLn[0] == 'C') {
-	  ContentStr = CurLn.CStr()+2;
-	  TStringUtil::RemoveNonEnglish(ContentStr);
-	  SIn.GetNextLn(CurLn);
-	  LineCnt++;
-	}
+    IAssertR(SIn.GetNextLn(CurLn) && (! CurLn.Empty()) && (CurLn[0]=='C' || CurLn[0]=='T'),
+            TStr::Fmt("ERROR4: %s [line %llu]: '%s'\n", SIn.GetSNm().CStr(), LineCnt, CurLn.CStr()).CStr());  LineCnt++;
+    if (!CurLn.Empty() && CurLn[0] == 'T') { SIn.GetNextLn(CurLn);  LineCnt++; }
+    if (!CurLn.Empty() && CurLn[0] == 'C') {
+      ContentStr = CurLn.CStr()+2;
+      TStringUtil::RemoveNonEnglish(ContentStr);
+      SIn.GetNextLn(CurLn);
+      LineCnt++;
+    }
 
-	// Links
-	do {
-	  if (CurLn.Empty() || CurLn[0]!='L') { break; }
-	  int linkb=2;
-	  while (CurLn[linkb]!='\t') { linkb++; }
-	  CurLn[linkb]=0;
-	  LinkV.Add(CurLn.CStr()+linkb+1);
-	  LinkPosV.Add(atoi(CurLn.CStr()+2));
-	  LineCnt++;
-	} while (SIn.GetNextLn(CurLn));
-	// Quotes
-	do {
-		if (CurLn.Empty() || CurLn[0]!='Q') { break; }
-		int qb1=2;      while (CurLn[qb1]!='\t') { qb1++; }
-		int qb2=qb1+1;  while (CurLn[qb2]!='\t') { qb2++; }
-		CurLn[qb1]=0;  CurLn[qb2]=0;
-		TChA Quote = CurLn.CStr()+qb2+1;
-		TStringUtil::RemoveNonEnglish(Quote);
-		MemeV.Add(Quote);
-		MemePosV.Add(TIntPr(atoi(CurLn.CStr()+2), atoi(CurLn.CStr()+qb1+1)));
-		LineCnt++;
-	} while (SIn.GetNextLn(CurLn));
+    // Links
+    do {
+      if (CurLn.Empty() || CurLn[0]!='L') { break; }
+      int linkb=2;
+      while (CurLn[linkb]!='\t') { linkb++; }
+      CurLn[linkb]=0;
+      LinkV.Add(CurLn.CStr()+linkb+1);
+      LinkPosV.Add(atoi(CurLn.CStr()+2));
+      LineCnt++;
+    } while (SIn.GetNextLn(CurLn));
+    // Quotes
+    do {
+        if (CurLn.Empty() || CurLn[0]!='Q') { break; }
+        int qb1=2;      while (CurLn[qb1]!='\t') { qb1++; }
+        int qb2=qb1+1;  while (CurLn[qb2]!='\t') { qb2++; }
+        CurLn[qb1]=0;  CurLn[qb2]=0;
+        TChA Quote = CurLn.CStr()+qb2+1;
+        TStringUtil::RemoveNonEnglish(Quote);
+        MemeV.Add(Quote);
+        MemePosV.Add(TIntPr(atoi(CurLn.CStr()+2), atoi(CurLn.CStr()+qb1+1)));
+        LineCnt++;
+    } while (SIn.GetNextLn(CurLn));
 
-	return true;
+    return true;
 }
 
 /// Merge QBDB2 into QBDB1; returns the indices (in the new QB1) of the quotes in QB2
@@ -403,9 +403,15 @@ void TDataLoader::SaveQBDBCQ(TStr FileName, TQuoteBase *QB, TDocBase *DB, TClust
   Err("Saving Cluster information to file: %s\n", FileName.CStr());
   {
     TFOut FOut(FileName);
+    Err("Opened file");
     QB->Save(FOut);
+    Err("Saved QB");
     DB->Save(FOut);
+    Err("Saved DB");
     CB->Save(FOut);
+    Err("Saved CB");
     QGraph->Save(FOut);
+    Err("Saved QGraph");
   }
+  Err("Done!\n");
 }

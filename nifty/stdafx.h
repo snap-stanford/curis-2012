@@ -32,6 +32,10 @@
 // it makes me sad and will hopefully be eventually phased out. this variable isn't even being used (?)
 #define JSON_DIR_DEFAULT "../../../public_html/curis/output/clustering/webdata/"
 
+
+// ##################### EXPERIMENTAL OPTIONS ###########################
+#define EDGE_CREATION_STYLE "lsh"
+
 // ###################################################################################################
 // ## ANY CODE PAST THIS LINE IS THE SAME FOR EVERY COPY OF THE PROGRAM AND SHOULD NOT BE CHANGED
 // ## UNLESS YOU ABSOLUTELY KNOW WHAT YOU'RE DOING. :)

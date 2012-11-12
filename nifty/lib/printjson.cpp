@@ -158,7 +158,7 @@ void TPrintJson::PrintClustersGraphJson(TQuoteBase *QB, TDocBase *DB, TClusterBa
     TFreqTripleV CFreqV;
     uint StartDays = StartDate.GetInUnits(tmuDay);
     uint EndDays = EndDate.GetInUnits(tmuDay);
-    Peaks::GetFrequencyVector(DB, CSources, CFreqV, 4, 2, EndDate, TInt(EndDays - StartDays + 1));
+    Peaks::GetFrequencyVector(DB, CSources, CFreqV, 6, 3, EndDate, TInt(EndDays - StartDays + 1));
 
     if (FreqOverTime.Len() == 0) {  // Initialize the values in the hash table
       for (int j = 0; j < CFreqV.Len(); j++) {

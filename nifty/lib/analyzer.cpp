@@ -171,20 +171,19 @@ DQuote::DQuote(TStr LineInput) {
   LineInput.SplitOnStr("\t", Params);
 
   // Extract size, numpeaks, numwords
-  Id = TInt(Params[0].GetInt());
-  Size = TInt(Params[1].GetInt());
-  NumPeaks = TInt(Params[2].GetInt());
-  StrLen = TInt(Params[3].GetInt());
+  Id = TInt(Params[1].GetInt());
+  Size = TInt(Params[2].GetInt());
+  NumPeaks = TInt(Params[3].GetInt());
+  StrLen = TInt(Params[4].GetInt());
 
   // Strings
-  Str = Params[4];
-  RepURL = Params[5];
+  Str = Params[5];
+  RepURL = Params[6];
 
   // dates
-  First = TSecTm::GetDtTmFromYmdHmsStr(Params[6]);
-  Last = TSecTm::GetDtTmFromYmdHmsStr(Params[7]);
-  Peak = TSecTm::GetDtTmFromYmdHmsStr(Params[8]);
-
+  First = TSecTm::GetDtTmFromYmdHmsStr(Params[7]);
+  Last = TSecTm::GetDtTmFromYmdHmsStr(Params[8]);
+  Peak = TSecTm::GetDtTmFromYmdHmsStr(Params[9]);
 }
 
 void DQuote::Save(TSOut& SOut) const {
