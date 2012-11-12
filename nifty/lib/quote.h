@@ -58,6 +58,9 @@ public:
     QuoteToId = QB.QuoteToId;
     return *this;
   };
+  TQuoteBase(TInt OldCounter);
+
+  TInt GetCounter();
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   TInt AddQuote(const TStr &ContentString);
@@ -75,6 +78,7 @@ public:
   void GetRepresentativeUrl(TDocBase *DocBase, TInt QuoteId, TStr& RepUrl);
   bool IsContainNullQuote();
   static bool IsUrlTopNewsSource(TStr Url);
+  void GetIdToTQuotes(THash<TInt, TQuote>& Pointer);
 };
 
 // Compares two quotes by their frequency
