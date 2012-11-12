@@ -164,10 +164,14 @@ void QuoteGraph::LSHCreateEdges() {
 }
 
 void QuoteGraph::ElCheapoCreateEdges() {
-  THash<TMd5Sig, TIntSet> Shingles;
+  /*THash<TMd5Sig, TIntSet> Shingles;
   LSH::ElCheapoHashing(QB, LSH::ShingleLen, Shingles);
+  CompareUsingShingles(Shingles);*/
+  THash<TMd5Sig, TIntSet> Shingles;
+  LSH::WordHashing(QB, Shingles);
   CompareUsingShingles(Shingles);
-  //LogEdges("ElCheapoBefore.txt");
+
+  LogEdges("WordsCheapoBefore.txt");
 }
 
 void QuoteGraph::WordsCreateEdges() {

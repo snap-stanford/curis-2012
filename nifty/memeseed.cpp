@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
   GraphCreator.CreateGraph(QGraph);
   Clustering ClusterJob(QGraph);
   ClusterJob.BuildClusters(&CB, &QB, &DB, Log, PresentTime);
-  //GraphCreator.LogEdges("ElCheapoAfter.txt");
+  GraphCreator.LogEdges("WordsCheapAfter.txt");
 
   // #### POST CLUSTERING STEP YO
   TIntV TopFilteredClusters;
