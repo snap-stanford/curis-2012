@@ -80,6 +80,6 @@ int main(int argc, char *argv[]) {
   TStr Directory;
   Log.GetDirectory(Directory);
   Err("Done with memeseed! Directory created at: %s\n", Directory.CStr());
-  printf("%d\n", TStringUtil::f_counter);
+  //printf("%d\n", TStringUtil::f_counter);
   return 0;
 }

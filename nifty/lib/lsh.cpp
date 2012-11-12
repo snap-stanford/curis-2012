@@ -36,6 +36,9 @@ void LSH::WordHashing(TQuoteBase *QuoteBase,
   fprintf(stderr, "Hashing shingles using words...\n");
   TIntV QuoteIds;
   QuoteBase->GetAllQuoteIds(QuoteIds);
+
+  THash<TStr, TIntSet> Temp;
+
   for (int qt = 0; qt < QuoteIds.Len(); qt++) {
     if (qt % 1000 == 0) {
       fprintf(stderr, "%d out of %d completed\n", qt, QuoteIds.Len());
@@ -53,8 +56,23 @@ void LSH::WordHashing(TQuoteBase *QuoteBase,
       ShingleToQuoteIds.IsKeyGetDat(ShingleMd5, ShingleQuoteIds);
       ShingleQuoteIds.AddKey(QuoteIds[qt]);
       ShingleToQuoteIds.AddDat(ShingleMd5, ShingleQuoteIds);
+
+      ///// COMMENT OUT LATER
+      TIntSet TempSet;
+      Temp.IsKeyGetDat(Content[i], TempSet);
+      TempSet.AddKey(QuoteIds[qt]);
+      Temp.AddDat(Content[i], TempSet);
     }
   }
+
+  TVec<TStr> ShingleKeys;
+  Temp.GetKeyV(ShingleKeys);
+  ShingleKeys.SortCmp(TCmpSetByLen(false, &Temp));
+  for (int i = 0; i < 100; i++) {
+    TIntSet TempSet = Temp.GetDat(ShingleKeys[i]);
+    Err("%d: %s - %d \n", i, ShingleKeys[i].CStr(), TempSet.Len());
+  }
+
   fprintf(stderr, "Done with word hashing!\n");
 }
 
