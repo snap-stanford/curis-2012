@@ -119,7 +119,7 @@ void LogOutput::PrintClusterInformationToText(TDocBase *DB, TQuoteBase *QB, TClu
   if (!ShouldLog) return;
 
   TStr CurDateString = PresentTime.GetDtYmdStr();
-  TStr TopFileName = Directory + "/text/top/topclusters_" + CurDateString + ".txt";
+  TStr TopFileName = Directory + "text/top/topclusters_" + CurDateString + ".txt";
   FILE *T = fopen(TopFileName.CStr(), "w");
 
   for (int i = 0; i < ClusterIds.Len(); i++) {
