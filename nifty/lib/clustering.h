@@ -8,11 +8,15 @@
 
 class Clustering {
 protected:
+  THash<TInt, TInt> visit;
+
   PNGraph QGraph;
   LogOutput log;
   static TFlt ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB);
   virtual void KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase *DB);
   static void GetAllWCCs(PNGraph& G, TVec<TIntV>& Clusters);
+  void IncrementalEdgeDeletion(PNGraph& G, TQuoteBase *QB, TDocBase *DB);
+  int GetCluster(TInt CurNode, PNGraph& G, TQuoteBase *QB, TDocBase *DB);
 
 public:
   Clustering(PNGraph QGraph);
