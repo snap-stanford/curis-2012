@@ -13,6 +13,7 @@ int main(int argc, char *argv[]) {
   TStr EndString = ArgumentParser::GetArgument(Arguments, "end", "2009-02-06");
   TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", QBDBC_DIR_DEFAULT);
   TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
+  TStr ClustMethod = ArgumentParser::GetArgument(Arguments, "method", "local");
 
   if (ArgumentParser::GetArgument(Arguments, "nolog", "") != "") {
     Log.DisableLogging();
@@ -64,7 +65,7 @@ int main(int argc, char *argv[]) {
 
     TIncrementalClustering ClusterJob(&QB, NewQuotes, QGraph, AffectedNodes);
     TClusterBase NewCB(CB.GetCounter());
-    ClusterJob.BuildClusters(&NewCB, &QB, &DB, Log, CurrentDate, &CB);
+    ClusterJob.BuildClusters(&NewCB, &QB, &DB, Log, CurrentDate, &CB, ClustMethod);
     fprintf(stderr, "Done building clusters!\n");
     TIntV SortedClusters;
     NewCB.GetAllClusterIdsSortByFreq(SortedClusters);

@@ -31,11 +31,11 @@ void Clustering::GetRootNodes(TIntSet& RootNodes) {
   }
 }
 
-void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TSecTm& PresentTime) {
-  BuildClusters(CB, QB, DB, log, PresentTime, NULL);
+void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TSecTm& PresentTime, TStr method) {
+  BuildClusters(CB, QB, DB, log, PresentTime, NULL, method);
 }
 
-void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TSecTm& PresentTime, TClusterBase *OldCB) {
+void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TSecTm& PresentTime, TClusterBase *OldCB, TStr method) {
   // currently deletes all edges but the one leading to phrase that is most frequently cited.
   // TODO: Make more efficient? At 10k nodes this is ok
 
@@ -52,8 +52,11 @@ void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, L
   log.LogValue(LogOutput::NumQuotes, TInt(NumNodes));
 
   printf("Deleting extra graph edges...\n");
-  IncrementalEdgeDeletion(QGraph, QB, DB);
-  // KeepAtMostOneChildPerNode(QGraph, QB, DB);
+  if (method == "incremental") {
+    IncrementalEdgeDeletion(QGraph, QB, DB);
+  } else {
+    KeepAtMostOneChildPerNode(QGraph, QB, DB);
+  }
   fprintf(stderr, "edges deleted!\n");
 
   log.LogValue(LogOutput::NumRemainingEdges, TInt(QGraph->GetEdges()));
@@ -252,7 +255,7 @@ int Clustering::GetCluster(TInt CurNodeId, PNGraph& G, TQuoteBase *QB, TDocBase 
 	    TotalScore = 0;
 	  }
 	  TotalScore += ComputeEdgeScore(SourceQuote, DestQuote, DB);
-	  ScoreTable.AddDat(NodeId, TotalScore);
+	  ScoreTable.AddDat(RetVal, TotalScore);
 	}
       }
 

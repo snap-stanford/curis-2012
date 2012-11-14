@@ -13,8 +13,8 @@ int main(int argc, char *argv[]) {
   TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
   TInt WindowSize = ArgumentParser::GetArgument(Arguments, "window", "14").GetInt();
   TStr EdgeString = ArgumentParser::GetArgument(Arguments, "edge", EDGE_CREATION_STYLE);
+  TStr ClustMethod = ArgumentParser::GetArgument(Arguments, "method", "local");
   QuoteGraph::SetEdgeCreation(EdgeString);
-
 
   if (ArgumentParser::GetArgument(Arguments, "nolog", "") != "") {
     Log.DisableLogging();
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
   Clustering ClusterJob(QGraph);
-  ClusterJob.BuildClusters(&CB, &QB, &DB, Log, PresentTime);
+  ClusterJob.BuildClusters(&CB, &QB, &DB, Log, PresentTime, ClustMethod);
   GraphCreator.LogEdges("WordsCheapAfter.txt");
 
   // #### POST CLUSTERING STEP YO
