@@ -5,21 +5,24 @@ SNAP = ../../snap/snap-core
 GLIB = ../../snap/glib-core
 NIFTY = ../nifty
 
-all: analyzepeaks analyzedeleted
+all: analyzepeaks analyzedeleted comparegraphs
 
 opt: CXXFLAGS += -O4
 opt: LDFLAGS += -O4
-opt: analyzepeaks analyzedeleted
+opt: analyzepeaks analyzedeleted comparegraphs
 
 debug: CXXFLAGS += -rdynamic -O0 -g -ggdb3 -pg
 debug: LDFLAGS += -rdynamic -O0 -g -ggdb3 -pg
-debug: analyzepeaks analyzedeleted
+debug: analyzepeaks analyzedeleted comparegraphs
 
 analyzepeaks: analyzepeaks.cpp Snap.o niftylib.o
 	g++ -o analyzepeaks analyzepeaks.cpp Snap.o niftylib.o -I$(GLIB) -I$(SNAP) $(LDFLAGS)
 	
 analyzedeleted: analyzedeleted.cpp Snap.o niftylib.o
 	g++ -o analyzedeleted analyzedeleted.cpp Snap.o niftylib.o -I$(GLIB) -I$(SNAP) $(LDFLAGS)
+	
+comparegraphs: comparegraphs.cpp Snap.o niftylib.o
+	g++ -o comparegraphs comparegraphs.cpp Snap.o niftylib.o -I$(GLIB) -I$(SNAP) $(LDFLAGS)
 	
 Snap.o:
 	g++ -c $(CXXFLAGS) $(SNAP)/Snap.cpp -I$(GLIB) -I$(SNAP)

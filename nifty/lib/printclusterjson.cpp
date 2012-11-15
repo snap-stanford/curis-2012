@@ -197,11 +197,13 @@ TSecTm TPrintClusterJson::CalculateEndPeriodDate(TSecTm& CurrentDate, TStr& Type
 }
 
 void TPrintClusterJson::PrintClusterJSONForPeriod(TStr& CurTimeString, TStr Type, TStr QBDBCDirectory) {
-  if (Type != "week" || Type != "month" || Type != "3month") return;
+  if (!(Type == "week" || Type == "month" || Type == "3month")) return;
   TSecTm CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(CurTimeString);
   TSecTm StartDate = RoundStartDate(CurrentDate, Type);
   TSecTm EndDate = CalculateEndPeriodDate(StartDate, Type);
   CurrentDate = StartDate;
+
+  Err("Printing %s JSON from %s to %s\n", Type.CStr(), StartDate.GetDtYmdStr().CStr(), EndDate.GetDtYmdStr().CStr());
 
   TQuoteBase QBCumulative;
   TDocBase DBCumulative;
@@ -226,7 +228,6 @@ void TPrintClusterJson::PrintClusterJSONForPeriod(TStr& CurTimeString, TStr Type
     for (int i = 0; i < NumClusters && i < TopFilteredClusters.Len(); i++) {
       TopClusters.AddKey(TopFilteredClusters[i]);
     }
-
     TDataLoader::MergeQBDBCB(QBCumulative, DBCumulative, CBCumulative, QB, DB, CB, CurrentDate);
     CurrentDate.AddDays(1);
   }

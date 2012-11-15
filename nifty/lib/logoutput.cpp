@@ -47,7 +47,7 @@ void LogOutput::SetupNewOutputDirectory(TStr Directory) {
   } else {
     // CASE 2: The user has specified a directory - we just have to store it
     this->Directory = Directory;
-    Err("Using existing directory: %s\n", Directory.CStr());
+    Err("Using existing directory: %s\n", this->Directory.CStr());
   }
 
   // Copy directories over.
@@ -59,6 +59,7 @@ void LogOutput::SetupNewOutputDirectory(TStr Directory) {
   for (int i = 0; i < Commands.Len(); i++) {
     system(Commands[i].CStr());
   }
+  Err("Necessary files copied over to %s\n", this->Directory.CStr());
 }
 
 void LogOutput::GetDirectory(TStr& Directory) {
@@ -95,9 +96,16 @@ void LogOutput::LogAllInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB
   TPrintClusterJson JSONJob(JSONDirectory);
   LogOutput TmpLog;
   TmpLog.DisableLogging();
-  JSONJob.PrintClusterJSONForPeriod(CurDateString, "week", QBDBCDirectory);
-  JSONJob.PrintClusterJSONForPeriod(CurDateString, "month", QBDBCDirectory);
-  JSONJob.PrintClusterJSONForPeriod(CurDateString, "3month", QBDBCDirectory);
+  //JSONJob.PrintClusterJSONForPeriod(CurDateString, "week", QBDBCDirectory);
+  //JSONJob.PrintClusterJSONForPeriod(CurDateString, "month", QBDBCDirectory);
+  //JSONJob.PrintClusterJSONForPeriod(CurDateString, "3month", QBDBCDirectory);
+
+  // Update current date file
+  TStr CurrentDateFileName = Directory + "/web/currentdate.txt";
+  FILE *C = fopen(CurrentDateFileName.CStr(), "w");
+  fprintf(C, "%s", CurDateString.CStr());
+  fclose(C);
+  Err("Done logging everything! Current date file updated to %s at %s.\n", CurDateString.CStr(), CurrentDateFileName.CStr());
 }
 
 void LogOutput::WriteClusteringStatisticsToFile(TSecTm& Date) {
@@ -174,12 +182,6 @@ void LogOutput::PrintClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBa
   TStr JSONTableFileName = Directory + "/web/json/daily/" + CurDateString + ".json";
   TPrintJson::PrintClusterTableJSON(QB, DB, CB, JSONTableFileName, ClusterIds, RankStr);
   Err("JSON Files for the cluster table written!\n");
-
-  // Update current date file
-  TStr CurrentDateFileName = Directory + "/web/currentdate.txt";
-  FILE *C = fopen(CurrentDateFileName.CStr(), "w");
-  fprintf(C, "%s", CurDateString.CStr());
-  fclose(C);
 }
 
 void LogOutput::ComputeOldRankString(THash<TInt, TInt>& OldRankings, TInt& ClusterId, TInt CurRank, TStr& OldRankStr) {

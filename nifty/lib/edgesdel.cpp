@@ -18,7 +18,10 @@ void TEdgesDel::CalcAndLogOldBaseline(TQuoteBase *QB, TDocBase *DB, PNGraph& QGr
   RandomOrigQGraph = TSnap::GenRewire(QGraph);
   int NumEdgesOriginal = QGraph->GetEdges();
   IAssert(NumEdgesOriginal == RandomOrigQGraph->GetEdges());
-  PNGraph RandomQGraph(RandomOrigQGraph);
+
+  TIntV AllNIdsV;
+  RandomOrigQGraph->GetNIdV(AllNIdsV);
+  PNGraph RandomQGraph = TSnap::GetSubGraph(RandomOrigQGraph, AllNIdsV);
   //RandomQGraph = TSnap::GetSubGraph(RandomOrigQGraph, AllNIdsV);
 
   PNGraph Filler;
@@ -54,10 +57,9 @@ void TEdgesDel::CalcForEdgeScore(TQuoteBase *QB, TDocBase *DB, PNGraph& QGraph, 
                                  TFlt (*Fn)(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator), TInt NumTrials,
                                  TRnd *RandomGenerator) {
   int NumEdgesOriginal = QGraph->GetEdges();
-  //TIntV AllNIdsV;
-  //QGraph->GetNIdV(AllNIdsV);
-  PNGraph OrigQGraphP(QGraph);
-  //OrigQGraphP = TSnap::GetSubGraph(QGraph, AllNIdsV);
+  TIntV AllNIdsV;
+  QGraph->GetNIdV(AllNIdsV);
+  PNGraph OrigQGraphP = TSnap::GetSubGraph(QGraph, AllNIdsV);
 
   TFlt AvgPercentEdgesDeletedNFS = 0;
   TFlt AvgPercentEdgesDeleted = 0;
@@ -65,7 +67,7 @@ void TEdgesDel::CalcForEdgeScore(TQuoteBase *QB, TDocBase *DB, PNGraph& QGraph, 
     fprintf(stderr, "Trial %d: Number of edges in QGraph - %d\n", i, QGraph->GetEdges());
     PNGraph Filler;
     Clustering ClusterJob(Filler);
-    PNGraph QGraphCopy(QGraph);
+    PNGraph QGraphCopy = TSnap::GetSubGraph(QGraph, AllNIdsV);
     ClusterJob.KeepAtMostOneChildPerNode(QGraphCopy, QB, DB, Fn, RandomGenerator);
 
     Log.LogValue(ToPrepend + TEdgesDel::NumEdgesRemaining, TInt(QGraphCopy->GetEdges()));
@@ -99,14 +101,13 @@ void TEdgesDel::CalcAndLogPercentEdgesDel(TQuoteBase *QB, TDocBase *DB, PNGraph&
 
   TIntV AllNIdsV;
   QGraph->GetNIdV(AllNIdsV);
-  QGraphCopy = TSnap::GetSubGraph(QGraph, AllNIdsV);
+  PNGraph QGraphCopy = TSnap::GetSubGraph(QGraph, AllNIdsV);
+  PNGraph QGraphCopy2 = TSnap::GetSubGraph(QGraph, AllNIdsV);
 
-  PNGraph QGraphCopy(QGraph);
   TStr ToPrepend("(Clustering::ComputeEdgeScore) ");
   fprintf(stderr, "Trial %d: Number of edges in QGraphCopy - %d\n", 0, QGraphCopy->GetEdges());
   CalcForEdgeScore(QB, DB, QGraphCopy, Log, ToPrepend, Clustering::ComputeEdgeScore);
 
-  PNGraph QGraphCopy2(QGraph);
   TStr ToPrepend2("(Clustering::ComputeEdgeScoreRandom) ");
   fprintf(stderr, "Trial %d: Number of edges in QGraphCopy2 - %d\n", 0, QGraphCopy2->GetEdges());
   CalcForEdgeScore(QB, DB, QGraphCopy, Log, ToPrepend, Clustering::ComputeEdgeScore);

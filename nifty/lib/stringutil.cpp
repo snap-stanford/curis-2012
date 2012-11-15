@@ -2,7 +2,7 @@
 #include "stringutil.h"
 
 const double TStringUtil::MinCommonEnglishRatio = 0.25;
-PSwSet TStringUtil::StopWordSet = new TSwSet(swstEnMsdn);
+PSwSet TStringUtil::StopWordSet = new TSwSet(swstEn523);
 TStrSet TStringUtil::CommonEnglishWordsList = THashSet<TStr>();
 TStrSet TStringUtil::PublicSuffixSet = THashSet<TStr>();
 

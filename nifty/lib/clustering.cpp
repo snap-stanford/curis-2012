@@ -32,11 +32,11 @@ void Clustering::GetRootNodes(TIntSet& RootNodes) {
   }
 }
 
-void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TSecTm& PresentTime, bool CheckEdgesDel) {
-  BuildClusters(CB, QB, DB, log, PresentTime, NULL, CheckEdgesDel);
+void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TSecTm& PresentTime, TStr method, bool CheckEdgesDel) {
+  BuildClusters(CB, QB, DB, log, PresentTime, NULL, method, CheckEdgesDel);
 }
 
-void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TSecTm& PresentTime, TClusterBase *OldCB, bool CheckEdgesDel) {
+void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TSecTm& PresentTime, TClusterBase *OldCB, TStr method, bool CheckEdgesDel) {
   // currently deletes all edges but the one leading to phrase that is most frequently cited.
   // TODO: Make more efficient? At 10k nodes this is ok
 
@@ -63,7 +63,13 @@ void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, L
   log.LogValue(LogOutput::NumQuotes, TInt(NumNodes));
 
   printf("Deleting extra graph edges...\n");
-  KeepAtMostOneChildPerNode(QGraph, QB, DB, ComputeEdgeScore);
+
+  if (method == "incremental") {
+    IncrementalEdgeDeletion(QGraph, QB, DB);
+  } else {
+    KeepAtMostOneChildPerNode(QGraph, QB, DB);
+  }
+
   fprintf(stderr, "edges deleted!\n");
 
   log.LogValue(LogOutput::NumRemainingEdges, TInt(QGraph->GetEdges()));
@@ -162,6 +168,10 @@ TInt Clustering::CalcRepresentativeQuote(TQuote& RepQuote, TIntV& Cluster, TQuot
   fprintf(stderr, "Sorted: %d\n", ClusterSummaries.Len());
 }*/
 
+void Clustering::KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase *DB) {
+  KeepAtMostOneChildPerNode(G, QB, DB, ComputeEdgeScore, NULL);
+}
+
 void Clustering::KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase *DB,
                                            TFlt (*Fn)(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator),
                                            TRnd *RandomGenerator) {
@@ -199,6 +209,77 @@ void Clustering::KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase 
     }
   }
   //fprintf(stderr, "Edge deletion complete - each node should have max one outgoing edge now!\n");
+}
+
+void Clustering::IncrementalEdgeDeletion(PNGraph& G, TQuoteBase *QB, TDocBase *DB) {
+  TNGraph::TNodeI EndNode = G->EndNI();
+  for (TNGraph::TNodeI Node = G->BegNI(); Node < EndNode; Node++) {
+    GetCluster(Node.GetId(), G, QB, DB);
+  }
+}
+
+int Clustering::GetCluster(TInt CurNodeId, PNGraph& G, TQuoteBase *QB, TDocBase *DB) {
+  TNGraph::TNodeI CurNode = G->GetNI(CurNodeId);
+  
+  TInt AssignedClust;
+  if (visit.IsKeyGetDat(CurNodeId, AssignedClust)) {
+    return AssignedClust;
+  } 
+
+  TQuote SourceQuote;
+  if (QB->GetQuote(CurNode.GetId(), SourceQuote)) {
+    TInt NodeDegree = CurNode.GetOutDeg();
+    if (NodeDegree == 0) {
+      AssignedClust = CurNodeId;
+    } else {
+      THash<TInt, TFlt> ScoreTable;
+
+      TIntV NodeIdV;
+      for (int i = 0; i < NodeDegree; i++) {
+	TInt NodeId = CurNode.GetOutNId(i);
+	NodeIdV.Add(NodeId);
+
+	int RetVal = GetCluster(NodeId, G, QB, DB);
+	if (RetVal != -1) {
+	  TQuote DestQuote;
+	  QB->GetQuote(NodeId, DestQuote);
+
+	  TFlt TotalScore;
+	  if (!ScoreTable.IsKeyGetDat(RetVal, TotalScore)) {
+	    TotalScore = 0;
+	  }
+	  TotalScore += ComputeEdgeScore(SourceQuote, DestQuote, DB);
+	  ScoreTable.AddDat(RetVal, TotalScore);
+	}
+      }
+
+      TIntV ScoreTableKeyV;
+      ScoreTable.GetKeyV(ScoreTableKeyV);
+
+      TFlt MaxTotalScore = 0;
+      TInt MaxCluster = 0;
+      for (int i = 0; i < ScoreTableKeyV.Len(); i++) {
+	TFlt TotalScore = ScoreTable.GetDat(ScoreTableKeyV[i]);
+	if (TotalScore > MaxTotalScore) {
+	  MaxTotalScore = TotalScore;
+	  MaxCluster = ScoreTableKeyV[i];
+	}
+      }
+      
+      for (int i = 0; i < NodeIdV.Len(); i++) {
+	if (GetCluster(NodeIdV[i], G, QB, DB) != MaxCluster) {
+	  G->DelEdge(CurNode.GetId(), NodeIdV[i]);
+	}
+      }
+
+      AssignedClust = MaxCluster;
+    }
+  } else {
+    AssignedClust = -1;
+  }
+
+  visit.AddDat(CurNodeId, AssignedClust);
+  return AssignedClust;
 }
 
 void Clustering::GetAllWCCs(PNGraph& G, TVec<TIntV>& Clusters) {

@@ -232,6 +232,14 @@ TQuoteBase::TQuoteBase() {
   QuoteIdCounter = 0;
 }
 
+TQuoteBase::TQuoteBase(TInt OldCounter) {
+  QuoteIdCounter = OldCounter;
+}
+
+TInt TQuoteBase::GetCounter() {
+  return QuoteIdCounter;
+}
+
 /// Adds quote string to quote base; returns quote's quote id
 TInt TQuoteBase::AddQuote(const TStr &ContentString) {
   TStrV ContentVectorString;
@@ -424,5 +432,9 @@ void TQuoteBase::GetRepresentativeUrl(TDocBase *DocBase, TInt QuoteId, TStr& Rep
   TQuote Q;
   if (!IdToTQuotes.IsKeyGetDat(QuoteId, Q)) { return; }
   Q.GetRepresentativeUrl(DocBase, RepUrl);
+}
+
+void TQuoteBase::GetIdToTQuotes(THash<TInt, TQuote>& Pointer) {
+  Pointer = IdToTQuotes;
 }
 
