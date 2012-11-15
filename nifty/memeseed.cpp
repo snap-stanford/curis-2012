@@ -13,13 +13,18 @@ int main(int argc, char *argv[]) {
   TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
   TInt WindowSize = ArgumentParser::GetArgument(Arguments, "window", "14").GetInt();
 
-  if (ArgumentParser::GetArgument(Arguments, "nolog", "") == "") {
+  if (Arguments.IsKey("nolog")) {
     Log.DisableLogging();
   } else if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
     Log.SetupNewOutputDirectory("");
   } else {
     Log.SetDirectory(OutputDirectory);
   }
+
+  bool CheckEdgesDel = false;
+  if (Arguments.IsKey("edgesdel")) {
+    CheckEdgesDel = true;
+  } 
 
   // #### DATA LOADING: Load ALL the things!
   TQuoteBase QB;
@@ -36,7 +41,7 @@ int main(int argc, char *argv[]) {
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
   Clustering ClusterJob(QGraph);
-  ClusterJob.BuildClusters(&CB, &QB, &DB, Log, PresentTime);
+  ClusterJob.BuildClusters(&CB, &QB, &DB, Log, PresentTime, CheckEdgesDel);
 
   // #### POST CLUSTERING STEP YO
   TIntV TopFilteredClusters;

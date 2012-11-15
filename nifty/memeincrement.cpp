@@ -22,6 +22,11 @@ int main(int argc, char *argv[]) {
     Log.SetDirectory(OutputDirectory);
   }
 
+  bool CheckEdgesDel = false;
+  if (Arguments.IsKey("edgesdel")) {
+    CheckEdgesDel = true;
+  }
+
   TSecTm StartDate = TSecTm::GetDtTmFromYmdHmsStr(StartString);
   TSecTm EndDate = TSecTm::GetDtTmFromYmdHmsStr(EndString);
 
@@ -64,7 +69,7 @@ int main(int argc, char *argv[]) {
 
     TIncrementalClustering ClusterJob(&QB, NewQuotes, QGraph, AffectedNodes);
     TClusterBase NewCB(CB.GetCounter());
-    ClusterJob.BuildClusters(&NewCB, &QB, &DB, Log, CurrentDate, &CB);
+    ClusterJob.BuildClusters(&NewCB, &QB, &DB, Log, CurrentDate, &CB, CheckEdgesDel);
     fprintf(stderr, "Done building clusters!\n");
     TIntV SortedClusters;
     NewCB.GetAllClusterIdsSortByFreq(SortedClusters);
