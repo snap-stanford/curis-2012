@@ -10,6 +10,7 @@ IncrementalQuoteGraph::IncrementalQuoteGraph(TQuoteBase *QB, TClusterBase *CB, T
   this->NewQuotes = NewQuotes;
   QGraph = ExistingGraph;
   EdgeCount = 0;
+  IncrementCount = 0;
 }
 
 IncrementalQuoteGraph::~IncrementalQuoteGraph() {
@@ -30,7 +31,8 @@ void IncrementalQuoteGraph::AddNodes() {
 }
 
 void IncrementalQuoteGraph::AddEdgeIfSimilar(TInt Id1, TInt Id2) {
-  if (!NewQuotes.IsKey(Id1) && !NewQuotes.IsKey(Id1)) return;
+  if (!NewQuotes.IsKey(Id1) && !NewQuotes.IsKey(Id2)) return;
+  ++IncrementCount;
   TQuote Quote1, Quote2; // TODO: Why is Id being sorted in its own bucket? {
   if (Id1 != Id2 && QB->GetQuote(Id1, Quote1) && QB->GetQuote(Id2, Quote2)) {
     if (QuoteGraph::EdgeShouldBeCreated(Quote1, Quote2)) {

@@ -242,33 +242,46 @@ void ReadDeletedClusters(TVec<DCluster> &Clusters) {
 }
 
 void ReadDeletedClustersDetailed(TVec<DCluster> &Clusters) {
-  TStr FileName = "detailed_clusters.txt";
+  TStr FileName = "/lfs/1/tmp/curis/web_caroline/everything/completed_clusters_2009-01-14.txt";//"detailed_clusters.txt";
   PSIn FileLoader = TFIn::New(FileName);
   TStr CurLn;
 
   DCluster Cluster;
-  bool IsCluster = true;
+  int numQuotes = 0;
+  int numClusters = 0;
   while (FileLoader->GetNextLn(CurLn)) {
-    if (CurLn == "") {
-      //if (Cluster.Size > 350) {
+    if (CurLn == "" || CurLn[0] == '/') {
+      continue;
+    }
+    if (CurLn[0] != '\t') {
+      if (Cluster.Quotes.Len() > 0) {
         Clusters.Add(Cluster);
-      //}
-      Cluster = DCluster();
-      IsCluster = true;
+        if (numClusters < 2) {
+          Err("%d\n", Cluster.RepStrLen.Val);
+          for (int i = 0; i < Cluster.Quotes.Len(); i++) {
+            Err("\t%s\n", Cluster.Quotes[i].Str.CStr());
+          }
+
+        }
+      }
+      numClusters++;
+      Cluster = DCluster(CurLn);
     } else {
-      if (IsCluster) {
-        IsCluster = false;
-        Cluster = DCluster(CurLn);
-      } else {
+      if (CurLn[1] != '\t') {
+        numQuotes++;
+        //if (numClusters < 2) Err("%s\n", CurLn.CStr());
         DQuote Quote(CurLn);
         Cluster.Quotes.Add(Quote);
       }
     }
   }
 
-  FileName = "deleted_clusters.bin";
+  FileName = "completed_clusters.bin";
   TFOut FOut(FileName);
   Clusters.Save(FOut);
+  Err("Clusters loaded and saved!\n");
+  Err("Number of clusters: %d\n", Clusters.Len());
+  Err("Number of quotes: %d\n", numQuotes);
 }
 
 void LoadDeletedClustersDetailed(TVec<DCluster> &Clusters) {
@@ -443,6 +456,8 @@ void AnalyzeClustersDetailed(TVec<DCluster> &Clusters) {
       "number of clusters", NULL, PopLenHist, MaxWords, false, false);
   PlotGraph("plot_lifespan_histogram", "Lifespan Histogram", "lifespan (in days)",
       "number of clusters", NULL, LifespanHist, MaxLifespan, false, true);
+  PlotGraph("plot_variant_histogram", "Unique Quotes Histogram", "# unique quotes",
+      "number of clusters", NULL, VariantHist, MaxLifespan, false, true);
 
   // GRAPH PLOTTING - Interesting
   PlotGraph("plot_replen_vs_lifespan", "Representative Quote Length vs. Lifespan", "representative quote length",
@@ -604,8 +619,8 @@ int main(int argc, char *argv[]) {
   BuildClusterVec(FileName, Deleted);
   Err("Number of clusters: %d\n", Deleted.Len());*/
   TVec<DCluster> Clusters;
-  //ReadDeletedClustersDetailed(Clusters);
-  LoadDeletedClustersDetailed(Clusters);
+  ReadDeletedClustersDetailed(Clusters);
+  //LoadDeletedClustersDetailed(Clusters);
   AnalyzeClustersDetailed(Clusters);
   //PrintPopularUnpopularStats(Clusters);
 

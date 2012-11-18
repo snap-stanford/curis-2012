@@ -59,6 +59,7 @@ int main(int argc, char *argv[]) {
     IncrementalQuoteGraph GraphCreator(&QB, &CB, NewQuotes, OldQGraph);
     PNGraph QGraph;
     GraphCreator.UpdateGraph(QGraph);
+    Err("INCREMENTAL COMPARISONS: %d\n", GraphCreator.IncrementCount);
     TIntSet AffectedNodes;
     GraphCreator.GetAffectedNodes(AffectedNodes);
 
