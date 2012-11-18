@@ -2,7 +2,8 @@
 #include <spinn3r.h>
 #include <memes.h>
 
-// Run using this: ./MemeWorks -do:mkclustnet -i:/lfs/1/tmp/curis/memetracker.QtBs -l:0 -o:output
+// Run using this: ./MemeWorks -do:mkclustnet -i:/lfs/1/tmp/curis/memetracker.QtBs -l:0 -o:output -c:5
+//./MemeWorks -i:memetracker.QtBs -o:memetracker-week.txt -c:5 -do:mkclustnet -l:0
 
 void BigMain(int argc, char* argv[]);
 void QuotesForDepression();
@@ -380,21 +381,21 @@ void BigMain(int argc, char* argv[]) {
     printf("set cluster\n");
     QtBs->CreateClusters(ClustV); // set clusters
     printf("save\n");
-    { TFOut FOut(Pref+"-clust.QtBs"); QtBs->Save(FOut); }
+    //{ TFOut FOut(Pref+"-clust.QtBs"); QtBs->Save(FOut); }
     // save clusters
-    TIntV QtIdV;
-    QtBs->GetQtIdVByFq(QtIdV, MinWrdLen, 50, false); QtIdV.Del(100, QtIdV.Len()-1);
-    QtBs->SaveQuotes(QtIdV, Pref+"-quotes.txt");
+    //TIntV QtIdV;
+    //QtBs->GetQtIdVByFq(QtIdV, MinWrdLen, 50, false); QtIdV.Del(100, QtIdV.Len()-1);
+    //QtBs->SaveQuotes(QtIdV, Pref+"-quotes.txt");
     QtBs->SaveClusters(Pref+"a", true);
-    QtBs->SaveClusters(Pref+"b", false);
-    const TUrlTy CntUrlTy = utUndef;
-    TSecTm MinTm(2009,2,1), MaxTm(2009,7,31); //QtBs->GetMinMaxTm(MinTm, MaxTm);
-    QtBs->GetQtIdVByFq(QtIdV, MinWrdLen, MinMemeFq, true, "", "", CntUrlTy);
-    QtBs->SaveForFlash(QtIdV, Pref+"-top10", tmu4Hour, 10, MinTm, MaxTm, CntUrlTy);
+    //QtBs->SaveClusters(Pref+"b", false);
+    //const TUrlTy CntUrlTy = utUndef;
+    //TSecTm MinTm(2009,2,1), MaxTm(2009,7,31); //QtBs->GetMinMaxTm(MinTm, MaxTm);
+    //QtBs->GetQtIdVByFq(QtIdV, MinWrdLen, MinMemeFq, true, "", "", CntUrlTy);
+    /*QtBs->SaveForFlash(QtIdV, Pref+"-top10", tmu4Hour, 10, MinTm, MaxTm, CntUrlTy);
     QtBs->SaveForFlash(QtIdV, Pref+"-top20", tmu4Hour, 20, MinTm, MaxTm, CntUrlTy);
     QtBs->SaveForFlash(QtIdV, Pref+"-top30", tmu4Hour, 30, MinTm, MaxTm, CntUrlTy);
     QtBs->SaveForFlash(QtIdV, Pref+"-top50", tmu4Hour, 50, MinTm, MaxTm, CntUrlTy);
-    QtBs->SaveForFlash(QtIdV, Pref+"-top100", tmu4Hour, 100, MinTm, MaxTm, CntUrlTy);
+    QtBs->SaveForFlash(QtIdV, Pref+"-top100", tmu4Hour, 100, MinTm, MaxTm, CntUrlTy);*/
   }
   // extract cascades (from MsDataset input file) and save to TXT format
   else if (ToDo == "linkcascades") {

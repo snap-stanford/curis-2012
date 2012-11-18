@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
   Clustering ClusterJob(QGraph);
-  ClusterJob.BuildClusters(&CB, &QB, &DB, Log, PresentTime);
+  ClusterJob.BuildClusters(&CB, &QB, &DB, Log, PresentTime, false);
 
   TIntV AllClusters;
   CB.GetAllClusterIdsSortByFreq(AllClusters);
@@ -65,21 +65,20 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < NumClusters; i++) {
     TCluster C;
     CB.GetCluster(AllClusters[i], C);
-    if (C.GetNumUniqueQuotes() > 1) {
-      TIntV Quotes;
-      C.GetQuoteIds(Quotes);
-      TStr RepStr;
-      C.GetRepresentativeQuoteString(RepStr, &QB);
-      fprintf(F, "%d\t%d\t%s\t%d\n", Quotes.Len(), C.GetNumQuotes().Val, RepStr.CStr(), C.GetId().Val);
-      for (int j = 0; j < Quotes.Len(); j++) {
-        TQuote Q;
-        QB.GetQuote(Quotes[j], Q);
-        TStr Str;
-        Q.GetContentString(Str);
-        fprintf(F, "\t%d\t%d\t%s\t%d\n", Q.GetNumSources().Val, Q.GetNumSources().Val, Str.CStr(), Q.GetId().Val);
-      }
-      fprintf(F, "\n");
+    TIntV Quotes;
+
+    C.GetQuoteIds(Quotes);
+    TStr RepStr;
+    C.GetRepresentativeQuoteString(RepStr, &QB);
+    fprintf(F, "%d\t%d\t%s\t%d\n", Quotes.Len(), C.GetNumQuotes().Val, RepStr.CStr(), C.GetId().Val);
+    for (int j = 0; j < Quotes.Len(); j++) {
+      TQuote Q;
+      QB.GetQuote(Quotes[j], Q);
+      TStr Str;
+      Q.GetContentString(Str);
+      fprintf(F, "\t%d\t%d\t%s\t%d\n", Q.GetNumSources().Val, Q.GetNumSources().Val, Str.CStr(), Q.GetId().Val);
     }
+    fprintf(F, "\n");
 
   }
   fclose(F);
