@@ -13,8 +13,8 @@ int main(int argc, char *argv[]) {
   TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
   TInt WindowSize = ArgumentParser::GetArgument(Arguments, "window", "14").GetInt();
   TStr EdgeString = ArgumentParser::GetArgument(Arguments, "edge", EDGE_CREATION_STYLE);
+  TStr ClustMethod = ArgumentParser::GetArgument(Arguments, "method", "local");
   QuoteGraph::SetEdgeCreation(EdgeString);
-
 
   if (ArgumentParser::GetArgument(Arguments, "nolog", "") != "") {
     Log.DisableLogging();
@@ -26,6 +26,9 @@ int main(int argc, char *argv[]) {
     Log.SetDirectory(OutputDirectory);
   }
 
+  bool CheckEdgesDel = Arguments.IsKey("edgesdel");
+
+  // #### DATA LOADING: Load ALL the things!
   TQuoteBase QB;
   TDocBase DB;
   TClusterBase CB;
@@ -62,7 +65,7 @@ int main(int argc, char *argv[]) {
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
   Clustering ClusterJob(QGraph);
-  ClusterJob.BuildClusters(&CB, &QB, &DB, Log, PresentTime);
+  ClusterJob.BuildClusters(&CB, &QB, &DB, Log, PresentTime, ClustMethod, CheckEdgesDel);
   GraphCreator.LogEdges("WordsCheapAfter.txt");
 
   // #### POST CLUSTERING STEP YO
@@ -77,7 +80,6 @@ int main(int argc, char *argv[]) {
   TIntV Temp;
   //Log.LogAllInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime, Temp, QBDBCDirectory);
   Log.WriteClusteringStatisticsToFile(PresentTime);
-
   TStr Directory;
   Log.GetDirectory(Directory);
   Err("Done with memeseed! Directory created at: %s\n", Directory.CStr());

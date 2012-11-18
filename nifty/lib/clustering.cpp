@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "clustering.h"
+#include "edgesdel.h"
 #include "quotegraph.h"
 #include "logoutput.h"
 
@@ -31,11 +32,11 @@ void Clustering::GetRootNodes(TIntSet& RootNodes) {
   }
 }
 
-void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TSecTm& PresentTime) {
-  BuildClusters(CB, QB, DB, log, PresentTime, NULL);
+void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TSecTm& PresentTime, TStr method, bool CheckEdgesDel) {
+  BuildClusters(CB, QB, DB, log, PresentTime, NULL, method, CheckEdgesDel);
 }
 
-void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TSecTm& PresentTime, TClusterBase *OldCB) {
+void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, LogOutput& log, TSecTm& PresentTime, TClusterBase *OldCB, TStr method, bool CheckEdgesDel) {
   // currently deletes all edges but the one leading to phrase that is most frequently cited.
   // TODO: Make more efficient? At 10k nodes this is ok
 
@@ -45,6 +46,16 @@ void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, L
   }
   PNGraph OrigQGraphP;
   OrigQGraphP = TSnap::GetSubGraph(QGraph, AllNIdsV);
+
+  if (CheckEdgesDel) {
+    // TODO: Remove this after done with edge score experiments
+    fprintf(stderr, "Saving QBDBGraph\n");
+    TFOut FOut("QBDBGraph_foredgedel.bin");
+    QB->Save(FOut);
+    DB->Save(FOut);
+    QGraph->Save(FOut);
+    fprintf(stderr, "Done saving QBDBGraph!\n");
+  }
   
   int NumEdgesOriginal = QGraph->GetEdges();
   log.LogValue(LogOutput::NumOriginalEdges, TInt(NumEdgesOriginal));
@@ -52,8 +63,13 @@ void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, L
   log.LogValue(LogOutput::NumQuotes, TInt(NumNodes));
 
   printf("Deleting extra graph edges...\n");
-  IncrementalEdgeDeletion(QGraph, QB, DB);
-  // KeepAtMostOneChildPerNode(QGraph, QB, DB);
+
+  if (method == "incremental") {
+    IncrementalEdgeDeletion(QGraph, QB, DB);
+  } else {
+    KeepAtMostOneChildPerNode(QGraph, QB, DB);
+  }
+
   fprintf(stderr, "edges deleted!\n");
 
   log.LogValue(LogOutput::NumRemainingEdges, TInt(QGraph->GetEdges()));
@@ -65,38 +81,9 @@ void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, L
   GetAllWCCs(QGraph, Clusters);
   log.LogValue(LogOutput::NumClusters, TInt(Clusters.Len()));
 
-  // calculate percent edges deleted from induced subgraphs of these WCC's
-  TInt NumEdgesInducedSubgraphs = 0;
-  for (int i = 0; i < Clusters.Len(); i++) {
-    PNGraph SubgraphP;
-    SubgraphP = TSnap::GetSubGraph(OrigQGraphP, Clusters[i]);
-    NumEdgesInducedSubgraphs += SubgraphP->GetEdges();
+  if (CheckEdgesDel) {
+    TEdgesDel::CalcAndLogPercentEdgesDel(QB, DB, QGraph, log);
   }
-
-  fprintf(stderr, "percent edges deleted, not from subgraphs: %f\n", TFlt(100 - NumEdgesInducedSubgraphs * 100.0 / NumEdgesOriginal).Val);
-  log.LogValue(LogOutput::PercentEdgesDeletedNotFromSubgraphs, TFlt(100 - NumEdgesInducedSubgraphs * 100.0 / NumEdgesOriginal));
-
-  fprintf(stderr, "generating random graph for comparison\n");
-  // Calculate baseline percentage of edges deleted
-  PNGraph RandomQGraph;
-  RandomQGraph = TSnap::GenRewire(QGraph);
-  PNGraph OrigRandomQGraph;
-  OrigRandomQGraph = TSnap::GetSubGraph(RandomQGraph, AllNIdsV);
-
-  KeepAtMostOneChildPerNode(RandomQGraph, QB, DB);
-
-  TVec<TIntV> ClustersRandom;
-  GetAllWCCs(RandomQGraph, ClustersRandom);
-
-  NumEdgesInducedSubgraphs = 0;
-  for (int i = 0; i < ClustersRandom.Len(); i++) {
-    PNGraph SubgraphP;
-    SubgraphP = TSnap::GetSubGraph(OrigRandomQGraph, ClustersRandom[i]);
-    NumEdgesInducedSubgraphs += SubgraphP->GetEdges();
-  }
-  
-  log.LogValue(LogOutput::PercentEdgesDeletedNFSBaseline, TFlt(100 - NumEdgesInducedSubgraphs * 100.0 / NumEdgesOriginal));
-  fprintf(stderr, "random graph generation complete!\n");
   
   // Add clusters to CB. keep track of cluster birth time (aka today)
   for (int i = 0; i < Clusters.Len(); i++) {
@@ -112,7 +99,7 @@ void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, L
   fprintf(stderr, "cluster generation complete!\n");
 }
 
-TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB) {
+TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator) {
   TInt NumSources = Dest.GetNumSources();
   TStrV Content1, Content2;
   Source.GetParsedContent(Content1);
@@ -133,6 +120,10 @@ TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB) {
   // adhoc function between frequency and edit distance and peak diff.
   // TODO: learn this! haha :)
   return NumSources * 2 * 3600.0 /(EditDistance + 1.0)/(PeakDistanceInSecs + 1);
+}
+
+TFlt Clustering::ComputeEdgeScoreRandom(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator) {
+  return RandomGenerator->GetUniDev();
 }
 
 /// Calculates the representative quote and returns it in RepQuote; returns the
@@ -178,6 +169,12 @@ TInt Clustering::CalcRepresentativeQuote(TQuote& RepQuote, TIntV& Cluster, TQuot
 }*/
 
 void Clustering::KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase *DB) {
+  KeepAtMostOneChildPerNode(G, QB, DB, ComputeEdgeScore, NULL);
+}
+
+void Clustering::KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase *DB,
+                                           TFlt (*Fn)(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator),
+                                           TRnd *RandomGenerator) {
   TNGraph::TNodeI EndNode = G->EndNI();
   for (TNGraph::TNodeI Node = G->BegNI(); Node < EndNode; Node++) {
     TQuote SourceQuote;
@@ -193,7 +190,7 @@ void Clustering::KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase 
           NodeV.Add(CurNode);
           TQuote DestQuote;
           if (QB->GetQuote(CurNode, DestQuote)) {
-            TFlt EdgeScore = ComputeEdgeScore(SourceQuote, DestQuote, DB);
+            TFlt EdgeScore = (*Fn)(SourceQuote, DestQuote, DB, RandomGenerator);
             if (EdgeScore > MaxScore) {
               MaxScore = EdgeScore;
               MaxNodeId = CurNode;
@@ -211,7 +208,7 @@ void Clustering::KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase 
       }
     }
   }
-  fprintf(stderr, "Edge deletion complete - each node should have max one outgoing edge now!\n");
+  //fprintf(stderr, "Edge deletion complete - each node should have max one outgoing edge now!\n");
 }
 
 void Clustering::IncrementalEdgeDeletion(PNGraph& G, TQuoteBase *QB, TDocBase *DB) {
@@ -252,7 +249,7 @@ int Clustering::GetCluster(TInt CurNodeId, PNGraph& G, TQuoteBase *QB, TDocBase 
 	    TotalScore = 0;
 	  }
 	  TotalScore += ComputeEdgeScore(SourceQuote, DestQuote, DB);
-	  ScoreTable.AddDat(NodeId, TotalScore);
+	  ScoreTable.AddDat(RetVal, TotalScore);
 	}
       }
 
@@ -291,7 +288,7 @@ void Clustering::GetAllWCCs(PNGraph& G, TVec<TIntV>& Clusters) {
   Components.Sort(false);
   Clusters.Clr(false);
   TIntSet SeenSet;
-  fprintf(stderr, "%d weakly connected components discovered.", Components.Len());
+  //fprintf(stderr, "%d weakly connected components discovered.", Components.Len());
   for (int i = 0; i < Components.Len(); i++) {
     for (int n = 0; n < Components[i].NIdV.Len(); n++) {
       IAssert(! SeenSet.IsKey(Components[i].NIdV[n]));

@@ -23,6 +23,9 @@
 #include "logoutput.cpp"
 #include "peaks.cpp"
 
+// experiments
+#include "edgesdel.cpp"
+
 #include "postcluster.cpp"
 
 // incremental clustering
