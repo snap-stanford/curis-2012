@@ -76,6 +76,7 @@ int main(int argc, char *argv[]) {
 
   TIntV Temp;
   //Log.LogAllInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime, Temp, QBDBCDirectory);
+  Log.WriteClusteringStatisticsToFile(PresentTime);
 
   TStr Directory;
   Log.GetDirectory(Directory);
