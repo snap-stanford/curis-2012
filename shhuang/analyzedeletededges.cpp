@@ -5,6 +5,18 @@ const TStr OUTPUT_DIRECTORY = "./deletededges_results";
 const TSecTm END_DATE(2012, 1, 14);
 
 int main(int argc, char *argv[]) {
+  LogOutput Log;
+  Log.SetupNewOutputDirectory(OUTPUT_DIRECTORY);
+
+  THash<TStr, TStr> Arguments;
+  ArgumentParser::ParseArguments(argc, argv, Arguments, Log);
+  // default: compare partitioning methods
+  bool CompareEdgeScores = Arguments.IsKey("edgescore");
+
+  if (CompareEdgeScores) {
+    fprintf(stderr, "Comparing edge scores!\n");
+  }
+
   // Load saved QB, DB, and graph (before edges are deleted) from file
   TFIn SavedQBDBG(SAVED_QBDBGRAPH_FILE);
   TQuoteBase QB;
@@ -17,11 +29,14 @@ int main(int argc, char *argv[]) {
   fprintf(stderr, "Loading Graph\n");
   QGraph = TNGraph::Load(SavedQBDBG);
 
-  LogOutput Log;
-  Log.SetupNewOutputDirectory(OUTPUT_DIRECTORY);
 
-  fprintf(stderr, "Calculating and logging percent edges deleted for different edge scores\n");
-  TEdgesDel::CalcAndLogPercentEdgesDel(&QB, &DB, QGraph, Log);
+  if (!CompareEdgeScores) {
+    fprintf(stderr, "Calculating and logging percent edges deleted for different partitioning methods\n");
+    TEdgesDel::ComparePartitioningMethods(&QB, &DB, QGraph, Log);
+  } else {
+    fprintf(stderr, "Calculating and logging percent edges deleted for different edge scores\n");
+    TEdgesDel::CompareEdgeScores(&QB, &DB, QGraph, Log);
+  }
 
   TSecTm EndDate(END_DATE);
   Log.WriteClusteringStatisticsToFile(EndDate);

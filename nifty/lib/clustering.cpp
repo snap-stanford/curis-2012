@@ -4,8 +4,14 @@
 #include "quotegraph.h"
 #include "logoutput.h"
 
-Clustering::Clustering(PNGraph QGraph) {
+/** Pass in TQuoteBase and TDocBase if you want to run
+ *  edge score baseline later
+ */
+Clustering::Clustering(PNGraph QGraph, TQuoteBase *QB, TDocBase *DB) {
   this->QGraph = QGraph;
+  if (QB != NULL && DB != NULL) {
+    PrepForEdgeScoreBaseline(QB, DB);
+  }
 }
 
 Clustering::~Clustering() {
@@ -82,7 +88,8 @@ void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, L
   log.LogValue(LogOutput::NumClusters, TInt(Clusters.Len()));
 
   if (CheckEdgesDel) {
-    TEdgesDel::CalcAndLogPercentEdgesDel(QB, DB, QGraph, log);
+    TEdgesDel::ComparePartitioningMethods(QB, DB, QGraph, log);
+    //TEdgesDel::CompareEdgeScores(QB, DB, QGraph, log);
   }
   
   // Add clusters to CB. keep track of cluster birth time (aka today)
@@ -99,7 +106,7 @@ void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, L
   fprintf(stderr, "cluster generation complete!\n");
 }
 
-TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator) {
+TFlt Clustering::ComputeEdgeScoreGeneral(TQuote& Source, TQuote& Dest, TDocBase *DB, TStr Type, TRnd *RandomGenerator) {
   TInt NumSources = Dest.GetNumSources();
   TStrV Content1, Content2;
   Source.GetParsedContent(Content1);
@@ -119,11 +126,44 @@ TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB, TR
 
   // adhoc function between frequency and edit distance and peak diff.
   // TODO: learn this! haha :)
-  return NumSources * 2 * 3600.0 /(EditDistance + 1.0)/(PeakDistanceInSecs + 1);
+  if (Type == "Division") {
+    return NumSources * 2 * 3600.0 /(EditDistance + 1.0)/(PeakDistanceInSecs + 1);
+  } else if (Type == "Weighted") {
+    return NumSources * (1.0 / 10) - 10.0 * EditDistance - PeakDistanceInSecs * (1.0 / (3600 * 24));
+  } else if (Type == "Old") {
+    return NumSources * 1.0;
+  }
+  IAssert(false);  // this point should never be reached
+  return 1;
+}
+
+TFlt Clustering::ComputeEdgeScore(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator) {
+  TStr Type("Division");
+  return ComputeEdgeScoreGeneral(Source, Dest, DB, Type, RandomGenerator);
 }
 
 TFlt Clustering::ComputeEdgeScoreRandom(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator) {
   return RandomGenerator->GetUniDev();
+}
+
+TFlt Clustering::ComputeEdgeScoreWeighted(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator) {
+  TStr Type("Weighted");
+  return ComputeEdgeScoreGeneral(Source, Dest, DB, Type, RandomGenerator);
+}
+
+TFlt Clustering::ComputeEdgeScoreOld(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator) {
+  TStr Type("Old");
+  return ComputeEdgeScoreGeneral(Source, Dest, DB, Type, RandomGenerator);
+}
+
+TFlt Clustering::ComputeEdgeScoreBaseline(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator) {
+  if (EdgeScores.Len() == 0) {
+    fprintf(stderr, "ERROR: must pass in QB and DB when calling Clustering constructor\n");
+    return 0;
+  }
+  TIntPr OrigEdge(Source.GetId(), Dest.GetId());
+  TIntPr RandomMatchedEdge = EdgeToRandomEdge.GetDat(OrigEdge);
+  return EdgeScores.GetDat(RandomMatchedEdge);
 }
 
 /// Calculates the representative quote and returns it in RepQuote; returns the
@@ -211,14 +251,21 @@ void Clustering::KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase 
   //fprintf(stderr, "Edge deletion complete - each node should have max one outgoing edge now!\n");
 }
 
-void Clustering::IncrementalEdgeDeletion(PNGraph& G, TQuoteBase *QB, TDocBase *DB) {
+
+void Clustering::IncrementalEdgeDeletion(PNGraph& G, TQuoteBase *QB, TDocBase *DB, bool ConstantEdgeScore) {
+  IncrementalEdgeDeletion(G, QB, DB, ComputeEdgeScore, ConstantEdgeScore, false);
+}
+
+void Clustering::IncrementalEdgeDeletion(PNGraph& G, TQuoteBase *QB, TDocBase *DB,
+                                         TFlt (*Fn)(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator), bool ConstantEdgeScore, bool RandomEdgeScore) {
   TNGraph::TNodeI EndNode = G->EndNI();
   for (TNGraph::TNodeI Node = G->BegNI(); Node < EndNode; Node++) {
-    GetCluster(Node.GetId(), G, QB, DB);
+    GetCluster(Node.GetId(), G, QB, DB, Fn, ConstantEdgeScore, RandomEdgeScore);
   }
 }
 
-int Clustering::GetCluster(TInt CurNodeId, PNGraph& G, TQuoteBase *QB, TDocBase *DB) {
+int Clustering::GetCluster(TInt CurNodeId, PNGraph& G, TQuoteBase *QB, TDocBase *DB,
+                           TFlt (*Fn)(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator), bool ConstantEdgeScore, bool RandomEdgeScore) {
   TNGraph::TNodeI CurNode = G->GetNI(CurNodeId);
   
   TInt AssignedClust;
@@ -239,7 +286,7 @@ int Clustering::GetCluster(TInt CurNodeId, PNGraph& G, TQuoteBase *QB, TDocBase 
 	TInt NodeId = CurNode.GetOutNId(i);
 	NodeIdV.Add(NodeId);
 
-	int RetVal = GetCluster(NodeId, G, QB, DB);
+	int RetVal = GetCluster(NodeId, G, QB, DB, Fn, ConstantEdgeScore, RandomEdgeScore);
 	if (RetVal != -1) {
 	  TQuote DestQuote;
 	  QB->GetQuote(NodeId, DestQuote);
@@ -248,7 +295,13 @@ int Clustering::GetCluster(TInt CurNodeId, PNGraph& G, TQuoteBase *QB, TDocBase 
 	  if (!ScoreTable.IsKeyGetDat(RetVal, TotalScore)) {
 	    TotalScore = 0;
 	  }
-	  TotalScore += ComputeEdgeScore(SourceQuote, DestQuote, DB);
+          if (ConstantEdgeScore) {  // pick cluster with max # of edges, instead of max edge score
+            TotalScore += 1;
+          } else if (RandomEdgeScore) {
+            TotalScore += ComputeEdgeScoreBaseline(SourceQuote, DestQuote, DB);
+          } else {
+	    TotalScore += (*Fn)(SourceQuote, DestQuote, DB, NULL);
+          }
 	  ScoreTable.AddDat(RetVal, TotalScore);
 	}
       }
@@ -267,7 +320,7 @@ int Clustering::GetCluster(TInt CurNodeId, PNGraph& G, TQuoteBase *QB, TDocBase 
       }
       
       for (int i = 0; i < NodeIdV.Len(); i++) {
-	if (GetCluster(NodeIdV[i], G, QB, DB) != MaxCluster) {
+	if (GetCluster(NodeIdV[i], G, QB, DB, Fn, ConstantEdgeScore, RandomEdgeScore) != MaxCluster) {
 	  G->DelEdge(CurNode.GetId(), NodeIdV[i]);
 	}
       }
@@ -282,7 +335,7 @@ int Clustering::GetCluster(TInt CurNodeId, PNGraph& G, TQuoteBase *QB, TDocBase 
   return AssignedClust;
 }
 
-void Clustering::GetAllWCCs(PNGraph& G, TVec<TIntV>& Clusters) {
+void Clustering::GetAllWCCs(const PNGraph& G, TVec<TIntV>& Clusters) {
   TCnComV Components;
   TSnap::GetWccs(G, Components);
   Components.Sort(false);
@@ -295,5 +348,29 @@ void Clustering::GetAllWCCs(PNGraph& G, TVec<TIntV>& Clusters) {
       SeenSet.AddKey(Components[i].NIdV[n]);
     }
     Clusters.Add(Components[i].NIdV);
+  }
+}
+
+void Clustering::PrepForEdgeScoreBaseline(TQuoteBase *QB, TDocBase *DB) {
+  fprintf(stderr, "Preparing data structures for edge score baseline\n");
+  for (TNGraph::TEdgeI Edge = QGraph->BegEI(); Edge != QGraph->EndEI(); Edge++) {
+    TQuote SourceQuote;
+    QB->GetQuote(Edge.GetSrcNId(), SourceQuote);
+    TQuote DestQuote;
+    QB->GetQuote(Edge.GetDstNId(), DestQuote);
+    TFlt EdgeScore = ComputeEdgeScore(SourceQuote, DestQuote, DB);
+    EdgeScores.AddDat(TIntPr(SourceQuote.GetId(), DestQuote.GetId()), EdgeScore);
+  }
+
+  TVec<TIntPr> AllEdges;
+  EdgeScores.GetKeyV(AllEdges);
+  TVec<TIntPr> ShuffledEdges;
+  EdgeScores.GetKeyV(ShuffledEdges);
+  int RandomSeed = (int) ((TSecTm::GetCurTm()).GetAbsSecs() % TInt::Mx);
+  TRnd RandomGenerator(RandomSeed);
+  ShuffledEdges.Shuffle(RandomGenerator);
+
+  for (int i = 0; i < AllEdges.Len(); i++) {
+    EdgeToRandomEdge.AddDat(AllEdges[i], ShuffledEdges[i]);  // one-to-one mapping
   }
 }

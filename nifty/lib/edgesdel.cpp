@@ -8,6 +8,9 @@ const TStr TEdgesDel::PercentEdgesDeletedNFS = "Percent of edges deleted, not fr
 const TStr TEdgesDel::PercentEdgeScoreDeletedNFS = "Percent of edge score deleted, not from subgraphs: ";
 const TStr TEdgesDel::PercentEdgeScoreDeleted = "Percent of edge score deleted: ";
 
+const TStr TEdgesDel::IncEdgeDelMaxNumEdges = "(Clustering::IncrementalEdgeDeletion_max-num-edges) ";
+const TStr TEdgesDel::IncEdgeDelMaxEdgeScore = "(Clustering::IncrementalEdgeDeletion_max-edge-score) ";
+
 /** This is the old baseline, when we randomize the graph.
  *  QGraph must be the *original* graph, before edges are deleted.
  *  Just saving this around if we need to use it again
@@ -65,16 +68,50 @@ TFlt TEdgesDel::CalcSumEdgeScoreOfGraph(TQuoteBase *QB, TDocBase *DB, const PNGr
   return SumEdgeScore;
 }
 
+/** Calculates the percent edges deleted and percent edge score deleted, updating the
+ *  TFlt parameter values.
+ */
+void TEdgesDel::UpdatePercentages(TQuoteBase *QB, TDocBase *DB, const PNGraph& QGraph, const PNGraph& QGraphPartitioned,
+                                TFlt& AvgPercentEdgeScoreDeletedNFS, TFlt& AvgPercentEdgeScoreDeleted,
+                                TFlt& AvgPercentEdgesDeletedNFS, TFlt& AvgPercentEdgesDeleted, LogOutput& Log, const TStr& ToPrepend) {
+
+  Log.LogValue(ToPrepend + TEdgesDel::NumEdgesRemaining, TInt(QGraphPartitioned->GetEdges()));
+  int NumEdgesOriginal = QGraph->GetEdges();
+  TFlt SumEdgeScoreOriginal = CalcSumEdgeScoreOfGraph(QB, DB, QGraph);
+
+  TVec<TIntV> Clusters;
+  Clustering::GetAllWCCs(QGraphPartitioned, Clusters);
+  Log.LogValue(ToPrepend + TEdgesDel::NumClusters, TInt(Clusters.Len()));
+
+  TFlt SumEdgeScoreInducedSubgraphs;
+
+  // calculate percent edges deleted from induced subgraphs of these WCC's
+  // also calculate percent edge score deleted from whole graph vs. induced subgraphs
+  TInt NumEdgesInducedSubgraphs = 0;
+  for (int i = 0; i < Clusters.Len(); i++) {
+    PNGraph SubgraphP;
+    SubgraphP = TSnap::GetSubGraph(QGraph, Clusters[i]);
+    NumEdgesInducedSubgraphs += SubgraphP->GetEdges();
+    SumEdgeScoreInducedSubgraphs += CalcSumEdgeScoreOfGraph(QB, DB, SubgraphP);
+  }
+
+  TFlt SumEdgeScore = CalcSumEdgeScoreOfGraph(QB, DB, QGraphPartitioned);
+
+  AvgPercentEdgeScoreDeletedNFS += TFlt(100 - SumEdgeScoreInducedSubgraphs * 100.0 / SumEdgeScoreOriginal);
+  AvgPercentEdgeScoreDeleted += TFlt(100 - SumEdgeScore * 100.0 / SumEdgeScoreOriginal);
+
+  AvgPercentEdgesDeletedNFS += TFlt(100 - NumEdgesInducedSubgraphs * 100.0 / NumEdgesOriginal);
+  AvgPercentEdgesDeleted += TFlt(100 - QGraphPartitioned->GetEdges() * 100.0 / NumEdgesOriginal);
+}
+
 /** For calculating the percent edges deleted for the actual graph (the one that's passed in)
  *  QGraph must be the *original* graph, before edges are deleted.
  */
-void TEdgesDel::CalcForEdgeScore(TQuoteBase *QB, TDocBase *DB, const PNGraph& QGraph, LogOutput& Log, TStr& ToPrepend,
+void TEdgesDel::TryPartitioningMethod(TQuoteBase *QB, TDocBase *DB, const PNGraph& QGraph, LogOutput& Log, const TStr& ToPrepend,
                                  TFlt (*Fn)(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator), TInt NumTrials,
                                  TRnd *RandomGenerator) {
-  int NumEdgesOriginal = QGraph->GetEdges();
   TIntV AllNIdsV;
   QGraph->GetNIdV(AllNIdsV);
-  TFlt SumEdgeScoreOriginal = CalcSumEdgeScoreOfGraph(QB, DB, QGraph);
 
   TFlt AvgPercentEdgesDeletedNFS, AvgPercentEdgesDeleted, AvgPercentEdgeScoreDeletedNFS, AvgPercentEdgeScoreDeleted;
   for (int i = 0; i < NumTrials; i++) {
@@ -82,38 +119,18 @@ void TEdgesDel::CalcForEdgeScore(TQuoteBase *QB, TDocBase *DB, const PNGraph& QG
     PNGraph QGraphPartitioned = TSnap::GetSubGraph(QGraph, AllNIdsV);
     Clustering ClusterJob(QGraphPartitioned);
 
-    if (ToPrepend == "(Clustering::IncrementalEdgeDeletion) ") {
-      fprintf(stderr, "Doing incremental edge deletion\n");
-      ClusterJob.IncrementalEdgeDeletion(QGraphPartitioned, QB, DB);
+    if (ToPrepend == TEdgesDel::IncEdgeDelMaxEdgeScore) {
+      fprintf(stderr, "Doing incremental edge deletion, choosing cluster with max edge score\n");
+      ClusterJob.IncrementalEdgeDeletion(QGraphPartitioned, QB, DB, false);
+    } else if (ToPrepend == TEdgesDel::IncEdgeDelMaxNumEdges) {
+      fprintf(stderr, "Doing incremental edge deletion, choosing cluster with max num edges\n");
+      ClusterJob.IncrementalEdgeDeletion(QGraphPartitioned, QB, DB, true);
     } else {
       ClusterJob.KeepAtMostOneChildPerNode(QGraphPartitioned, QB, DB, Fn, RandomGenerator);
     }
 
-    Log.LogValue(ToPrepend + TEdgesDel::NumEdgesRemaining, TInt(QGraphPartitioned->GetEdges()));
-
-    TVec<TIntV> Clusters;
-    Clustering::GetAllWCCs(QGraphPartitioned, Clusters);
-    Log.LogValue(ToPrepend + TEdgesDel::NumClusters, TInt(Clusters.Len()));
-
-    TFlt SumEdgeScoreInducedSubgraphs;
-
-    // calculate percent edges deleted from induced subgraphs of these WCC's
-    // also calculate percent edge score deleted from whole graph vs. induced subgraphs
-    TInt NumEdgesInducedSubgraphs = 0;
-    for (int i = 0; i < Clusters.Len(); i++) {
-      PNGraph SubgraphP;
-      SubgraphP = TSnap::GetSubGraph(QGraph, Clusters[i]);
-      NumEdgesInducedSubgraphs += SubgraphP->GetEdges();
-      SumEdgeScoreInducedSubgraphs += CalcSumEdgeScoreOfGraph(QB, DB, SubgraphP);
-    }
-
-    TFlt SumEdgeScore = CalcSumEdgeScoreOfGraph(QB, DB, QGraphPartitioned);
-
-    AvgPercentEdgeScoreDeletedNFS += TFlt(100 - SumEdgeScoreInducedSubgraphs * 100.0 / SumEdgeScoreOriginal);
-    AvgPercentEdgeScoreDeleted += TFlt(100 - SumEdgeScore * 100.0 / SumEdgeScoreOriginal);
-
-    AvgPercentEdgesDeletedNFS += TFlt(100 - NumEdgesInducedSubgraphs * 100.0 / NumEdgesOriginal);
-    AvgPercentEdgesDeleted += TFlt(100 - QGraphPartitioned->GetEdges() * 100.0 / NumEdgesOriginal);
+    UpdatePercentages(QB, DB, QGraph, QGraphPartitioned, AvgPercentEdgeScoreDeletedNFS, AvgPercentEdgeScoreDeleted,
+                      AvgPercentEdgesDeletedNFS, AvgPercentEdgesDeleted, Log, ToPrepend);
   }
 
   AvgPercentEdgeScoreDeletedNFS /= NumTrials;
@@ -129,24 +146,76 @@ void TEdgesDel::CalcForEdgeScore(TQuoteBase *QB, TDocBase *DB, const PNGraph& QG
   Log.LogValue(ToPrepend + TEdgesDel::PercentEdgeScoreDeleted, AvgPercentEdgeScoreDeleted);
 }
 
-void TEdgesDel::CalcAndLogPercentEdgesDel(TQuoteBase *QB, TDocBase *DB, PNGraph& QGraph, LogOutput& Log) {
+void TEdgesDel::ComparePartitioningMethods(TQuoteBase *QB, TDocBase *DB, PNGraph& QGraph, LogOutput& Log) {
   Log.LogValue("Original number of edges: ", TInt(QGraph->GetEdges()));
   Log.LogValue("Original number of nodes: ", TInt(QGraph->GetNodes()));
 
-  /*TIntV AllNIdsV;
-  QGraph->GetNIdV(AllNIdsV);
-  PNGraph QGraphCopy = TSnap::GetSubGraph(QGraph, AllNIdsV);
-  PNGraph QGraphCopy2 = TSnap::GetSubGraph(QGraph, AllNIdsV);
-  PNGraph QGraphCopy3 = TSnap::GetSubGraph(QGraph, AllNIdsV);*/
-
   TStr ToPrepend("(Clustering::ComputeEdgeScore) ");
-  CalcForEdgeScore(QB, DB, QGraph, Log, ToPrepend, Clustering::ComputeEdgeScore);
+  TryPartitioningMethod(QB, DB, QGraph, Log, ToPrepend, Clustering::ComputeEdgeScore);
+  TryPartitioningMethod(QB, DB, QGraph, Log, TEdgesDel::IncEdgeDelMaxEdgeScore, Clustering::ComputeEdgeScore);
+  TryPartitioningMethod(QB, DB, QGraph, Log, TEdgesDel::IncEdgeDelMaxNumEdges, Clustering::ComputeEdgeScore);
 
-  TStr ToPrepend2("(Clustering::IncrementalEdgeDeletion) ");
-  CalcForEdgeScore(QB, DB, QGraph, Log, ToPrepend2, Clustering::ComputeEdgeScore);
-
-  TStr ToPrepend3("(Clustering::ComputeEdgeScoreRandom) ");
+  TStr ToPrepend4("(Clustering::ComputeEdgeScoreRandom, ");
+  TInt NumTrials = 1;  // TODO: Change back to 100
+  ToPrepend4 += NumTrials.GetStr() + " trials) ";
   int RandomSeed = (int) ((TSecTm::GetCurTm()).GetAbsSecs() % TInt::Mx);
   TRnd RandomGenerator(RandomSeed);
-  CalcForEdgeScore(QB, DB, QGraph, Log, ToPrepend3, Clustering::ComputeEdgeScoreRandom, 100, &RandomGenerator);
+  TryPartitioningMethod(QB, DB, QGraph, Log, ToPrepend4, Clustering::ComputeEdgeScoreRandom, NumTrials, &RandomGenerator);
 }
+
+void TEdgesDel::TryEdgeScore(TQuoteBase *QB, TDocBase *DB, const PNGraph& QGraph, LogOutput& Log, const TStr& ToPrepend,
+                             TFlt (*Fn)(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator), TInt NumTrials,
+                             TRnd *RandomGenerator) {
+  TIntV AllNIdsV;
+  QGraph->GetNIdV(AllNIdsV);
+
+  TFlt AvgPercentEdgesDeletedNFS, AvgPercentEdgesDeleted, AvgPercentEdgeScoreDeletedNFS, AvgPercentEdgeScoreDeleted;
+  for (int i = 0; i < NumTrials; i++) {
+    fprintf(stderr, "Trial %d: Number of edges in QGraph - %d\n", i, QGraph->GetEdges());
+    PNGraph QGraphPartitioned = TSnap::GetSubGraph(QGraph, AllNIdsV);
+
+    //fprintf(stderr, "Doing incremental edge deletion, choosing cluster with max edge score\n");
+    if (ToPrepend.IsStrIn("ComputeEdgeScoreBaseline")) {
+      Clustering ClusterJob(QGraphPartitioned, QB, DB);
+      fprintf(stderr, "Computing edge score baseline \n");
+      ClusterJob.IncrementalEdgeDeletion(QGraphPartitioned, QB, DB, Fn, false, true);
+    } else {
+      Clustering ClusterJob(QGraphPartitioned);
+      ClusterJob.IncrementalEdgeDeletion(QGraphPartitioned, QB, DB, Fn, false);
+    }
+    UpdatePercentages(QB, DB, QGraph, QGraphPartitioned, AvgPercentEdgeScoreDeletedNFS, AvgPercentEdgeScoreDeleted,
+                      AvgPercentEdgesDeletedNFS, AvgPercentEdgesDeleted, Log, ToPrepend);
+  }
+
+  AvgPercentEdgeScoreDeletedNFS /= NumTrials;
+  AvgPercentEdgeScoreDeleted /= NumTrials;
+
+  AvgPercentEdgesDeletedNFS /= NumTrials;
+  AvgPercentEdgesDeleted /= NumTrials;
+
+  Log.LogValue(ToPrepend + TEdgesDel::PercentEdgesDeletedNFS, AvgPercentEdgesDeletedNFS);
+  Log.LogValue(ToPrepend + TEdgesDel::PercentEdgesDeleted, AvgPercentEdgesDeleted);
+
+  Log.LogValue(ToPrepend + TEdgesDel::PercentEdgeScoreDeletedNFS, AvgPercentEdgeScoreDeletedNFS);
+  Log.LogValue(ToPrepend + TEdgesDel::PercentEdgeScoreDeleted, AvgPercentEdgeScoreDeleted);
+}
+
+void TEdgesDel::CompareEdgeScores(TQuoteBase *QB, TDocBase *DB, PNGraph& QGraph, LogOutput& Log) {
+  Log.LogValue("Original number of edges: ", TInt(QGraph->GetEdges()));
+  Log.LogValue("Original number of nodes: ", TInt(QGraph->GetNodes()));
+
+  TStr ToPrepend("(Clustering::ComputeEdgeScore) ");
+  TryEdgeScore(QB, DB, QGraph, Log, ToPrepend, Clustering::ComputeEdgeScore);
+
+  TStr ToPrepend2("(Clustering::ComputeEdgeScoreWeighted) ");
+  TryEdgeScore(QB, DB, QGraph, Log, ToPrepend2, Clustering::ComputeEdgeScoreWeighted);
+
+  TStr ToPrepend3("(Clustering::ComputeEdgeScoreOriginal) ");
+  TryEdgeScore(QB, DB, QGraph, Log, ToPrepend3, Clustering::ComputeEdgeScoreOld);
+
+  TStr ToPrepend4("(Clustering::ComputeEdgeScoreBaseline, ");
+  TInt NumTrials = 100;
+  ToPrepend4 += NumTrials.GetStr() + " trials) ";
+  TryEdgeScore(QB, DB, QGraph, Log, ToPrepend4, Clustering::ComputeEdgeScore, NumTrials);
+}
+
