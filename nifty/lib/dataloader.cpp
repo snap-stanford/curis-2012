@@ -349,6 +349,8 @@ void TDataLoader::LoadCumulative(const TStr &Prefix, const TStr &Date, TQuoteBas
     CB.Load(CurFile);
     P = TNGraph::Load(CurFile);
     IAssert(!QB.IsContainNullQuote());
+  } else {
+    Err("File not found: %s", CurFileName.CStr());
   }
 }
 

@@ -5,6 +5,7 @@
 
 class IncrementalQuoteGraph : QuoteGraph {
 public:
+  int IncrementCount;
   IncrementalQuoteGraph(TQuoteBase *QB, TClusterBase *CB, TIntSet& NewQuotes, PNGraph& ExistingGraph);
   virtual ~IncrementalQuoteGraph();
   void UpdateGraph(PNGraph& QGraph);

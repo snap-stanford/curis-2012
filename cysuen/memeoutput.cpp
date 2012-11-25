@@ -9,26 +9,14 @@ int main(int argc, char *argv[]) {
 
   TStr OutputDirectory = ArgumentParser::GetArgument(Arguments, "directory", "");
   TStr StartString = ArgumentParser::GetArgument(Arguments, "start", "2009-02-01");
-  TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", QBDBC_DIR_DEFAULT);
-  TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
+  TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", "/lfs/1/tmp/curis/QBDBC-C/");
+  TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", "/lfs/1/tmp/curis/QBDB/");
   TInt WindowSize = ArgumentParser::GetArgument(Arguments, "window", "14").GetInt();
-  TStr EdgeString = ArgumentParser::GetArgument(Arguments, "edge", EDGE_CREATION_STYLE);
-  TStr ClustMethod = ArgumentParser::GetArgument(Arguments, "method", "local");
+  TStr EdgeString = ArgumentParser::GetArgument(Arguments, "edge", "lsh");
   QuoteGraph::SetEdgeCreation(EdgeString);
 
-  if (ArgumentParser::GetArgument(Arguments, "nolog", "") != "") {
-    Log.DisableLogging();
-  } else if (OutputDirectory == "") {
-    Log.SetupNewOutputDirectory("");
-  } else if (ArgumentParser::GetArgument(Arguments, "nosetup", "") == ""){
-    Log.SetupNewOutputDirectory(OutputDirectory);
-  } else {
-    Log.SetDirectory(OutputDirectory);
-  }
+  Log.DisableLogging();
 
-  bool CheckEdgesDel = Arguments.IsKey("edgesdel");
-
-  // #### DATA LOADING: Load ALL the things!
   TQuoteBase QB;
   TDocBase DB;
   TClusterBase CB;
@@ -65,24 +53,39 @@ int main(int argc, char *argv[]) {
   PNGraph QGraph;
   GraphCreator.CreateGraph(QGraph);
   Clustering ClusterJob(QGraph);
-  ClusterJob.BuildClusters(&CB, &QB, &DB, Log, PresentTime, ClustMethod, CheckEdgesDel);
-  GraphCreator.LogEdges("WordsCheapAfter.txt");
+  ClusterJob.BuildClusters(&CB, &QB, &DB, Log, PresentTime, false);
 
-  // #### POST CLUSTERING STEP YO
-  TIntV TopFilteredClusters;
-  //CB.GetAllClusterIdsSortByFreq(TopFilteredClusters);
-  PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, PresentTime, QGraph);
+  TIntV AllClusters;
+  CB.GetAllClusterIdsSortByFreq(AllClusters);
+  //PostCluster::FilterAndCacheClusterSize(&DB, &QB, &CB, Log, AllClusters, PresentTime);
+  //PostCluster::FilterAndCacheClusterPeaks(&DB, &QB, &CB, Log, AllClusters, PresentTime);
 
-  // #### SAVE THE DOLPHINS! I MEAN CLUSTERS
-  TStr FileName = QBDBCDirectory + "QBDBC" + PresentTime.GetDtYmdStr() + ".bin";
-  TDataLoader::SaveQBDBCQ(FileName, &QB, &DB, &CB, QGraph);
+  int NumClusters = AllClusters.Len();
+  FILE* F = fopen("nifty-day-2012-01-01.txt", "w");
+  for (int i = 0; i < NumClusters; i++) {
+    TCluster C;
+    CB.GetCluster(AllClusters[i], C);
+    TIntV Quotes;
 
-  TIntV Temp;
-  //Log.LogAllInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime, Temp, QBDBCDirectory);
-  Log.WriteClusteringStatisticsToFile(PresentTime);
+    C.GetQuoteIds(Quotes);
+    TStr RepStr;
+    C.GetRepresentativeQuoteString(RepStr, &QB);
+    fprintf(F, "%d\t%d\t%s\t%d\n", Quotes.Len(), C.GetNumQuotes().Val, RepStr.CStr(), C.GetId().Val);
+    for (int j = 0; j < Quotes.Len(); j++) {
+      TQuote Q;
+      QB.GetQuote(Quotes[j], Q);
+      TStr Str;
+      Q.GetContentString(Str);
+      fprintf(F, "\t%d\t%d\t%s\t%d\n", Q.GetNumSources().Val, Q.GetNumSources().Val, Str.CStr(), Q.GetId().Val);
+    }
+    fprintf(F, "\n");
+
+  }
+  fclose(F);
+
   TStr Directory;
   Log.GetDirectory(Directory);
-  Err("Done with memeseed! Directory created at: %s\n", Directory.CStr());
+  Err("Done with memeoutput! Directory created at: %s\n", Directory.CStr());
   //printf("%d\n", TStringUtil::f_counter);
   return 0;
 }

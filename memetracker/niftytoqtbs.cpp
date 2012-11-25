@@ -5,7 +5,7 @@
 int main() {
   PQuoteBs QtBs = TQuoteBs::New();
 
-  TStr InFNm = "/lfs/1/tmp/curis/QuoteList.bin";
+  TStr InFNm = "QuoteList.bin";
 
   TVec<TSecTm> PubTmV;
   TVec<TStr> PostUrlV;
@@ -21,6 +21,6 @@ int main() {
   }
 
   printf("SAVE: %d quotes\n", QtBs->Len());
-  { TFOut FOut("/lfs/1/tmp/curis/memetracker.QtBs"); QtBs->Save(FOut); }
+  { TFOut FOut("memetracker.QtBs"); QtBs->Save(FOut); }
   return 0;
 }
