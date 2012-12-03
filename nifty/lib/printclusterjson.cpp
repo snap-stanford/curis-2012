@@ -168,7 +168,9 @@ TInt TPrintClusterJson::GetNumDaysInMonth(TSecTm& Date) {
 TSecTm TPrintClusterJson::RoundStartDate(TSecTm& StartDate, TStr& Type) {
   TSecTm NewStartDate = StartDate;
   if (Type == "week") {  // Round to next Saturday (or don't round if StartDate is a Saturday)
-    NewStartDate.AddDays(-1 * StartDate.GetDayOfWeekN());  // DayOfWeekN = 7 for Sat, = 1 for Sun
+    if (StartDate.GetDayOfWeekN() != 7) {
+      NewStartDate.AddDays(-1 * StartDate.GetDayOfWeekN());  // DayOfWeekN = 7 for Sat, = 1 for Sun
+    }
   } else if (Type == "month" || Type == "3month") {
     NewStartDate.AddDays(-1 * StartDate.GetDayN() + 1); // Round to nearest 1st (or don't round if StartDate is a 1st)
     if (Type == "3month") {
@@ -243,8 +245,39 @@ void TPrintClusterJson::PrintClusterJSONForPeriod(TStr& CurTimeString, TStr Type
 
 }
 
+
+void TPrintClusterJson::FilterDuplicateClusters(TQuoteBase *QBCumulative, TClusterBase *CBCumulative, TIntV& TopFilteredClusters, TIntV& TopFilteredClustersWoDups) {
+  TStrSet SeenQuoteContents;
+  for (int i = 0; i < TopFilteredClusters.Len(); i++) {
+    bool SkipCluster = false;
+    TCluster C;
+    CBCumulative->GetCluster(TopFilteredClusters[i], C);
+    TIntV CQuoteIds;
+    C.GetQuoteIds(CQuoteIds);
+    TStrV CQuoteContents;
+    for (int j = 0; j < CQuoteIds.Len(); j++) {
+      TQuote Q;
+      QBCumulative->GetQuote(CQuoteIds[j], Q);
+      TStr QContent;
+      Q.GetContentString(QContent);
+      if (SeenQuoteContents.IsKey(QContent)) {
+        SkipCluster = true;
+        break;
+      }
+      CQuoteContents.Add(QContent);
+    }
+    if (!SkipCluster) {
+      // don't add the quote contents until we know the cluster doesn't contain any duplicate quotes (so that future clusters aren't skipped unnecessarily)
+      for (int j = 0; j < CQuoteContents.Len(); j++) {
+        SeenQuoteContents.AddKey(CQuoteContents[j]);
+      }
+      TopFilteredClustersWoDups.Add(TopFilteredClusters[i]);
+    }
+  }
+}
+
 /// StartString and EndString must be in the form "YYYY-MM-DD", e.g. "2012-02-22"
-void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndString, LogOutput& Log, TStr Type, TStr QBDBCDirectory) {
+void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndString, TStr& LogDirectory, TStr Type, TStr QBDBCDirectory) {
 
   TStr TopClusterSelection = "cumulative";  // Can be "cumulative" or "daily" 
   //if (UseDailyTopClusters) {  // Not using this feature, so commenting it out for now
@@ -257,18 +290,19 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
   fprintf(stderr, "Type: %s\n", Type.CStr());
   IAssert(Type == "day" || Type == "week" || Type == "month" || Type == "3month");
 
-  if (Type == "day") {
+  /*if (Type == "day") {
     NumTopClustersPerDay = 20;
   } else if (Type == "week") {
     NumTopClustersPerDay = 5;
   } else if (Type == "month" || Type == "3month") {
     NumTopClustersPerDay = 2;
-  }
+  }*/
 
   TSecTm StartDate = TSecTm::GetDtTmFromYmdHmsStr(StartString);
   StartDate = RoundStartDate(StartDate, Type);
   Err("start date: %s\n", StartDate.GetDtYmdStr().CStr());
-  TSecTm EndDate = TSecTm::GetDtTmFromYmdHmsStr(EndString);
+  TSecTm EndDate = CalculateEndPeriodDate(StartDate, Type);
+  //TSecTm EndDate = TSecTm::GetDtTmFromYmdHmsStr(EndString);
   fprintf(stderr, "End date: %s\n", EndDate.GetDtYmdStr().CStr());
   TSecTm CurrentDate = StartDate;
 
@@ -298,7 +332,7 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
       TDataLoader::LoadCumulative(QBDBCDirectory, CurrentDate.GetDtYmdStr(), QB, DB, CB, QGraph);
       fprintf(stderr, "Done loading cumulative QBDBCB!\n");
 
-      if (TopClusterSelection == "daily") {
+      /*if (TopClusterSelection == "daily") {
         // Get top clusters
         TIntV TopClusters;
         PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopClusters, CurrentDate, QGraph, false);
@@ -309,39 +343,58 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
           } 
         }
         UpdateDataForJsonPrinting(&QB, &DB, &CB, FreqOverTime, Times, ClustersToPrint, ClustersRepQuote, CurrentDate, i + 1, Type);
-      } else if (TopClusterSelection == "cumulative") {
-        if (QBCumulative.Len() == 0) {
-          QBCumulative = QB;
-          DBCumulative = DB;
-          CBCumulative = CB;
-        } else {
-          fprintf(stderr, "Merging QBDBCB!\n");
-          TDataLoader::MergeQBDBCB(QBCumulative, DBCumulative, CBCumulative, QB, DB, CB, CurrentDate);
-        }
+      } else if (TopClusterSelection == "cumulative") {*/
+
+      if (QBCumulative.Len() == 0) {
+        QBCumulative = QB;
+        DBCumulative = DB;
+        CBCumulative = CB;
+      } else {
+        fprintf(stderr, "Merging QBDBCB!\n");
+        TDataLoader::MergeQBDBCB(QBCumulative, DBCumulative, CBCumulative, QB, DB, CB, CurrentDate, true);
       }
+
+      //}
       CurrentDate.AddDays(1);
     }
 
-    if (TopClusterSelection == "cumulative") {
-      TIntV TopFilteredClusters;
-      CBCumulative.GetTopClusterIdsByFreq(TopFilteredClusters);
-      PostCluster::FilterAndCacheClusterSize(&DBCumulative, &QBCumulative, &CBCumulative, Log, TopFilteredClusters, CurrentDate);
-      PostCluster::FilterAndCacheClusterPeaks(&DBCumulative, &QBCumulative, &CBCumulative, Log, TopFilteredClusters, CurrentDate);
+    //if (TopClusterSelection == "cumulative") {
 
-      for (int j = 0; j < 50 && j < TopFilteredClusters.Len(); j++) {
-        ClustersToPrint.Add(TopFilteredClusters[j]);
-      }
+    TIntV TopFilteredClusters;
+    CBCumulative.GetTopClusterIdsByFreq(TopFilteredClusters);
+    LogOutput TmpLog;
+    TmpLog.DisableLogging();
+    PostCluster::FilterAndCacheClusterSize(&DBCumulative, &QBCumulative, &CBCumulative, TmpLog, TopFilteredClusters, CurrentDate);
+    PostCluster::FilterAndCacheClusterPeaks(&DBCumulative, &QBCumulative, &CBCumulative, TmpLog, TopFilteredClusters, CurrentDate);
 
-      // Instead of calling UpdateData, call TPrintJson::PrintClustersJson and TPrintJson::PrintClustersDataJson
-      // Graph the clusters in ClustersToPrint, and include all the TopFilteredClusters in the table
-      TStr OutputJsonDirFinal = OutputJsonDir + Type + "/";
-      bool IncludeDate = false;  // Have filename contain YYYY-MM instead of YYYY-MM-DD
-      if (Type == "week") { IncludeDate = true; }
-      TPrintJson::PrintClustersJson(&QBCumulative, &DBCumulative, &CBCumulative, ClustersToPrint, TopFilteredClusters,
-                                    OutputJsonDirFinal, OutputJsonDirFinal, StartPeriodDate, EndPeriodDate, IncludeDate);
-      //UpdateDataForJsonPrinting(&QBCumulative, &DBCumulative, &CBCumulative, FreqOverTime, Times, ClustersToPrint,
-       //                         ClustersRepQuote, CurrentDate, i + 1, Type);
-    } else {
+    // Filter out clusters in TopFilteredClusters that have duplicate quote content (remove the less popular duplicate cluster(s))
+    TIntV TopFilteredClustersWoDups;
+    FilterDuplicateClusters(&QBCumulative, &CBCumulative, TopFilteredClusters, TopFilteredClustersWoDups);
+
+    for (int j = 0; j < 50 && j < TopFilteredClustersWoDups.Len(); j++) {
+      ClustersToPrint.Add(TopFilteredClustersWoDups[j]);
+    }
+
+    // Instead of calling UpdateData, call TPrintJson::PrintClustersJson and TPrintJson::PrintClustersDataJson
+    // Graph the clusters in ClustersToPrint, and include all the TopFilteredClustersWoDups in the table
+    TStr OutputJsonDirFinal = OutputJsonDir + Type + "/";
+    bool IncludeDate = false;  // Have filename contain YYYY-MM instead of YYYY-MM-DD
+    if (Type == "week") { IncludeDate = true; }
+    TPrintJson::PrintClustersJson(&QBCumulative, &DBCumulative, &CBCumulative, ClustersToPrint, TopFilteredClustersWoDups,
+                                  OutputJsonDirFinal, OutputJsonDirFinal, StartPeriodDate, EndPeriodDate, IncludeDate);
+
+    // Print individual cluster JSON info
+    TStr ClusterJSONDirectory = LogDirectory + "/web/json/clusters/";
+    TSecTm ZeroTime(0);
+    for (int j = 0; j < ClustersToPrint.Len(); j++) {
+      // The last parameter is ZeroTime so that the Peaks::GetFrequencyVector starts the graph of the cluster at the first source,
+      // rather than X days before the TSecTm parameter given
+      TPrintJson::PrintClusterJSON(&QBCumulative, &DBCumulative, &CBCumulative, ClusterJSONDirectory, ClustersToPrint[j], ZeroTime);
+
+    }
+    //UpdateDataForJsonPrinting(&QBCumulative, &DBCumulative, &CBCumulative, FreqOverTime, Times, ClustersToPrint,
+     //                         ClustersRepQuote, CurrentDate, i + 1, Type);
+    /*} else {
 
       // TODO: wtf is this?! o.o
       if (CurrentDate == EndPeriodDate) {
@@ -349,7 +402,7 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
                           StartPeriodDate.GetDtYmdStr() + "-new.json";
         PrintClustersInJson(FreqOverTime, Times, ClustersToPrint, ClustersRepQuote, OutputFilename);
       }
-    }
+    }*/
   }
 
   return;

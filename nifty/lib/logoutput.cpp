@@ -90,12 +90,36 @@ void LogOutput::LogAllInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB
   LogQBDBCBSize(DB, QB, CB, PresentTime);
   TStr JSONDirectory = Directory + "/web/json/";
   TStr CurDateString = PresentTime.GetDtYmdStr();
-  TSecTm NextDay = PresentTime;
-  NextDay.AddDays(1);
-  TStr NextDayString = NextDay.GetDtYmdStr();
+  //TSecTm NextDay = PresentTime;
+  //NextDay.AddDays(1);
+  //TStr NextDayString = NextDay.GetDtYmdStr();
+
   TPrintClusterJson JSONJob(JSONDirectory);
-  LogOutput TmpLog;
-  TmpLog.DisableLogging();
+  TStr WeekType = "week", MonthType = "month", Month3Type = "3month";
+
+  TSecTm WeekStart = TPrintClusterJson::RoundStartDate(PresentTime, WeekType);
+  TStr WeekStartString = WeekStart.GetDtYmdStr();
+  TSecTm MonthStart = TPrintClusterJson::RoundStartDate(PresentTime, MonthType);
+  TStr MonthStartString = MonthStart.GetDtYmdStr();
+  TSecTm Month3Start = TPrintClusterJson::RoundStartDate(PresentTime, Month3Type);
+  TStr Month3StartString = Month3Start.GetDtYmdStr();
+
+  //fprintf(stderr, "Start date string: %s\n", WeekStartString.CStr());
+  //fprintf(stderr, "Current date string: %s\n", CurDateString.CStr());
+  TStr ToIgnore;
+  if (CurDateString == WeekStartString) {
+    fprintf(stderr, "LOGGING WEEK\n");
+    JSONJob.PrintClusterJsonForPeriod(WeekStartString, ToIgnore, Directory, TStr("week"), QBDBCDirectory);
+  }
+  if (CurDateString == MonthStartString) {
+    fprintf(stderr, "LOGGING MONTH\n");
+    JSONJob.PrintClusterJsonForPeriod(MonthStartString, ToIgnore, Directory, TStr("month"), QBDBCDirectory);
+  }
+  if (CurDateString == Month3StartString) {
+    fprintf(stderr, "LOGGING 3 MONTHS\n");
+    JSONJob.PrintClusterJsonForPeriod(Month3StartString, ToIgnore, Directory, TStr("3month"), QBDBCDirectory);
+  }
+
   //JSONJob.PrintClusterJSONForPeriod(CurDateString, "week", QBDBCDirectory);
   //JSONJob.PrintClusterJSONForPeriod(CurDateString, "month", QBDBCDirectory);
   //JSONJob.PrintClusterJSONForPeriod(CurDateString, "3month", QBDBCDirectory);

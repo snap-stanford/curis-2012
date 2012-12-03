@@ -24,9 +24,10 @@ public:
   bool LoadNextEntry();
 
   static TSecTm GetFileTime(const TStr&);
-  static TIntV MergeQBDB(TQuoteBase&, TDocBase&, const TQuoteBase&, const TDocBase&);
+  static TIntV MergeQBDB(TQuoteBase&, TDocBase&, const TQuoteBase&, const TDocBase&, bool MaintainDuplicateQuotes = false);
   static void MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
-                              const TQuoteBase &QB2, const TDocBase &DB2, const TClusterBase &CB2, TSecTm& PresentTime);
+                              const TQuoteBase &QB2, const TDocBase &DB2, const TClusterBase &CB2, TSecTm& PresentTime,
+                          bool KeepQuotesWithNoSources = false);
   static void LoadCumulative(const TStr&, const TStr&, TQuoteBase&, TDocBase&, TClusterBase&, PNGraph&);
   static void FilterOldData(TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, TSecTm CutOffDate);
   static void LoadQBDB(const TStr&, const TStr&, TQuoteBase&, TDocBase&);

@@ -65,6 +65,7 @@ public:
   void Load(TSIn& SIn);
   TInt AddQuote(const TStr &ContentString);
   TInt AddQuote(const TStr &ContentString, TInt DocId);
+  void AddQuoteMerging(TInt QuoteId, const TStr& ContentString, TInt DocId);
   void RemoveQuote(TInt QuoteId);
   TInt GetQuoteId(const TStrV &Content) const;
   TInt GetNewQuoteId(const TStrV &Content);

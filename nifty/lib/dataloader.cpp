@@ -118,7 +118,7 @@ bool TDataLoader::LoadNextEntry() {
 
 /// Merge QBDB2 into QBDB1; returns the indices (in the new QB1) of the quotes in QB2
 //  that are not in QB1
-TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &QB2, const TDocBase &DB2) {
+TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &QB2, const TDocBase &DB2, bool MaintainDuplicateQuotes) {
   THashSet<TInt> SeenDocSet;
 
   TIntV DocIds2;
@@ -154,10 +154,11 @@ TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &Q
       }
     }
     // Make note if the quote does not exist in QB1
-    if (ContainDoc && QB1.GetQuoteId(QContentVectorString) < 0) {
+    if (!MaintainDuplicateQuotes && ContainDoc && QB1.GetQuoteId(QContentVectorString) < 0) {
       TInt QId = QB1.AddQuote(QContentString);
       NewQuoteIds.Add(QId);
     }
+
     for (int j = 0; j < Sources.Len(); j++) {
       // If doc is in original docbase, ignore it because that means
       // the document is a duplicate
@@ -165,7 +166,11 @@ TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &Q
         TDoc D;
         DB2.GetDoc(Sources[j], D);
         TInt NewSourceId = DB1.AddDoc(D);
-        QB1.AddQuote(QContentString, NewSourceId);
+        if (!MaintainDuplicateQuotes) {
+          QB1.AddQuote(QContentString, NewSourceId);
+        } else {
+          QB1.AddQuoteMerging(Q.GetId(), QContentString, NewSourceId);
+        }
       }
     }
   }
@@ -175,12 +180,13 @@ TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &Q
 
 /// Merge QBDBCB2 into QBDBCB1
 void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
-                              const TQuoteBase &QB2, const TDocBase &DB2, const TClusterBase &CB2, TSecTm& PresentTime) {
+                              const TQuoteBase &QB2, const TDocBase &DB2, const TClusterBase &CB2, TSecTm& PresentTime,
+                              bool KeepQuotesWithNoSources) {
   // First step: Merge QB2 and DB2 into QB1 and DB1, respectively
   TIntV NewQuoteIds;
-  NewQuoteIds = MergeQBDB(QB1, DB1, QB2, DB2);
+  NewQuoteIds = MergeQBDB(QB1, DB1, QB2, DB2, true); // set MaintainDuplicateQuotes flag!
 
-  TIntV QuoteIds2;
+  /*TIntV QuoteIds2;
   QB2.GetAllQuoteIds(QuoteIds2);
   TIntIntH OldToNewQuoteId;  // Only contains quotes with new source document
   for (int i = 0; i < QuoteIds2.Len(); i++) {
@@ -192,7 +198,7 @@ void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
     if (NewQuoteId != -1) {
       OldToNewQuoteId.AddDat(QuoteIds2[i], NewQuoteId);
     }
-  }
+  }*/
 
   IAssert(!QB1.IsContainNullQuote());
 
@@ -203,12 +209,15 @@ void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
     CB2.GetCluster(ClusterIds2[i], C);
     TIntV CQuoteIds, NewCQuoteIds;
     C.GetQuoteIds(CQuoteIds);
-    for (int j = 0; j < CQuoteIds.Len(); j++) {
+    /*for (int j = 0; j < CQuoteIds.Len(); j++) {
       TInt NewId = CQuoteIds[j];
       if (OldToNewQuoteId.IsKeyGetDat(CQuoteIds[j], NewId)) {
         NewCQuoteIds.Add(NewId);
+      } else if (KeepQuotesWithNoSources) {
+        NewCQuoteIds.Add(CQuoteIds[j]);
       }
-    }
+    }*/
+
       //FOR TESTING
     /*for (int j = 0; j < CQuoteIds.Len(); j++) {
       if (ClusterIds2[i] == 1) {
@@ -223,16 +232,20 @@ void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
 
     TIntV CRepQuoteIds, NewCRepQuoteIds;
     C.GetRepresentativeQuoteIds(CRepQuoteIds);
-    for (int j = 0; j < CRepQuoteIds.Len(); j++) {
+    /*for (int j = 0; j < CRepQuoteIds.Len(); j++) {
       TInt NewId = CRepQuoteIds[j];
       if (OldToNewQuoteId.IsKeyGetDat(CRepQuoteIds[j], NewId)) {
         NewCRepQuoteIds.Add(NewId);
+      } else if (KeepQuotesWithNoSources) {
+        NewCRepQuoteIds.Add(CRepQuoteIds[j]);
       }
-    }
+    }*/
 
-    if (NewCQuoteIds.Len() != 0 && NewCRepQuoteIds.Len() != 0) {
-      C.SetQuoteIds(&QB1, NewCQuoteIds);
-      C.SetRepresentativeQuoteIds(NewCRepQuoteIds);
+    //if (NewCQuoteIds.Len() != 0 && NewCRepQuoteIds.Len() != 0) {
+    IAssert(CQuoteIds.Len() > 0 && CRepQuoteIds.Len() > 0);
+      //TODO: add these two lines back in (just taking them out temporarily for testing)
+      //C.SetQuoteIds(&QB1, NewCQuoteIds);
+      //C.SetRepresentativeQuoteIds(NewCRepQuoteIds);
 
       //FOR TESTING
       /*
@@ -253,8 +266,8 @@ void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
       }*/
       //END FOR TESTING
 
-      CB1.AddCluster(C);
-    }
+    CB1.AddCluster(C);
+    //}
   }
 }
 

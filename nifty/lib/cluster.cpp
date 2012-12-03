@@ -313,32 +313,101 @@ TInt TClusterBase::AddCluster(TCluster& Cluster) {
   Cluster.GetQuoteIds(QuoteIds);
 
   TInt CurCounter = -1;
+  bool ClusterIdMatched = false;
+  TIntSet IdsMatched;
   for (int i = 0; i < QuoteIds.Len(); i++) {
     CurCounter = GetClusterIdFromQuoteId(QuoteIds[i]);
-    //if (CurCounter >= 0) break;
-    if (CurCounter == Cluster.GetId()) break;
+    if (CurCounter >= 0) {
+      IdsMatched.AddKey(CurCounter);
+    }
+    if (CurCounter == Cluster.GetId()) {
+      ClusterIdMatched = true;
+    }
   }
 
+   /* start of test code
+  if (IdsMatched.Len() > 1) {  // This should never happen
+    fprintf(stderr, "ERROR: This cluster's quotes are in more than one cluster\n");
+    fprintf(stderr, "Quote ids in this cluster:\n");
+    for (int i = 0; i < QuoteIds.Len(); i++) {
+      fprintf(stderr, "  %d\n", QuoteIds[i].Val);
+    }
+      
+    TIntV IdsMatchedV;
+    IdsMatched.GetKeyV(IdsMatchedV);
+    for (int i = 0; i < IdsMatchedV.Len(); i++) {
+      TCluster ExistingC;
+      GetCluster(IdsMatchedV[i], ExistingC);
+      fprintf(stderr, "Quotes ids in existing cluster %d: \n", IdsMatchedV[i].Val);
+      TIntV ExistingQuoteIds;
+      ExistingC.GetQuoteIds(ExistingQuoteIds);
+      for (int i = 0; i < ExistingQuoteIds.Len(); i++) {
+        fprintf(stderr, "  %d\n", ExistingQuoteIds[i].Val);
+      }
+    }
+  }
+  end of test code */ 
+  IAssert(IdsMatched.Len() <= 1);
+
+  if (ClusterIdMatched) {
+    CurCounter = Cluster.GetId();
+  } else if (IdsMatched.Len() > 0) {
+    TIntV IdsMatchedV;
+    IdsMatched.GetKeyV(IdsMatchedV);
+    CurCounter = IdsMatchedV[0];
+  }
+  
   //if (CurCounter != -1 && CurCounter != Cluster.GetId()) {
   //  fprintf(stderr, "WARNING: Cluster id is different: %d (cumulative) vs. %d\n", CurCounter.Val, Cluster.GetId().Val);
   //}
 
-  if (CurCounter < 0) {  // New cluster, with new quotes
+  if (CurCounter < 0) {  // for revived cluster, use the old cluster's id
     //fprintf(stderr, "\tNew cluster, with new quotes!\n");
-    TCluster TempC;
 
     //FOR TESTING
     /*if (Cluster.GetId() == 1) {
       fprintf(stderr, "Cluster id: %d\n", Cluster.GetId().Val);
       fprintf(stderr, "# Quote ids: %d\n", QuoteIds.Len());
       fprintf(stderr, "# of first Quote id: %d\n", QuoteIds[0].Val);
+    }
+
+    if (Cluster.GetId() < ClusterIdCounter) {  // this should never happen
+      fprintf(stderr, "ERROR: Counter: %d, Cluster id: %d\n", ClusterIdCounter.Val, Cluster.GetId().Val);
+      fprintf(stderr, "Quote ids in this cluster:\n");
+      for (int i = 0; i < QuoteIds.Len(); i++) {
+        fprintf(stderr, "  %d\n", QuoteIds[i].Val);
+      }
+      
+      TCluster ExistingC;
+      GetCluster(Cluster.GetId(), ExistingC);
+      fprintf(stderr, "Quotes ids in existing cluster: \n");
+      TIntV ExistingQuoteIds;
+      ExistingC.GetQuoteIds(ExistingQuoteIds);
+      for (int i = 0; i < ExistingQuoteIds.Len(); i++) {
+        fprintf(stderr, "  %d\n", ExistingQuoteIds[i].Val);
+      }
+
+      fprintf(stderr, "CurCounter is: %d\n", CurCounter.Val);
+      if (CurCounter >= 0) {
+        TCluster MatchingC;
+        GetCluster(CurCounter, MatchingC);
+        fprintf(stderr, "Quote ids in matching cluster: \n");
+        TIntV MatchingQuoteIds;
+        MatchingC.GetQuoteIds(MatchingQuoteIds);
+        for (int i = 0; i < MatchingQuoteIds.Len(); i++) {
+          fprintf(stderr, "  %d\n", MatchingQuoteIds[i].Val);
+        }
+      }
     }*/
     //END FOR TESTING
 
-    //IAssert(!GetCluster(Cluster.GetId(), TempC));  // This causes the script to crash sometimes.. not sure why
-                                                     // Seems to only happen with spam that will get filtered anyway
+    //if (CurCounter >= 0) {  // remove the old, existing cluster
+    //  RemoveCluster(CurCounter);
+    //}
+    //IAssert(Cluster.GetId() >= ClusterIdCounter); // This should not fail but it does sometimes :(
+
     CurCounter = Cluster.GetId();
-    if (Cluster.GetId() > ClusterIdCounter) {
+    if (Cluster.GetId() >= ClusterIdCounter) {
       ClusterIdCounter = Cluster.GetId() + 1;
     }
   }

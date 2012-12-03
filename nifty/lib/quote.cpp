@@ -279,6 +279,25 @@ TInt TQuoteBase::AddQuote(const TStr &ContentString, TInt DocId) {
   }
 }
 
+void TQuoteBase::AddQuoteMerging(TInt QuoteId, const TStr& ContentString, TInt DocId) {
+  TStrV ContentVectorString;
+  TStringUtil::ParseStringIntoWords(ContentString, ContentVectorString);
+
+  if (IdToTQuotes.IsKey(QuoteId)) {
+    TQuote CurQuote = IdToTQuotes.GetDat(QuoteId);
+    CurQuote.AddSource(DocId);
+    IdToTQuotes.AddDat(QuoteId, CurQuote);  // have to add it back because we changed CurQuote
+  } else {  // must add QuoteId to the database
+    TQuote NewQuote(QuoteId, ContentVectorString);
+    NewQuote.AddSource(DocId);
+    IdToTQuotes.AddDat(QuoteId, NewQuote);
+    // if no duplicate quote exist, add link from content to id
+    if (!QuoteToId.IsKey(ContentVectorString)) {
+      QuoteToId.AddDat(ContentVectorString, QuoteId);
+    }
+  }
+}
+
 void TQuoteBase::RemoveQuote(TInt QuoteId) {
   // TODO: memory management
   IAssert(IdToTQuotes.IsKey(QuoteId));

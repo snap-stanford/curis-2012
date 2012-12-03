@@ -18,16 +18,17 @@ private:
   void PrintFreqOverTime(THash<TSecTm, TFltV>& FreqOverTime);
   void UpdateDataForJsonPrinting(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, THash<TSecTm, TFltV>& FreqOverTime, TVec<TSecTm>& Times, TIntV& ClustersToPrint, THash<TInt, TStr>& ClustersRepQuote, TSecTm& CurrentDate, TInt DaysPassed, TStr& Type);
   void PrintClustersInJson(THash<TSecTm, TFltV>& FreqOverTime, TVec<TSecTm>& Times, TIntV& ClustersToPrint, THash<TInt, TStr>& ClustersRepQuote, TStr& OutputFilename);
-  bool IsLeapYear(TInt Year);
-  TSecTm RoundStartDate(TSecTm& StartDate, TStr& Type);
+  void FilterDuplicateClusters(TQuoteBase *QBCumulative, TClusterBase *CBCumulative, TIntV& TopFilteredClusters, TIntV& TopFilteredClustersWoDups);
+  static bool IsLeapYear(TInt Year);
   TSecTm CalculateEndPeriodDate(TSecTm& CurrentDate, TStr& Type);
-  TInt GetNumDaysInMonth(TSecTm& Date);
+  static TInt GetNumDaysInMonth(TSecTm& Date);
 
 public:
+  static TSecTm RoundStartDate(TSecTm& StartDate, TStr& Type);
   TPrintClusterJson();
   TPrintClusterJson(TStr& OutputJsonDir);
   void PrintClusterJSONForPeriod(TStr& CurTimeString, TStr Type, TStr QBDBCDirectory);
-  void PrintClusterJsonForPeriod(TStr& StartString, TStr& EndString, LogOutput& Log, TStr Type, TStr QBDBCDirectory);
+  void PrintClusterJsonForPeriod(TStr& StartString, TStr& EndString, TStr& LogDirectory, TStr Type, TStr QBDBCDirectory);
 };
 
 #endif

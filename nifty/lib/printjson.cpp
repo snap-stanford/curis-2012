@@ -56,7 +56,7 @@ void TPrintJson::PrintClusterTableJSON(TQuoteBase *QB, TDocBase *DB, TClusterBas
 
 void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
                                   TStr& FolderName, TInt& ClusterId, TSecTm PresentTime) {
-  Err("getting peaks\n");
+  //Err("getting peaks\n");
   TStr CurDateString = PresentTime.GetDtYmdStr();
   TCluster C;
   CB->GetCluster(ClusterId, C);
