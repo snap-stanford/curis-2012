@@ -20,11 +20,12 @@ private:
   void PrintClustersInJson(THash<TSecTm, TFltV>& FreqOverTime, TVec<TSecTm>& Times, TIntV& ClustersToPrint, THash<TInt, TStr>& ClustersRepQuote, TStr& OutputFilename);
   void FilterDuplicateClusters(TQuoteBase *QBCumulative, TClusterBase *CBCumulative, TIntV& TopFilteredClusters, TIntV& TopFilteredClustersWoDups);
   static bool IsLeapYear(TInt Year);
-  TSecTm CalculateEndPeriodDate(TSecTm& CurrentDate, TStr& Type);
   static TInt GetNumDaysInMonth(TSecTm& Date);
 
 public:
   static TSecTm RoundStartDate(TSecTm& StartDate, TStr& Type);
+  static TSecTm CalculateEndPeriodDate(TSecTm& CurrentDate, TStr& Type);
+
   TPrintClusterJson();
   TPrintClusterJson(TStr& OutputJsonDir);
   void PrintClusterJSONForPeriod(TStr& CurTimeString, TStr Type, TStr QBDBCDirectory);

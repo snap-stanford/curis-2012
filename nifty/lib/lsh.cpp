@@ -6,7 +6,7 @@ const int LSH::NumBands = 20;
 const int LSH::ShingleLen = 4; // In characters
 const int LSH::ShingleWordLen = 2;
 //const int LSH::WordWindow = 4;
-const int LSH::WordWindow = 80;
+const int LSH::WordWindow = 4;
 
 void LSH::WordHashing(TQuoteBase* QuoteBase, THashSet<TMd5Sig>& Shingles) {
   fprintf(stderr, "Hashing shingles using words...\n");

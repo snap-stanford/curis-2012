@@ -34,7 +34,7 @@ void TPrintJson::PrintClusterTableJSON(TQuoteBase *QB, TDocBase *DB, TClusterBas
     CB->GetCluster(Clusters[i], C);
     TStr CRepQuote;
     C.GetRepresentativeQuoteString(CRepQuote, QB);
-    Quote.Add(CRepQuote);
+    Quote.Add(JSONEscape(CRepQuote));
 
     TIntV CQuoteIds, CUniqueSources;
     C.GetQuoteIds(CQuoteIds);
@@ -97,7 +97,7 @@ void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB
 
       Urls.Add(QuoteURL);
       Frequencies.Add(Q.GetNumSources().GetStr());
-      Quotes.Add(QuoteStr);
+      Quotes.Add(JSONEscape(QuoteStr));
     }
   }
 
@@ -212,11 +212,29 @@ void TPrintJson::PrintClustersGraphJson(TQuoteBase *QB, TDocBase *DB, TClusterBa
     CB->GetCluster(ClustersToPrint[i], C);
     TStr CRepQuote;
     C.GetRepresentativeQuoteString(CRepQuote, QB);
-    fprintf(F, "\"%s\"", CRepQuote.CStr());
+    fprintf(F, "\"%s\"", JSONEscape(CRepQuote).CStr());
     if (i < ClustersToPrint.Len() - 1) { fprintf(F, ", "); }
   }
   fprintf(F, "]}");
   fclose(F);
+}
+
+TStr TPrintJson::JSONEscape(TStr& String) {
+  TStr Response = "";
+  for(int i = 0; i < String.Len(); i++) {
+    switch (String[i]) {
+      case '\\': Response += "\\\\";; break;
+      case '"': Response += "\\\""; break;
+      case '/': Response += "\\/"; break;
+      case '\b': Response += "\\b"; break;
+      case '\f': Response += "\\f"; break;
+      case '\n': Response += "\\n"; break;
+      case '\r': Response += "\\r"; break;
+      case '\t': Response += "\\t"; break;
+      default: Response += TStr(TCh(String[i])); break;
+    }
+  }
+  return Response;
 }
 
 void TPrintJson::PrintClustersTableJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
@@ -256,7 +274,7 @@ void TPrintJson::PrintClustersTableJson(TQuoteBase *QB, TDocBase *DB, TClusterBa
 
   fprintf(F, "], \"quote\": [");
   for (int i = 0; i < ClustersToPrint.Len(); i++) {
-    fprintf(F, "\"%s\"", RepQuotes[i].CStr());
+    fprintf(F, "\"%s\"", JSONEscape(RepQuotes[i]).CStr());
     if (i < ClustersToPrint.Len() - 1) { fprintf(F, ", "); }
   }
 

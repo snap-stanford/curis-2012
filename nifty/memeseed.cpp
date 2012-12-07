@@ -78,8 +78,8 @@ int main(int argc, char *argv[]) {
   TDataLoader::SaveQBDBCQ(FileName, &QB, &DB, &CB, QGraph);
 
   TIntV Temp;
-  //Log.LogAllInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime, Temp, QBDBCDirectory);
-  Log.WriteClusteringStatisticsToFile(PresentTime);
+  Log.LogAllInformation(&DB, &QB, &CB, TopFilteredClusters, PresentTime, Temp, QBDBCDirectory);
+  //Log.WriteClusteringStatisticsToFile(PresentTime);
   TStr Directory;
   Log.GetDirectory(Directory);
   Err("Done with memeseed! Directory created at: %s\n", Directory.CStr());

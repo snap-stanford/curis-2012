@@ -168,14 +168,14 @@ TInt TPrintClusterJson::GetNumDaysInMonth(TSecTm& Date) {
 TSecTm TPrintClusterJson::RoundStartDate(TSecTm& StartDate, TStr& Type) {
   TSecTm NewStartDate = StartDate;
   if (Type == "week") {  // Round to next Saturday (or don't round if StartDate is a Saturday)
-    if (StartDate.GetDayOfWeekN() != 7) {
-      NewStartDate.AddDays(-1 * StartDate.GetDayOfWeekN());  // DayOfWeekN = 7 for Sat, = 1 for Sun
-    }
+    NewStartDate.AddDays(-1 * StartDate.GetDayOfWeekN());  // DayOfWeekN = 7 for Sat, = 1 for Sun
   } else if (Type == "month" || Type == "3month") {
     NewStartDate.AddDays(-1 * StartDate.GetDayN() + 1); // Round to nearest 1st (or don't round if StartDate is a 1st)
     if (Type == "3month") {
       while ((NewStartDate.GetMonthN() - 1) % 3 != 0) {
-        NewStartDate.AddDays(-1 * GetNumDaysInMonth(NewStartDate)); // go back another month
+        TSecTm PrevDate = NewStartDate;
+        PrevDate.AddDays(-1);
+        NewStartDate.AddDays(-1 * GetNumDaysInMonth(PrevDate)); // go back another month
       }
     }
   }
@@ -366,6 +366,17 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
     TmpLog.DisableLogging();
     PostCluster::FilterAndCacheClusterSize(&DBCumulative, &QBCumulative, &CBCumulative, TmpLog, TopFilteredClusters, CurrentDate);
     PostCluster::FilterAndCacheClusterPeaks(&DBCumulative, &QBCumulative, &CBCumulative, TmpLog, TopFilteredClusters, CurrentDate);
+
+    // Limit number of clusters we are printing...
+    TIntV TopFilteredClustersLimit;
+    TInt NumToLimit = 250;
+    if (Type == "month") NumToLimit = 500;
+    else if (Type == "3month") NumToLimit = 1000;
+    for (int i = 0; i < NumToLimit && i < TopFilteredClusters.Len(); i++) {
+      TopFilteredClustersLimit.Add(TopFilteredClusters[i]);
+    }
+    TopFilteredClusters.Clr();
+    TopFilteredClusters = TopFilteredClustersLimit;
 
     // Filter out clusters in TopFilteredClusters that have duplicate quote content (remove the less popular duplicate cluster(s))
     TIntV TopFilteredClustersWoDups;

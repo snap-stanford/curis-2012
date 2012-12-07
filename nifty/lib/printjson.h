@@ -22,6 +22,7 @@ class TPrintJson {
     static void PrintClustersDataJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, TIntV& ClustersToPrint, const TStr& ClusterDataDir, TSecTm& EndDate);
     static void GetTopPeakClustersPerDay(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
                                          TIntV& ClustersToPrint, TInt NumPerDay, TSecTm& StartDate, TSecTm& EndDate);
+    static TStr JSONEscape(TStr& String);
 };
 
 #endif

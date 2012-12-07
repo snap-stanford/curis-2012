@@ -98,11 +98,21 @@ void LogOutput::LogAllInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB
   TStr WeekType = "week", MonthType = "month", Month3Type = "3month";
 
   TSecTm WeekStart = TPrintClusterJson::RoundStartDate(PresentTime, WeekType);
+  WeekStart = JSONJob.CalculateEndPeriodDate(WeekStart, WeekType);
+  WeekStart.AddDays(-1);
   TStr WeekStartString = WeekStart.GetDtYmdStr();
+
   TSecTm MonthStart = TPrintClusterJson::RoundStartDate(PresentTime, MonthType);
+  MonthStart = JSONJob.CalculateEndPeriodDate(MonthStart, MonthType);
+  MonthStart.AddDays(-1);
   TStr MonthStartString = MonthStart.GetDtYmdStr();
+
   TSecTm Month3Start = TPrintClusterJson::RoundStartDate(PresentTime, Month3Type);
+  Month3Start = JSONJob.CalculateEndPeriodDate(Month3Start, Month3Type);
+  Month3Start.AddDays(-1);
   TStr Month3StartString = Month3Start.GetDtYmdStr();
+
+  Err("Week end: %s\nMonth end: %s\n3Month end: %s\n", WeekStartString.CStr(), MonthStartString.CStr(), Month3StartString.CStr());
 
   //fprintf(stderr, "Start date string: %s\n", WeekStartString.CStr());
   //fprintf(stderr, "Current date string: %s\n", CurDateString.CStr());
