@@ -117,18 +117,18 @@ void LogOutput::LogAllInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB
   //fprintf(stderr, "Start date string: %s\n", WeekStartString.CStr());
   //fprintf(stderr, "Current date string: %s\n", CurDateString.CStr());
   TStr ToIgnore;
-  if (CurDateString == WeekStartString) {
+//  if (CurDateString == WeekStartString) {
     fprintf(stderr, "LOGGING WEEK\n");
     JSONJob.PrintClusterJsonForPeriod(WeekStartString, ToIgnore, Directory, TStr("week"), QBDBCDirectory);
-  }
-  if (CurDateString == MonthStartString) {
+//  }
+//  if (CurDateString == MonthStartString) {
     fprintf(stderr, "LOGGING MONTH\n");
     JSONJob.PrintClusterJsonForPeriod(MonthStartString, ToIgnore, Directory, TStr("month"), QBDBCDirectory);
-  }
-  if (CurDateString == Month3StartString) {
+//  }
+//  if (CurDateString == Month3StartString) {
     fprintf(stderr, "LOGGING 3 MONTHS\n");
     JSONJob.PrintClusterJsonForPeriod(Month3StartString, ToIgnore, Directory, TStr("3month"), QBDBCDirectory);
-  }
+//  }
 
   //JSONJob.PrintClusterJSONForPeriod(CurDateString, "week", QBDBCDirectory);
   //JSONJob.PrintClusterJSONForPeriod(CurDateString, "month", QBDBCDirectory);
