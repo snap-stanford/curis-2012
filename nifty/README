@@ -25,7 +25,7 @@ file stored under QBDBC_DIR_DEFAULT. Otherwise, you will get very strange errors
 Trust me, I've been there. In fact, if you ever get incomprehensible errors
 (this happens a lot), try checking to make sure you have permissions to edit
 files in QBDBC_DIR_DEFAULT, and that any files that you are trying to load
-actually exist. This will save you infinit amounts of time!!
+actually exist. This will save you infinite amounts of time!!
 
 ##########################
 ## RUNNING INSTRUCTIONS ##
@@ -67,6 +67,21 @@ The standard way to run the NIFTY pipeline is as follows:
 
 Again, end date is noninclusive! So if you want to run memeincrement on 1 dayonly (say
 Jan 1), you would run ./memeincrement -start 2012-01-01 -end 2012-01-02.
+
+Memeseed and memeincrement store output files referred to as "QBDBC" files. These files
+contain all the information necessary to run visualization. To run visualization
+on existing data, you can "memelog" as follows:
+	./memelog -start <startdate> -end <enddate, noninclusive>
+	  [-directory <outputdir>] [-setup true if you want directory to be set
+	  up (refer to IMPORTANT NOTE below)]
+
+##### IMPORTANT NOTE ######
+At some point in time you may wish to move the output folder that memeincrement data
+is being generated. If you do this, you may encounter a segmentation fault because
+the folder has not been "set up" (which memeincrement does automatically for you)!
+
+In order to set up a directory, just run the following:
+	cp -r output/resources/* <outputdir>
 
 ###################
 ## SHELL SCRIPTS ##
