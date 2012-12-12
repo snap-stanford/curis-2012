@@ -76,7 +76,11 @@ on existing data, you can "memelog" as follows:
 	  up (refer to IMPORTANT NOTE below)]
 
 ##### IMPORTANT NOTE ######
-At some point in time you may wish to move the output folder that memeincrement data
+1. To be able to run the NIFTY pipeline, you will have to include 2 special files in 
+the snap library. Include stemming.h and stopword.h in the Snap.h file and stemming.cpp
+ and stemming.cpp and stopword.cpp in the Snap.cpp file.
+
+2. At some point in time you may wish to move the output folder that memeincrement data
 is being generated. If you do this, you may encounter a segmentation fault because
 the folder has not been "set up" (which memeincrement does automatically for you)!
 
