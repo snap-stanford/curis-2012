@@ -8,6 +8,7 @@ const int TClusterBase::FrequencyCutoff = 100;
 
 TCluster::TCluster() {
   Archived = true;
+  DeathDate = BirthDate;
 }
 
 TCluster::TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB, TSecTm BirthDate) {
@@ -19,6 +20,7 @@ TCluster::TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds
   this->QuoteIds = QuoteIds;
   this->Id = 1;
   this->BirthDate = BirthDate;
+  this->DeathDate = BirthDate;
   this->Archived = true;
   /*this->RepresentativeQuoteIds = RepresentativeQuoteIds;
   this->NumQuotes = NumQuotes;
@@ -36,6 +38,7 @@ void TCluster::Save(TSOut& SOut) const {
   BirthDate.Save(SOut);
   Archived.Save(SOut);
   DiscardState.Save(SOut);
+  DeathDate.Save(SOut);
 }
 
 void TCluster::Load(TSIn& SIn) {
@@ -48,6 +51,8 @@ void TCluster::Load(TSIn& SIn) {
   BirthDate.Load(SIn);
   Archived.Load(SIn);
   DiscardState.Load(SIn);
+  DeathDate.Load(SIn);
+  // ./memeseed -start 2013-03-08 -window 2 -directory log -qbdb /lfs/1/tmp/chantat/nifty/QBDB/ -qbdbc /lfs/1/tmp/curis/QBDBC-new/
 }
 
 void TCluster::Archive() {
@@ -304,11 +309,13 @@ TInt TClusterBase::AddCluster(TCluster &Cluster, const TClusterBase *OldCB, TSec
   }
   Cluster.SetId(CurCounter);
   IdToTCluster.AddDat(CurCounter, Cluster);
+  Cluster.DeathDate = PresentTime;
   return CurCounter;
 }
 
 /// Used when merging clusters
 TInt TClusterBase::AddCluster(TCluster& Cluster) {
+  if (Cluster.DeathDate.GetYearN() > 2020) Err("Bah!\n");
   TIntV QuoteIds;
   Cluster.GetQuoteIds(QuoteIds);
 
@@ -461,7 +468,11 @@ void TClusterBase::RemoveCluster(TInt ClusterId) {
 }
 
 bool TClusterBase::GetCluster(TInt ClusterId, TCluster& RefC) const {
-  return IdToTCluster.IsKeyGetDat(ClusterId, RefC);
+  if (IdToTCluster.IsKeyGetDat(ClusterId, RefC)) {
+  if (RefC.DeathDate.GetYearN() > 2020) Err("asdf");
+  return true;}
+  return false;
+  //IdToTCluster.IsKeyGetDat(ClusterId, RefC);
 }
 
 // Returns -1 if QuoteId is not found

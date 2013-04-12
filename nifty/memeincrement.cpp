@@ -14,11 +14,14 @@ int main(int argc, char *argv[]) {
   TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", QBDBC_DIR_DEFAULT);
   TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
   TStr ClustMethod = ArgumentParser::GetArgument(Arguments, "method", "local");
+  TStr NewDir = ArgumentParser::GetArgument(Arguments, "newdir", "");
 
   if (ArgumentParser::GetArgument(Arguments, "nolog", "") != "") {
     Log.DisableLogging();
   } else if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
     Log.SetupNewOutputDirectory("");
+  } else if (NewDir != "") {
+	Log.SetupNewOutputDirectory(OutputDirectory);
   } else {
     Log.SetDirectory(OutputDirectory);
   }
@@ -84,7 +87,7 @@ int main(int argc, char *argv[]) {
     TDataLoader::SaveQBDBCQ(FileName, &QB, &DB, &CB, QGraph);
 
     // ## LOG.
-    Log.LogAllInformation(&DB, &QB, &NewCB, TopFilteredClusters, CurrentDate, OldTopClusters, QBDBCDirectory);
+    Log.LogAllInformation(&DB, &QB, &NewCB, QGraph, TopFilteredClusters, CurrentDate, OldTopClusters, QBDBCDirectory);
 
     OldTopClusters = TopFilteredClusters;
     CurrentDate.AddDays(1);

@@ -54,7 +54,7 @@ void TPrintJson::PrintClusterTableJSON(TQuoteBase *QB, TDocBase *DB, TClusterBas
   PrintJSON(FileName, JSON, Empty);
 }
 
-void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
+void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, PNGraph& QGraph, 
                                   TStr& FolderName, TInt& ClusterId, TSecTm PresentTime) {
   //Err("getting peaks\n");
   TStr CurDateString = PresentTime.GetDtYmdStr();
@@ -81,7 +81,7 @@ void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB
 
   //Err("after peak\n");
 
-  TStrV Quote, Urls, Frequencies, Quotes;
+  TStrV Quote, Urls, Frequencies, Quotes, Parents;
   TStr CRepQuote;
   C.GetRepresentativeQuoteString(CRepQuote, QB);
   Quote.Add(CRepQuote);
@@ -98,6 +98,16 @@ void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB
       Urls.Add(QuoteURL);
       Frequencies.Add(Q.GetNumSources().GetStr());
       Quotes.Add(JSONEscape(QuoteStr));
+	  
+	  // stuff
+	  if (QGraph->GetEdges() < 1) continue;
+	  TStr Parent = "[";
+	  TNGraph::TNodeI NI = QGraph->GetNI(QuoteIds[j]);
+	  for (int k = 0; k < NI.GetOutDeg(); k++) {
+		Parent += TInt(NI.GetOutNId(k)).GetStr();
+		if (k + 1 < NI.GetOutDeg()) Parent += ",";
+	  }
+	  Parents.Add(Parent + "]");
     }
   }
 
@@ -108,6 +118,7 @@ void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB
   JSON.AddDat("urls", Urls);
   JSON.AddDat("frequencies", Frequencies);
   JSON.AddDat("quotes", Quotes);
+  JSON.AddDat("parents", Parents);
 
   TInt FirstIndex = ClusterId / 10000;
   TInt SecondIndex = FirstIndex / 1000;

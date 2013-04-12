@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
 
     // TODO: consider if quote is dead?
     TIntV Temp;
-    Log.LogAllInformation(&DB, &QB, &CB, TopFilteredClusters, CurrentDate, Temp, QBDBCDirectory);
+    Log.LogAllInformation(&DB, &QB, &CB, QGraph, TopFilteredClusters, CurrentDate, Temp, QBDBCDirectory);
 
     CurrentDate.AddDays(1);
   }

@@ -14,7 +14,7 @@ class TPrintJson {
   public:
     static void PrintClusterTableJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
                                                TStr& FileName, TIntV& Clusters, TStrV& RankStr);
-    static void PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB,
+    static void PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, PNGraph& QGraph, 
                                       TStr& FolderName, TInt& ClusterId, TSecTm PresentTime);
     static void PrintClustersJson(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, TIntV& ClustersToGraph,
                                   TIntV& ClustersToTable,

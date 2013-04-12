@@ -410,7 +410,9 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
       if (AvgFreq * 5 / Count < MaxSources) {
         C.Archive(); // won't be included.
         NumArchived++;
-      }
+      } else {
+		C.DeathDate = PresentTime;
+	  }
     }
   }
 

@@ -18,7 +18,7 @@ void LoadURLBlackList() {
 }
 
 // Returns true if the url is in the blacklist
-bool IsUrlInBlackList(const TChA &Url) {
+/*bool IsUrlInBlackList(const TChA &Url) {
   TStr UrlStr(Url);
   TStrV PeriodVector;
   UrlStr.SplitOnAllAnyCh(".", PeriodVector);
@@ -34,6 +34,24 @@ bool IsUrlInBlackList(const TChA &Url) {
     }
   }
 
+  return false;
+}*/
+
+bool IsUrlInBlackList(const TChA &Url) {
+  TStr UrlStr(Url);
+  TStrV PeriodVector;
+  UrlStr.SplitOnAllAnyCh(".", PeriodVector);
+
+  if (PeriodVector.Len() >= 2) {
+    for (int i = 1; i < PeriodVector.Len(); i++) {
+      TStrV SlashVector;
+      PeriodVector[i].SplitOnAllAnyCh("/", SlashVector);
+      if (SlashVector.Len() >= 2 || (i + 1 == PeriodVector.Len() && SlashVector.Len() >= 1)) {
+        TStr DomainName = PeriodVector[i - 1] + "." + SlashVector[0];
+        return (URLBlackList.IsKey(DomainName));
+      }
+    }
+  }
   return false;
 }
 
@@ -90,6 +108,7 @@ int main(int argc, char *argv[]) {
   TStr CurDateStr = ArgumentParser::GetArgument(Arguments, "date", "2012-01-01");
   TStr QBDBDir = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
   TStr Spinn3rDir = ArgumentParser::GetArgument(Arguments, "spinn3r", SPINNER_DIR_DEFAULT);
+  Err("Spinner directory: %s\n", Spinn3rDir.CStr());
   TSecTm CurrentDate = TSecTm::GetDtTmFromYmdHmsStr(CurDateStr);
 
   // Setup Output Directory

@@ -3,6 +3,7 @@
 
 bool TDataLoader::LoadFile(const TStr &Prefix, const TStr &FileName) {
   FILE *fin = fopen((Prefix + FileName).CStr(), "r");
+  Err("FileName: %s\n", (Prefix + FileName).CStr());
   if (fin == NULL) {
     printf("Error reading file %s, ignore...\n", FileName.CStr());
     return false;
@@ -266,8 +267,17 @@ void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
       }*/
       //END FOR TESTING
 
+	C.DeathDate = PresentTime;
     CB1.AddCluster(C);
     //}
+  }
+  
+   TIntV ClusterIds;
+	CB1.GetAllClusterIds(ClusterIds);
+  for (int i = 0; i < ClusterIds.Len(); i++) {
+    TCluster C;
+    CB1.GetCluster(ClusterIds[i], C);
+	C.DeathDate = PresentTime;
   }
 }
 
@@ -346,6 +356,7 @@ void TDataLoader::FilterOldData(TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, 
     if (NewCQuoteIds.Len() != 0 && NewCRepQuoteIds.Len() != 0) {
       C.SetQuoteIds(&QB, NewCQuoteIds);
       C.SetRepresentativeQuoteIds(NewCRepQuoteIds);
+	  //C.DeathDate = PresentTime;
       CB.AddCluster(C);
     } else {
       CB.RemoveCluster(ClusterIds[i]);

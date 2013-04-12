@@ -18,9 +18,10 @@ private:
   TInt DiscardState; // 0 = clean, 1 = peaks, 2 = variants
 
 public:
+  TSecTm DeathDate;
   TCluster();
   TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB, TSecTm BirthDate);
-  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), PeakTimesV(SIn), FreqV(SIn), BirthDate(SIn) , Archived(SIn), DiscardState(SIn) { }
+  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), PeakTimesV(SIn), FreqV(SIn), BirthDate(SIn) , Archived(SIn), DiscardState(SIn), DeathDate(SIn) { }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   void Archive();

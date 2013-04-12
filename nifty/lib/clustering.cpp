@@ -95,6 +95,7 @@ void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, L
   // Add clusters to CB. keep track of cluster birth time (aka today)
   for (int i = 0; i < Clusters.Len(); i++) {
     TCluster Cluster;
+	Cluster.DeathDate = PresentTime;
     Cluster.AddQuote(QB, Clusters[i]);
     TQuote ClusterRepQuote;
     CalcRepresentativeQuote(ClusterRepQuote, Clusters[i], QB);

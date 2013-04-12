@@ -282,7 +282,7 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
   TStr TopClusterSelection = "cumulative";  // Can be "cumulative" or "daily" 
   //if (UseDailyTopClusters) {  // Not using this feature, so commenting it out for now
   //  TopClusterSelection = TStr("daily");
-  //}
+  //
 
   fprintf(stderr, "Top Cluster Selection: %s\n", TopClusterSelection.CStr());
   IAssert(TopClusterSelection == "cumulative" || TopClusterSelection == "daily");
@@ -397,10 +397,20 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
     // Print individual cluster JSON info
     TStr ClusterJSONDirectory = LogDirectory + "/web/json/clusters/";
     TSecTm ZeroTime(0);
+	// TODO: FIX
+	//PNGraph QGraph = TNGraph::New();
     for (int j = 0; j < ClustersToPrint.Len(); j++) {
       // The last parameter is ZeroTime so that the Peaks::GetFrequencyVector starts the graph of the cluster at the first source,
       // rather than X days before the TSecTm parameter given
-      TPrintJson::PrintClusterJSON(&QBCumulative, &DBCumulative, &CBCumulative, ClusterJSONDirectory, ClustersToPrint[j], ZeroTime);
+	  TCluster C;
+	  CBCumulative.GetCluster(ClustersToPrint[j], C);
+	  TQuoteBase QB;
+      TDocBase DB;
+      TClusterBase CB;
+      PNGraph QGraph;
+      TDataLoader::LoadCumulative(QBDBCDirectory, C.DeathDate.GetDtYmdStr(), QB, DB, CB, QGraph);
+      
+      TPrintJson::PrintClusterJSON(&QBCumulative, &DBCumulative, &CBCumulative, QGraph, ClusterJSONDirectory, ClustersToPrint[j], ZeroTime);
 
     }
     //UpdateDataForJsonPrinting(&QBCumulative, &DBCumulative, &CBCumulative, FreqOverTime, Times, ClustersToPrint,

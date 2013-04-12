@@ -82,11 +82,11 @@ void LogOutput::LogValue(const TStr Key, TFlt Value) {
   OutputValues.AddDat(Key, Value.GetStr());
 }
 
-void LogOutput::LogAllInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime, TIntV& OldTopClusters, TStr& QBDBCDirectory) {
+void LogOutput::LogAllInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, PNGraph& QGraph, TIntV& ClusterIds, TSecTm PresentTime, TIntV& OldTopClusters, TStr& QBDBCDirectory) {
   if (!ShouldLog) return;
   WriteClusteringStatisticsToFile(PresentTime);
   PrintClusterInformationToText(DB, QB, CB, ClusterIds, PresentTime);
-  PrintClusterInformation(DB, QB, CB, ClusterIds, PresentTime, OldTopClusters);
+  PrintClusterInformation(DB, QB, CB, QGraph, ClusterIds, PresentTime, OldTopClusters);
   LogQBDBCBSize(DB, QB, CB, PresentTime);
   TStr JSONDirectory = Directory + "/web/json/";
   TStr CurDateString = PresentTime.GetDtYmdStr();
@@ -188,7 +188,7 @@ void LogOutput::PrintClusterInformationToText(TDocBase *DB, TQuoteBase *QB, TClu
   fclose(T);
 }
 
-void LogOutput::PrintClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, TIntV& ClusterIds, TSecTm PresentTime, TIntV &OldTopClusters) {
+void LogOutput::PrintClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, PNGraph& QGraph, TIntV& ClusterIds, TSecTm PresentTime, TIntV &OldTopClusters) {
   if (!ShouldLog) return;
   TStr CurDateString = PresentTime.GetDtYmdStr();
   Err("Writing cluster information...\n");
@@ -209,7 +209,7 @@ void LogOutput::PrintClusterInformation(TDocBase *DB, TQuoteBase *QB, TClusterBa
     RankStr.Add(OldRankStr);
 
     // JSON file for each cluster!
-    TPrintJson::PrintClusterJSON(QB, DB, CB, ClusterJSONDirectory, ClusterIds[i], PresentTime);
+    TPrintJson::PrintClusterJSON(QB, DB, CB, QGraph, ClusterJSONDirectory, ClusterIds[i], PresentTime);
   }
 
   Err("JSON Files for individual written!\n");
