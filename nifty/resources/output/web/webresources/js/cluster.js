@@ -48,7 +48,9 @@ function SetupCluster(clusterID) {
 		$(table).append(tr_heading);
 		
 		// Write everything else
+		var id_map = {};
 		for (var i = 0; i < data.urls.length; ++i) {
+			id_map[data.ids[i]] = data.quotes[i];
 			var tr = document.createElement("tr");
             $(tr).append("<td>" + data.frequencies[i] + "</td>") // rank
             $(tr).append("<td><a href=\"" + data.urls[i] + "\">" + data.quotes[i] + "</a></td>") // quote
@@ -56,6 +58,21 @@ function SetupCluster(clusterID) {
         }
 		
 		$('#cluster-table').html(table);
+		
+		// graph viz
+		var graph_string = "digraph G { graph [width=800];"
+		for (var i = 0; i < data.parents.length; ++i) {
+			for (var j = 0; j < data.parents[i].length; ++j) {
+				graph_string += "\"" + id_map[data.parents[i][j]] + "\"";
+				graph_string += " -> ";
+				graph_string += "\"" + data.quotes[i] + "\";";
+			}
+			
+		}
+		graph_string += "}";
+		var viz_output = Viz(graph_string, "svg");
+		console.log(viz_output);
+		$('#cluster-digraph').html(viz_output);
 		
 		// ### SETUP GRAPH TIME
 		var originalDate = new Date(data.modified);

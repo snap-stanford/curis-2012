@@ -76,19 +76,36 @@ void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB
     Plots += "[" + PeakV[i].Val1.GetStr() + ", " + PeakV[i].Val2.GetStr() + "]";
     if (i + 1 < PeakV.Len()) Plots += ", ";
   }
+  Plots += "], \"parents\":[";
+  TIntV QuoteIds;
+  C.GetQuoteIds(QuoteIds);
+  for (int j = 0; j < QuoteIds.Len(); j++) {
+    TQuote Q;
+    if (QB->GetQuote(QuoteIds[j], Q)) {
+	  Plots += "[";
+	  if (QGraph->GetEdges() < 1) continue;
+	  TNGraph::TNodeI NI = QGraph->GetNI(QuoteIds[j]);
+	  for (int k = 0; k < NI.GetOutDeg(); k++) {
+		Plots += TInt(NI.GetOutNId(k)).GetStr();
+		if (k + 1 < NI.GetOutDeg()) Plots += ",";
+	  }
+	  Plots += "]";
+	  if (j + 1 < QuoteIds.Len()) Plots += ",";
+    }
+  }
   Plots += "]";
   Plots += ", \"modified\": \"" + CurDateString + "\"";
 
   //Err("after peak\n");
 
-  TStrV Quote, Urls, Frequencies, Quotes, Parents;
+  TStrV Quote, Urls, Frequencies, Quotes, Ids;
   TStr CRepQuote;
   C.GetRepresentativeQuoteString(CRepQuote, QB);
   Quote.Add(CRepQuote);
 
-  TIntV QuoteIds;
-  C.GetQuoteIds(QuoteIds);
+  
   for (int j = 0; j < QuoteIds.Len(); j++) {
+	Ids.Add(QuoteIds[j].GetStr());
     TQuote Q;
     if (QB->GetQuote(QuoteIds[j], Q)) {
       TStr QuoteStr, QuoteURL;
@@ -98,16 +115,6 @@ void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB
       Urls.Add(QuoteURL);
       Frequencies.Add(Q.GetNumSources().GetStr());
       Quotes.Add(JSONEscape(QuoteStr));
-	  
-	  // stuff
-	  if (QGraph->GetEdges() < 1) continue;
-	  TStr Parent = "[";
-	  TNGraph::TNodeI NI = QGraph->GetNI(QuoteIds[j]);
-	  for (int k = 0; k < NI.GetOutDeg(); k++) {
-		Parent += TInt(NI.GetOutNId(k)).GetStr();
-		if (k + 1 < NI.GetOutDeg()) Parent += ",";
-	  }
-	  Parents.Add(Parent + "]");
     }
   }
 
@@ -118,7 +125,7 @@ void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB
   JSON.AddDat("urls", Urls);
   JSON.AddDat("frequencies", Frequencies);
   JSON.AddDat("quotes", Quotes);
-  JSON.AddDat("parents", Parents);
+  JSON.AddDat("ids", Ids);
 
   TInt FirstIndex = ClusterId / 10000;
   TInt SecondIndex = FirstIndex / 1000;
