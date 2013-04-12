@@ -1,5 +1,6 @@
 $(document).ready(function() {
 	init(SetupDate);
+	SetInterpolationWindow(4);
 });
 
 function SetupDate(dateString) {
