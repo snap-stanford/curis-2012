@@ -14,7 +14,7 @@ TCluster::TCluster() {
 TCluster::TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB, TSecTm BirthDate) {
   // TODO: Check that URLs are not repeated
   this->RepresentativeQuoteIds = RepresentativeQuoteIds;
-  TIntV UniqueSources;
+  TVec<TUInt64> UniqueSources;
   TCluster::GetUniqueSources(UniqueSources, QuoteIds, QB);
   this->NumQuotes = UniqueSources.Len();
   this->QuoteIds = QuoteIds;
@@ -125,7 +125,7 @@ TInt TCluster::GetId() const {
 
 TFlt TCluster::GetPopularity(TQuoteBase *QuoteBase, TDocBase *DocBase, TSecTm CurrentTime) {
   TFlt Popularity;
-  TIntV UniqueSources;
+  TVec<TUInt64> UniqueSources;
   GetUniqueSources(UniqueSources, QuoteIds, QuoteBase);
   TFreqTripleV FreqV;
   Peaks::GetFrequencyVector(DocBase, UniqueSources, FreqV, 2, 1, CurrentTime);
@@ -153,7 +153,7 @@ void TCluster::AddQuote(TQuoteBase *QB, TInt QuoteId) {
   this->QuoteIds.Add(QuoteId);
 
   // Only count the unique sources for the new frequency of the cluster
-  TIntV UniqueSources;
+  TVec<TUInt64> UniqueSources;
   GetUniqueSources(UniqueSources, QuoteIds, QB);
   NumQuotes = UniqueSources.Len();
 }
@@ -165,7 +165,7 @@ void TCluster::SetRepresentativeQuoteIds(TIntV& QuoteIds) {
 void TCluster::SetQuoteIds(TQuoteBase *QB, TIntV& NewQuoteIds) {
   this->QuoteIds = NewQuoteIds;
 
-  TIntV UniqueSources;
+  TVec<TUInt64> UniqueSources;
   GetUniqueSources(UniqueSources, NewQuoteIds, QB);
   NumQuotes = UniqueSources.Len();
 }
@@ -188,11 +188,11 @@ void TCluster::GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& 
     PeakTimesV = this->PeakTimesV;
     FreqV = this->FreqV;
   } else {
-    TIntV Sources;
+    TVec<TUInt64> Sources;
     for (int i = 0; i < QuoteIds.Len(); i++) {
       TQuote Quote;
       if (QuoteBase->GetQuote(QuoteIds[i], Quote)) {
-        TIntV CurSources;
+        TVec<TUInt64> CurSources;
         Quote.GetSources(CurSources);
         Sources.AddV(CurSources);
       }
@@ -246,19 +246,17 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
 
 /// Calculates the number of unique sources among the quotes in a cluster,
 //  to get the frequency of the cluster
-void TCluster::GetUniqueSources(TIntV& UniqueSources, TIntV& QuoteIds, TQuoteBase *QB) {
-  TIntSet MergedSources;
+void TCluster::GetUniqueSources(TVec<TUInt64>& UniqueSources, TIntV& QuoteIds, TQuoteBase *QB) {
+  THashSet<TUInt64> MergedSources;
   for (int i = 0; i < QuoteIds.Len(); i++) {
     TQuote Q;
     QB->GetQuote(QuoteIds[i], Q);
-    TIntV QSources;
+    TVec<TUInt64> QSources;
     Q.GetSources(QSources);
     MergedSources.AddKeyV(QSources);
   }
 
-  for (TIntSet::TIter DocId = MergedSources.BegI(); DocId < MergedSources.EndI(); DocId++) {
-    UniqueSources.Add(*DocId);
-  }
+  MergedSources.GetKeyV(UniqueSources);
 }
 
 TClusterBase::TClusterBase() {

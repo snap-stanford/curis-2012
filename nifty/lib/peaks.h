@@ -20,9 +20,9 @@ public:
   static const uint NumSecondsInWeek;
   static const int NumHoursInDay;
   static const int NumDaysToGraph;
-  static void GetPeaks(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
-  static void GetPeaks(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
-  static void GetFrequencyVector(TDocBase *DocBase, TIntV& Sources, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, TInt NumDays = NumDaysToGraph);
+  static void GetPeaks(TDocBase *DocBase, TVec<TUInt64>& Sources, TFreqTripleV& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
+  static void GetPeaks(TDocBase *DocBase, TVec<TUInt64>& Sources, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
+  static void GetFrequencyVector(TDocBase *DocBase, TVec<TUInt64>& Sources, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, TInt NumDays = NumDaysToGraph);
   //void PlotClusterPeaks(TTriple<TInt, TInt, TIntV>& Cluster);
 };
 

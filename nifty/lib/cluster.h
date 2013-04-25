@@ -53,7 +53,7 @@ public:
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TSecTm PresentTime);
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
 
-  static void GetUniqueSources(TIntV& UniqueSources, TIntV& QuoteIds, TQuoteBase *QB);
+  static void GetUniqueSources(TVec<TUInt64>& UniqueSources, TIntV& QuoteIds, TQuoteBase *QB);
 
   //void GetFreqTimes(TFreqTripleV& FreqV, bool reset = false);
   //void GetPeakTimes(TFreqTripleV& PeakTimesV, bool reset = false);

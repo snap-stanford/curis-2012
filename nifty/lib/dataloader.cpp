@@ -120,16 +120,16 @@ bool TDataLoader::LoadNextEntry() {
 /// Merge QBDB2 into QBDB1; returns the indices (in the new QB1) of the quotes in QB2
 //  that are not in QB1
 TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &QB2, const TDocBase &DB2, bool MaintainDuplicateQuotes) {
-  THashSet<TInt> SeenDocSet;
+  THashSet<TUInt64> SeenDocSet;
 
-  TIntV DocIds2;
+  TVec<TUInt64> DocIds2;
   DB2.GetAllDocIds(DocIds2);
   for (int i = 0; i < DocIds2.Len(); i++) {
     TDoc D;
     DB2.GetDoc(DocIds2[i], D);
     TStr DUrl;
     D.GetUrl(DUrl);
-    if (DB1.GetDocId(DUrl) != -1) {
+    if (DB1.GetDocId(DUrl) != 0) {
       SeenDocSet.AddKey(DocIds2[i]);
     }
   }
@@ -142,7 +142,7 @@ TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &Q
     QB2.GetQuote(QuoteIds2[i], Q);
     TStr QContentString;
     Q.GetContentString(QContentString);
-    TIntV Sources;
+    TVec<TUInt64> Sources;
     Q.GetSources(Sources);
 
     TStrV QContentVectorString;
@@ -166,7 +166,7 @@ TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &Q
       if (!SeenDocSet.IsKey(Sources[j])) {
         TDoc D;
         DB2.GetDoc(Sources[j], D);
-        TInt NewSourceId = DB1.AddDoc(D);
+        TUInt64 NewSourceId = DB1.AddDoc(D);
         if (!MaintainDuplicateQuotes) {
           QB1.AddQuote(QContentString, NewSourceId);
         } else {
@@ -285,8 +285,8 @@ void TDataLoader::FilterOldData(TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, 
   TQuoteBase NewQB;
   TDocBase NewDB;
 
-  TIntSet OldDocSet;
-  TIntV DocIds;
+  THashSet<TUInt64> OldDocSet;
+  TVec<TUInt64> DocIds;
   DB.GetAllDocIds(DocIds);
   for (int i = 0; i < DocIds.Len(); i++) {
     TDoc D;
@@ -301,7 +301,7 @@ void TDataLoader::FilterOldData(TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, 
   for (int i = 0; i < QuoteIds.Len(); i++) {
     TQuote Q;
     QB.GetQuote(QuoteIds[i], Q);
-    TIntV Sources;
+    TVec<TUInt64> Sources;
     Q.GetSources(Sources);
     TStr QContentString;
     Q.GetContentString(QContentString);
@@ -310,7 +310,7 @@ void TDataLoader::FilterOldData(TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, 
       if (!OldDocSet.IsKey(Sources[j])) {
         TDoc D;
         DB.GetDoc(Sources[j], D);
-        TInt NewSourceId = NewDB.AddDoc(D);
+        TUInt64 NewSourceId = NewDB.AddDoc(D);
         NewQB.AddQuote(QContentString, NewSourceId);
       }
     }

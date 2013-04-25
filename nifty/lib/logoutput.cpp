@@ -170,7 +170,8 @@ void LogOutput::PrintClusterInformationToText(TDocBase *DB, TQuoteBase *QB, TClu
     TStr CRepQuote;
     C.GetRepresentativeQuoteString(CRepQuote, QB);
 
-    TIntV CQuoteIds, CUniqueSources;
+    TIntV CQuoteIds;
+	TVec<TUInt64> CUniqueSources;
     C.GetQuoteIds(CQuoteIds);
     TCluster::GetUniqueSources(CUniqueSources, CQuoteIds, QB);
 
