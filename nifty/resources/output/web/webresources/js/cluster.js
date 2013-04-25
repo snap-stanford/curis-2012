@@ -60,7 +60,7 @@ function SetupCluster(clusterID) {
 		$('#cluster-table').html(table);
 		
 		// graph viz
-		var graph_string = "digraph G { graph [width=800];"
+		var graph_string = "digraph G { graph [ dpi = 66, width=8];"
 		for (var i = 0; i < data.parents.length; ++i) {
 			for (var j = 0; j < data.parents[i].length; ++j) {
 				graph_string += "\"" + id_map[data.parents[i][j]] + "\"";
