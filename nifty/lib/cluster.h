@@ -16,12 +16,14 @@ private:
   TSecTm BirthDate;
   TBool Archived;
   TInt DiscardState; // 0 = clean, 1 = peaks, 2 = variants
+  TDateFreq MaxPeakDateFreq;
+  TDateFreq CurrPeakDateFreq;
 
 public:
   TSecTm DeathDate;
   TCluster();
   TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB, TSecTm BirthDate);
-  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), PeakTimesV(SIn), FreqV(SIn), BirthDate(SIn) , Archived(SIn), DiscardState(SIn), DeathDate(SIn) { }
+  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), PeakTimesV(SIn), FreqV(SIn), BirthDate(SIn) , Archived(SIn), DiscardState(SIn), MaxPeakDateFreq(SIn), CurrPeakDateFreq(SIn), DeathDate(SIn) { }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   void Archive();

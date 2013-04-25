@@ -22,6 +22,10 @@ TCluster::TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds
   this->BirthDate = BirthDate;
   this->DeathDate = BirthDate;
   this->Archived = true;
+
+  // TODO: Calculate MaxPeakDateFreq
+  
+
   /*this->RepresentativeQuoteIds = RepresentativeQuoteIds;
   this->NumQuotes = NumQuotes;
   this->QuoteIds = QuoteIds;
@@ -38,6 +42,8 @@ void TCluster::Save(TSOut& SOut) const {
   BirthDate.Save(SOut);
   Archived.Save(SOut);
   DiscardState.Save(SOut);
+  MaxPeakDateFreq.Save(SOut);
+  CurrPeakDateFreq.Save(SOut);
   DeathDate.Save(SOut);
 }
 
@@ -51,6 +57,8 @@ void TCluster::Load(TSIn& SIn) {
   BirthDate.Load(SIn);
   Archived.Load(SIn);
   DiscardState.Load(SIn);
+  MaxPeakDateFreq.Load(SIn);
+  CurrPeakDateFreq.Load(SIn);
   DeathDate.Load(SIn);
   // ./memeseed -start 2013-03-08 -window 2 -directory log -qbdb /lfs/1/tmp/chantat/nifty/QBDB/ -qbdbc /lfs/1/tmp/curis/QBDBC-new/
 }

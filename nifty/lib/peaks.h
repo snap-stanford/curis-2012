@@ -7,6 +7,7 @@
 
 typedef TTriple<TInt,TFlt,TSecTm> TFreqTriple;
 typedef TVec<TFreqTriple> TFreqTripleV;
+typedef TPair<TSecTm,TInt> TDateFreq;
 
 class Peaks {
 private:
