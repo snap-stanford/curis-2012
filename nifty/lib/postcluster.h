@@ -8,7 +8,7 @@
 
 class PostCluster {
 private:
-  static double ComputeClusterSourceOverlap(TIntV& Larger, TIntV& Smaller);
+  static double ComputeClusterSourceOverlap(TVec<TUInt64>& Larger, TVec<TUInt64>& Smaller);
 
   static bool ShouldMergeClusters(TQuoteBase *QB, TCluster& Cluster1, TCluster& Cluster2);
 

@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
 
       // Check to see if the entry has any valid quotes
       if (ContainValidQuote) {
-        TInt CurrentDocId = TmpDB.AddDoc(Memes.PostUrlStr, Memes.PubTm, Memes.ContentStr, Memes.LinkV);
+        TUInt64 CurrentDocId = TmpDB.AddDoc(Memes.PostUrlStr, Memes.PubTm, Memes.ContentStr, Memes.LinkV);
         for (int m = 0; m < Memes.MemeV.Len(); m++) {
           if (!Memes.MemeV[m].Len() < 1) {
             TmpQB.AddQuote(Memes.MemeV[m], CurrentDocId);
@@ -228,12 +228,12 @@ int main(int argc, char *argv[]) {
     if (Q.GetNumSources() >= MinMemeFreq &&
        (Q.GetNumSources() <= 20 || (Q.GetNumSources() <= 6 * Q.GetNumDomains(TmpDB) && Q.GetNumDomains(TmpDB) >= 2)) &&
        TStringUtil::IsRobustlyEnglish(QContentString)) {
-      TIntV Sources;
+      TVec<TUInt64> Sources;
       Q.GetSources(Sources);
       for (int k = 0; k < Sources.Len(); k++) {
         TDoc D;
         TmpDB.GetDoc(Sources[k], D);
-        TInt NewSourceId = DB.AddDoc(D);
+        TUInt64 NewSourceId = DB.AddDoc(D);
         QB.AddQuote(QContentString, NewSourceId);
       }
     } else {
