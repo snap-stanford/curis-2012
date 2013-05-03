@@ -110,10 +110,11 @@ void Peaks::GetFrequencyVector(TDocBase *DocBase, TVec<TUInt64>& Sources, TFreqT
     StartTime = PresentTimeI - (NumDays * NumSecondsInDay);
     
   } else {
-    // Start time at first doc
+    // Set start time at 12am of first doc
     TDoc StartDoc;
     DocBase->GetDoc(SourcesSorted[0], StartDoc);
     StartTime = TUInt(StartDoc.GetDate().GetAbsSecs());
+    StartTime = TUInt(uint(StartTime / NumSecondsInDay) * NumSecondsInDay);
   }
 
   //fprintf(stderr, "4444444444444\n");

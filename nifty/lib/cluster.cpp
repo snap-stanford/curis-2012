@@ -11,7 +11,7 @@ TCluster::TCluster() {
   DeathDate = BirthDate;
 }
 
-TCluster::TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB, TSecTm BirthDate) {
+TCluster::TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB, TDocBase *DB, TSecTm BirthDate) {
   // TODO: Check that URLs are not repeated
   this->RepresentativeQuoteIds = RepresentativeQuoteIds;
   TVec<TUInt64> UniqueSources;
@@ -22,9 +22,7 @@ TCluster::TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds
   this->BirthDate = BirthDate;
   this->DeathDate = BirthDate;
   this->Archived = true;
-
-  // TODO: Calculate MaxPeakDateFreq
-  
+  UpdateMaxPeak(QuoteIds, UniqueSources, QB, DB);
 
   /*this->RepresentativeQuoteIds = RepresentativeQuoteIds;
   this->NumQuotes = NumQuotes;
@@ -43,7 +41,6 @@ void TCluster::Save(TSOut& SOut) const {
   Archived.Save(SOut);
   DiscardState.Save(SOut);
   MaxPeakDateFreq.Save(SOut);
-  CurrPeakDateFreq.Save(SOut);
   DeathDate.Save(SOut);
 }
 
@@ -58,7 +55,6 @@ void TCluster::Load(TSIn& SIn) {
   Archived.Load(SIn);
   DiscardState.Load(SIn);
   MaxPeakDateFreq.Load(SIn);
-  CurrPeakDateFreq.Load(SIn);
   DeathDate.Load(SIn);
   // ./memeseed -start 2013-03-08 -window 2 -directory log -qbdb /lfs/1/tmp/chantat/nifty/QBDB/ -qbdbc /lfs/1/tmp/curis/QBDBC-new/
 }
@@ -151,31 +147,45 @@ void TCluster::SetId(TInt Id) {
   this->Id = Id;
 }
 
-void TCluster::AddQuote(TQuoteBase *QB, const TIntV &QuoteIds) {
+void TCluster::AddQuote(TQuoteBase *QB, TDocBase *DB, const TIntV &QuoteIds) {
   for (int i = 0; i < QuoteIds.Len(); i++) {
-    AddQuote(QB, QuoteIds[i]);
+    AddQuote(QB, DB, QuoteIds[i], false);
   }
+
+  TVec<TUInt64> UniqueSources;
+  GetUniqueSources(UniqueSources, QuoteIds, QB);
+  UpdateMaxPeak(this->QuoteIds, UniqueSources, QB, DB);
 }
 
-void TCluster::AddQuote(TQuoteBase *QB, TInt QuoteId) {
+/**
+ * UpdatePeak is true by default, and **must** always be true for the last
+ * quote added to the TCluster (in order for visualization to work properly).
+ */
+void TCluster::AddQuote(TQuoteBase *QB, TDocBase *DB, TInt QuoteId, bool UpdatePeak) {
   this->QuoteIds.Add(QuoteId);
 
   // Only count the unique sources for the new frequency of the cluster
   TVec<TUInt64> UniqueSources;
   GetUniqueSources(UniqueSources, QuoteIds, QB);
   NumQuotes = UniqueSources.Len();
+
+  if (UpdatePeak) {
+    UpdateMaxPeak(this->QuoteIds, UniqueSources, QB, DB);
+  }
 }
 
 void TCluster::SetRepresentativeQuoteIds(TIntV& QuoteIds) {
   this->RepresentativeQuoteIds = QuoteIds;
 }
 
-void TCluster::SetQuoteIds(TQuoteBase *QB, TIntV& NewQuoteIds) {
+void TCluster::SetQuoteIds(TQuoteBase *QB, TDocBase *DB, TIntV& NewQuoteIds) {
   this->QuoteIds = NewQuoteIds;
 
   TVec<TUInt64> UniqueSources;
   GetUniqueSources(UniqueSources, NewQuoteIds, QB);
   NumQuotes = UniqueSources.Len();
+
+  UpdateMaxPeak(NewQuoteIds, UniqueSources, QB, DB);
 }
 
 /*void TCluster::ReplaceQuote(TQuoteBase *QB, TInt OldQuoteId, TInt NewQuoteId) {
@@ -254,7 +264,7 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
 
 /// Calculates the number of unique sources among the quotes in a cluster,
 //  to get the frequency of the cluster
-void TCluster::GetUniqueSources(TVec<TUInt64>& UniqueSources, TIntV& QuoteIds, TQuoteBase *QB) {
+void TCluster::GetUniqueSources(TVec<TUInt64>& UniqueSources, const TIntV& QuoteIds, TQuoteBase *QB) {
   THashSet<TUInt64> MergedSources;
   for (int i = 0; i < QuoteIds.Len(); i++) {
     TQuote Q;
@@ -265,6 +275,22 @@ void TCluster::GetUniqueSources(TVec<TUInt64>& UniqueSources, TIntV& QuoteIds, T
   }
 
   MergedSources.GetKeyV(UniqueSources);
+}
+
+void TCluster::UpdateMaxPeak(TIntV QuoteIds, TVec<TUInt64> UniqueSources, TQuoteBase *QB, TDocBase *DB) {
+  // Calculate MaxPeakDateFreq
+  if (UniqueSources.Len() > 0) {
+    TFreqTripleV TempFreqV;
+    TInt NoSlidingWindow = 1;
+    Peaks::GetFrequencyVector(DB, UniqueSources, TempFreqV, Peaks::NumHoursInDay, NoSlidingWindow, TSecTm(0));
+    MaxPeakDateFreq = TDateFreq(TempFreqV[0].Val3, TFlt::Round(TempFreqV[0].Val2));
+    for (int i = 0; i < TempFreqV.Len(); ++i) {
+      if (TFlt::Round(TempFreqV[i].Val2) > MaxPeakDateFreq.Val2) {
+        MaxPeakDateFreq.Val1 = TempFreqV[i].Val3;
+        MaxPeakDateFreq.Val2 = TempFreqV[i].Val2;
+      }
+    }
+  }
 }
 
 TClusterBase::TClusterBase() {
@@ -433,12 +459,14 @@ TInt TClusterBase::AddCluster(TCluster& Cluster) {
   return CurCounter;
 }
 
-bool TClusterBase::AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterId) {
+bool TClusterBase::AddQuoteToCluster(TQuoteBase *QB, TDocBase *DB, const TIntV& QuoteIds, TInt ClusterId) {
   TCluster Cluster;
   if (IdToTCluster.IsKeyGetDat(ClusterId, Cluster)) {
-    Cluster.AddQuote(QB, QuoteId);
+    Cluster.AddQuote(QB, DB, QuoteIds);
     IdToTCluster.AddDat(ClusterId, Cluster);
-    QuoteIdToClusterId.AddDat(QuoteId, ClusterId);
+    for (int i = 0; i < QuoteIds.Len();++i) {
+      QuoteIdToClusterId.AddDat(QuoteIds[i], ClusterId);
+    }
     return true;
   } else {
     return false;
@@ -543,7 +571,7 @@ bool TClusterBase::IsQuoteInArchivedCluster(TInt& QuoteId) {
 
 /// Merges the second cluster into the first. For the quotes in the second cluster, updates
 //  the quote id to cluster id mappings to point to the first cluster
-void TClusterBase::MergeCluster2Into1(TInt Id1, TInt Id2, TQuoteBase *QB, bool KeepOneRepId) {
+void TClusterBase::MergeCluster2Into1(TInt Id1, TInt Id2, TQuoteBase *QB, TDocBase *DB, bool KeepOneRepId) {
   // Add the quote ids of the second cluster to the first
   TCluster Cluster1, Cluster2;
   if (!IdToTCluster.IsKeyGetDat(Id1, Cluster1) || !IdToTCluster.IsKeyGetDat(Id2, Cluster2)) {
@@ -554,9 +582,7 @@ void TClusterBase::MergeCluster2Into1(TInt Id1, TInt Id2, TQuoteBase *QB, bool K
   Cluster2.GetQuoteIds(Cluster2QuoteIds);
 
   // Update the mappings in ClusterBase for the new quote ids
-  for (int i = 0; i < Cluster2QuoteIds.Len(); i++) {
-    AddQuoteToCluster(QB, Cluster2QuoteIds[i], Id1);
-  }
+  AddQuoteToCluster(QB, DB, Cluster2QuoteIds, Id1);
 
   // Get the new cluster 1, with the quotes from cluster 2 added
   IdToTCluster.IsKeyGetDat(Id1, Cluster1);

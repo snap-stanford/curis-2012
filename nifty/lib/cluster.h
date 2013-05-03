@@ -17,13 +17,12 @@ private:
   TBool Archived;
   TInt DiscardState; // 0 = clean, 1 = peaks, 2 = variants
   TDateFreq MaxPeakDateFreq;
-  TDateFreq CurrPeakDateFreq;
 
 public:
   TSecTm DeathDate;
   TCluster();
-  TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB, TSecTm BirthDate);
-  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), PeakTimesV(SIn), FreqV(SIn), BirthDate(SIn) , Archived(SIn), DiscardState(SIn), MaxPeakDateFreq(SIn), CurrPeakDateFreq(SIn), DeathDate(SIn) { }
+  TCluster(TIntV& RepresentativeQuoteIds, TInt NumQuotes, TIntV QuoteIds, TQuoteBase *QB, TDocBase *DB, TSecTm BirthDate);
+  TCluster(TSIn& SIn) : RepresentativeQuoteIds(SIn), NumQuotes(SIn), QuoteIds(SIn), Id(SIn), PeakTimesV(SIn), FreqV(SIn), BirthDate(SIn) , Archived(SIn), DiscardState(SIn), MaxPeakDateFreq(SIn), DeathDate(SIn) { }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   void Archive();
@@ -43,11 +42,11 @@ public:
   void GetRepresentativeQuoteURL(TQuoteBase *QB, TDocBase *DB, TStr& RepURL) const;
   void SetId(TInt Id);
 
-  void AddQuote(TQuoteBase *QB, const TIntV &QuoteIds);
-  void AddQuote(TQuoteBase *QB, TInt QuoteId);
+  void AddQuote(TQuoteBase *QB, TDocBase *DB, const TIntV &QuoteIds);
+  void AddQuote(TQuoteBase *QB, TDocBase *DB, TInt QuoteId, bool UpdatePeak = true);
   void SetRepresentativeQuoteIds(TIntV& QuoteIds);
 
-  void SetQuoteIds(TQuoteBase *QB, TIntV& NewQuoteIds);
+  void SetQuoteIds(TQuoteBase *QB, TDocBase *DB, TIntV& NewQuoteIds);
   //void ReplaceQuote(TQuoteBase *QB, TInt OldQuoteId, TInt NewQuoteId);
 
   //void GetTopPeak(TDocBase *DocBase, TQuoteBase *QuoteBase, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, bool reset = false);
@@ -55,11 +54,14 @@ public:
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TSecTm PresentTime);
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
 
-  static void GetUniqueSources(TVec<TUInt64>& UniqueSources, TIntV& QuoteIds, TQuoteBase *QB);
+  static void GetUniqueSources(TVec<TUInt64>& UniqueSources, const TIntV& QuoteIds, TQuoteBase *QB);
 
   //void GetFreqTimes(TFreqTripleV& FreqV, bool reset = false);
   //void GetPeakTimes(TFreqTripleV& PeakTimesV, bool reset = false);
   //void GetPeakAndFreqTimes(TFreqTripleV& PeakTimesV, TFreqTripleV FreqV, bool reset = false);
+
+private:
+  void UpdateMaxPeak(TIntV QuoteIds, TVec<TUInt64> UniqueSources, TQuoteBase *QB, TDocBase *DB);
 };
 
 class TClusterBase {
@@ -77,7 +79,7 @@ public:
   void Load(TSIn& SIn);
   TInt AddCluster(TCluster& Cluster, const TClusterBase *OldCB, TSecTm& PresentTime);
   TInt AddCluster(TCluster& Cluster);
-  bool AddQuoteToCluster(TQuoteBase *QB, TInt QuoteId, TInt ClusterId);
+  bool AddQuoteToCluster(TQuoteBase *QB, TDocBase *DB, const TIntV& QuoteIds, TInt ClusterId);
   //bool ReplaceQuoteInCluster(TQuoteBase *QB, TInt OldQuoteId, TInt NewQuoteId, TInt ClusterId);
   void RemoveCluster(TInt ClusterId);
 
@@ -88,7 +90,7 @@ public:
   void GetTopClusterIdsByFreq(TIntV &TopClusterIds);
   void Clr();
   int Len();
-  void MergeCluster2Into1(TInt Id1, TInt Id2, TQuoteBase *QB, bool KeepOneRepId);
+  void MergeCluster2Into1(TInt Id1, TInt Id2, TQuoteBase *QB, TDocBase *DB, bool KeepOneRepId);
   TInt GetCounter();
   TStr ContainsEmptyClusters();
   bool IsQuoteInArchivedCluster(TInt& QuoteId);

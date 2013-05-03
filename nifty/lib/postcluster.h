@@ -21,9 +21,9 @@ public:
   static const int QuoteThreshold;
 
   static void GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm& PresentTime, PNGraph& QGraph, bool RemoveClusters = true);
-  static void MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TIntV& TopClusters, TClusterBase *CB);
-  static void MergeClustersBasedOnSubstrings(TQuoteBase *QB, TIntV& TopClusters, TClusterBase *CB);
-  static void MergeClustersWithCommonSources(TQuoteBase* QB, TIntV& TopClusters, TClusterBase *CB);
+  static void MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TDocBase *DB, TIntV& TopClusters, TClusterBase *CB);
+  static void MergeClustersBasedOnSubstrings(TQuoteBase *QB, TDocBase *DB, TIntV& TopClusters, TClusterBase *CB);
+  static void MergeClustersWithCommonSources(TQuoteBase* QB, TDocBase *DB, TIntV& TopClusters, TClusterBase *CB);
   static void FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV &TopClusters, TSecTm& PresentTime);
   static void FilterAndCacheClusterSize(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV& TopClusters, TSecTm& PresentTime);
   static void RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, LogOutput& Log, TSecTm& PresentTime, PNGraph& QGraph);
