@@ -41,6 +41,7 @@ public:
   TFlt GetPopularity(TQuoteBase *QuoteBase, TDocBase *DocBase, TSecTm CurrentTime);
   void GetRepresentativeQuoteURL(TQuoteBase *QB, TDocBase *DB, TStr& RepURL) const;
   void SetId(TInt Id);
+  void GetMaxPeakInfo(TDateFreq& MaxPeakDateFreq);
 
   void AddQuote(TQuoteBase *QB, TDocBase *DB, const TIntV &QuoteIds);
   void AddQuote(TQuoteBase *QB, TDocBase *DB, TInt QuoteId, bool UpdatePeak = true);

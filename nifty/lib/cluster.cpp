@@ -147,6 +147,10 @@ void TCluster::SetId(TInt Id) {
   this->Id = Id;
 }
 
+void TCluster::GetMaxPeakInfo(TDateFreq& MaxPeakDateFreq) {
+  MaxPeakDateFreq = this->MaxPeakDateFreq;
+}
+
 void TCluster::AddQuote(TQuoteBase *QB, TDocBase *DB, const TIntV &QuoteIds) {
   for (int i = 0; i < QuoteIds.Len(); i++) {
     AddQuote(QB, DB, QuoteIds[i], false);
