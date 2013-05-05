@@ -320,7 +320,9 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
     TQuoteBase QBCumulative;
     TDocBase DBCumulative;
     TClusterBase CBCumulative;
-
+    TIntSet MaxPeakClusterIds;  // Store clusters that peaked during this time, with freq >= FreqCutoff
+    TInt FreqCutoff = 350;
+ 
     int i;
     for (i = 0; CurrentDate < EndPeriodDate && CurrentDate < EndDate; ++i) {
       // Load Cumulative QBDBCB
@@ -330,6 +332,24 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
       PNGraph QGraph;
       fprintf(stderr, "Loading cumulative QBDBCB from %s from file...\n", CurrentDate.GetDtYmdStr().CStr());
       TDataLoader::LoadCumulative(QBDBCDirectory, CurrentDate.GetDtYmdStr(), QB, DB, CB, QGraph);
+
+      // Add clusters that peaked on this day, with freq > 350, to MaxPeakClusterIds
+      TIntV ClusterIds;
+      CB.GetAllClusterIds(ClusterIds);
+      for (int i = 0; i < ClusterIds.Len(); i++) {
+        TCluster C;
+        CB.GetCluster(ClusterIds[i], C);
+        if (C.GetNumQuotes() >= FreqCutoff) {
+          TDateFreq DF;
+          C.GetMaxPeakInfo(DF);
+          TSecTm DayStart = TSecTm(uint(CurrentDate.GetAbsSecs() / Peaks::NumSecondsInDay) * Peaks::NumSecondsInDay);
+          TSecTm DayEnd = TSecTm(DayStart.GetAbsSecs() + Peaks::NumSecondsInDay - 1);
+          if (DF.Val1 >= DayStart && DF.Val1 <= DayEnd) {
+            MaxPeakClusterIds.AddKey(ClusterIds[i]);
+          }
+        }
+      }
+
       fprintf(stderr, "Done loading cumulative QBDBCB!\n");
 
       /*if (TopClusterSelection == "daily") {
@@ -358,6 +378,32 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
       CurrentDate.AddDays(1);
     }
 
+    // Use final CBCumulative to make hashmap from peak_date -> (cluster_id, freq_for_peak_date)
+    THash<TSecTm, TVec<TIntPr> > MaxPeakClustersPerDate;
+    for (TIntSet::TIter ClusterId = MaxPeakClusterIds.BegI(); ClusterId < MaxPeakClusterIds.EndI(); ClusterId++) {
+      TCluster C;
+      CBCumulative.GetCluster(*ClusterId, C);
+      TDateFreq DF;
+      C.GetMaxPeakInfo(DF);
+      TVec<TIntPr> MaxPeakClusters;
+      MaxPeakClustersPerDate.IsKeyGetDat(DF.Val1, MaxPeakClusters);
+      MaxPeakClusters.Add(TIntPr(*ClusterId, DF.Val2));
+      MaxPeakClustersPerDate.AddDat(DF.Val1, MaxPeakClusters);
+    }
+
+    // For each day, add clusters with largest X max peaks to a set
+    TInt NumMaxPeakPerDay = 5;
+    if (Type == "month") NumMaxPeakPerDay = 3;
+    if (Type == "3month") NumMaxPeakPerDay = 2;
+    TIntSet ClustersToPrintSet;
+    for (THash<TSecTm, TVec<TIntPr> >::TIter CurI = MaxPeakClustersPerDate.BegI(); CurI < MaxPeakClustersPerDate.EndI(); CurI++) {
+      TVec<TIntPr> MaxPeakClusters = CurI.GetDat();
+      MaxPeakClusters.SortCmp(TCmpPairByVal2<TInt, TInt>(false));  // Sort in descending order, by the frequency
+      for (int i = 0; i < NumMaxPeakPerDay && i < MaxPeakClusters.Len(); i++) {
+        ClustersToPrintSet.AddKey(MaxPeakClusters[i].Val1);
+      }
+    }
+
     //if (TopClusterSelection == "cumulative") {
 
     TIntV TopFilteredClusters;
@@ -367,22 +413,22 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
     PostCluster::FilterAndCacheClusterSize(&DBCumulative, &QBCumulative, &CBCumulative, TmpLog, TopFilteredClusters, CurrentDate);
     PostCluster::FilterAndCacheClusterPeaks(&DBCumulative, &QBCumulative, &CBCumulative, TmpLog, TopFilteredClusters, CurrentDate);
 
-    // Limit number of clusters we are printing...
+    // Fill the rest of the X quotes for the time period with most frequent quotes during this time period
     TIntV TopFilteredClustersLimit;
     TInt NumToLimit = 250;
     if (Type == "month") NumToLimit = 500;
     else if (Type == "3month") NumToLimit = 1000;
-    for (int i = 0; i < NumToLimit && i < TopFilteredClusters.Len(); i++) {
-      TopFilteredClustersLimit.Add(TopFilteredClusters[i]);
+    for (int i = 0; ClustersToPrintSet.Len() < NumToLimit && i < TopFilteredClusters.Len(); i++) {
+      ClustersToPrintSet.AddKey(TopFilteredClusters[i]);
     }
     TopFilteredClusters.Clr();
-    TopFilteredClusters = TopFilteredClustersLimit;
+    ClustersToPrintSet.GetKeyV(TopFilteredClusters);
 
-    // Filter out clusters in TopFilteredClusters that have duplicate quote content (remove the less popular duplicate cluster(s))
+    // Filter out clusters that have duplicate quote content (remove the less popular duplicate cluster(s))
     TIntV TopFilteredClustersWoDups;
     FilterDuplicateClusters(&QBCumulative, &CBCumulative, TopFilteredClusters, TopFilteredClustersWoDups);
 
-    for (int j = 0; j < 50 && j < TopFilteredClustersWoDups.Len(); j++) {
+    for (int j = 0; j < 100 && j < TopFilteredClustersWoDups.Len(); j++) {
       ClustersToPrint.Add(TopFilteredClustersWoDups[j]);
     }
 
@@ -402,9 +448,9 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
     for (int j = 0; j < ClustersToPrint.Len(); j++) {
       // The last parameter is ZeroTime so that the Peaks::GetFrequencyVector starts the graph of the cluster at the first source,
       // rather than X days before the TSecTm parameter given
-	  TCluster C;
-	  CBCumulative.GetCluster(ClustersToPrint[j], C);
-	  TQuoteBase QB;
+      TCluster C;
+      CBCumulative.GetCluster(ClustersToPrint[j], C);
+      TQuoteBase QB;
       TDocBase DB;
       TClusterBase CB;
       PNGraph QGraph;
