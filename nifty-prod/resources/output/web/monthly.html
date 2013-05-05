@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>NIFTY - Monthly Visualization</title>
+    <link rel="stylesheet" media="all" type="text/css" href="webresources/css/bootstrap.css" />
+    <link rel="stylesheet" media="all" type="text/css" href="webresources/css/quotes.css" />
+    <!--[if lte IE 7]>
+      <link rel="stylesheet" media="all" type="text/css" href="css/ie7.css" />
+    <![endif]-->
+    <meta charset='utf-8' />
+  </head>
+  
+  <body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+		<div class="navbar-inner">
+		<div class="container">
+		  <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+		    <span class="icon-bar"></span>
+		    <span class="icon-bar"></span>
+		    <span class="icon-bar"></span>
+		  </a>
+		  <a class="brand" href="#">NIFTY</a>
+		  <div class="nav-collapse collapse">
+		    <ul class="nav">
+		      <li><a class="chart-link" href="daily.html">Daily</a></li>
+		      <li><a class="chart-link" href="weekly.html">Weekly</a></li>
+		      <li class="active"><a href="#" onclick="return false">Monthly</a></li>
+		      <li><a class="chart-link" href="3month.html">3 Months</a></li>
+		      <li><a class="chart-link" href="about.html">About</a></li>
+		    </ul>
+		  </div><!--/.nav-collapse -->
+		</div>
+		</div>
+		</div>
+    
+    <div class="page-header">
+    <center>
+      <h1>
+        <a id="prev-month" href="#">&laquo;</a> &middot; 
+        Top Clusters for <span class="month"></span> &middot; 
+        <a id="next-month" href="#">&raquo;</a>
+      </h1>
+      Click on the top row to sort clusters by different attributes!
+    </center>
+    </div>
+    
+    <div class="error">
+    <center>
+	    <div id="graph-error-log"></div>
+	    <div id="table-error-log"></div>
+    </center>
+    </div>
+    
+    <center><div id="container" class="main">
+    <div class="graph">
+      <button class="all btn" onclick="PrintData(0, graphData.length, true)">show all clusters</button>
+      <button class="all btn" onclick="PrintData(0, 30, true)">show top 30</button>
+      <button class="all btn" onclick="PrintData(0, 10, true)">show top 10</button>
+      <div id='cluster-graph' style="width:1000px;height:400px;"></div><br />
+    </div>
+    <table id="cluster-table" border="1" class="table table-condensed table-striped"> </table>
+    </div></center>
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+  <script src="webresources/js/jquery.flot.js" charset="utf-8"></script>
+  <script src="webresources/js/jquery.flot.axislabels.js" charset="utf-8"></script>
+  <script src="webresources/js/jquery.flot.stack.js" charset="utf-8"></script>
+  <script src="webresources/js/nifty.js" charset="utf-8"></script>
+  <script src="webresources/js/monthly.js" charset="utf-8"></script>
+</body>
+</html>
