@@ -32,8 +32,8 @@ public:
   virtual void KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase *DB);
   virtual void KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase *DB, TFlt (*Fn)(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator),
                                          TRnd *RandomGenerator = NULL);
-  void IncrementalEdgeDeletion(PNGraph& G, TQuoteBase *QB, TDocBase *DB, bool ConstantEdgeScore = false);
-  void IncrementalEdgeDeletion(PNGraph& G, TQuoteBase *QB, TDocBase *DB,
+  void IncrementalEdgeDeletion(PNGraph& G, TQuoteBase *QB, TDocBase *DB, TClusterBase *OldCB, bool ConstantEdgeScore = false);
+  void IncrementalEdgeDeletion(PNGraph& G, TQuoteBase *QB, TDocBase *DB, TClusterBase *OldCB,
                                TFlt (*Fn)(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator), bool ConstantEdgeScore = false,
                                bool RandomEdgeScore = false);
   static void GetAllWCCs(const PNGraph& G, TVec<TIntV>& Clusters);
