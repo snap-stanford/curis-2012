@@ -259,6 +259,7 @@ void Clustering::IncrementalEdgeDeletion(PNGraph& G, TQuoteBase *QB, TDocBase *D
 
 void Clustering::IncrementalEdgeDeletion(PNGraph& G, TQuoteBase *QB, TDocBase *DB,
                                          TFlt (*Fn)(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator), bool ConstantEdgeScore, bool RandomEdgeScore) {
+  visit.Clr();
   TNGraph::TNodeI EndNode = G->EndNI();
   for (TNGraph::TNodeI Node = G->BegNI(); Node < EndNode; Node++) {
     GetCluster(Node.GetId(), G, QB, DB, Fn, ConstantEdgeScore, RandomEdgeScore);
