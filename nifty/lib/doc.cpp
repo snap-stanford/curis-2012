@@ -4,7 +4,7 @@
 TDoc::TDoc() {
 }
 
-TDoc::TDoc(TUInt64 Id, const TChA &Url, TSecTm Date, const TChA &Content, const TVec<TChA> &Links) {
+TDoc::TDoc(TUInt Id, const TChA &Url, TSecTm Date, const TChA &Content, const TVec<TChA> &Links) {
   // TODO: Check that URLs are not repeated
   this->Url = TStr(Url);
   this->Date = Date;
@@ -32,7 +32,7 @@ void TDoc::Load(TSIn& SIn) {
   Links.Load(SIn);
 }
 
-TUInt64 TDoc::GetId() const {
+TUInt TDoc::GetId() const {
   return Id;
 }
 
@@ -56,7 +56,7 @@ void TDoc::GetLinks(TStrV &RefL) {
   RefL = Links;
 }
 
-void TDoc::SetId(TUInt64 Id) {
+void TDoc::SetId(TUInt Id) {
   this->Id = Id;
 }
 
@@ -80,11 +80,11 @@ TDocBase::TDocBase() {
   NextId = 1;
 }
 
-TDocBase::TDocBase(TUInt64 OldCounter) {
+TDocBase::TDocBase(TUInt OldCounter) {
   NextId = OldCounter;
 }
 
-TUInt64 TDocBase::GetCounter() {
+TUInt TDocBase::GetCounter() {
   return NextId;
 }
 
@@ -104,7 +104,7 @@ int TDocBase::Len() const {
   return IdToDoc.Len();
 }
 
-TUInt64 TDocBase::GetDocId(const TStr &Url) const {
+TUInt TDocBase::GetDocId(const TStr &Url) const {
   if (DocUrlToId.IsKey(Url)) {
     return DocUrlToId.GetDat(Url);
   } else {
@@ -112,7 +112,7 @@ TUInt64 TDocBase::GetDocId(const TStr &Url) const {
   }
 }
 
-bool TDocBase::GetDoc(TUInt64 Id, TDoc &RetDoc) const {
+bool TDocBase::GetDoc(TUInt Id, TDoc &RetDoc) const {
   if (IdToDoc.IsKey(Id)) {
     RetDoc = IdToDoc.GetDat(Id);
     return true;
@@ -122,9 +122,10 @@ bool TDocBase::GetDoc(TUInt64 Id, TDoc &RetDoc) const {
 }
 
 /// Forms a new TDoc from the document information and adds it to the doc base.
-TUInt64 TDocBase::AddDoc(const TChA &Url, TSecTm Date, const TChA &Content, const TVec<TChA> &Links) {
+TUInt TDocBase::AddDoc(const TChA &Url, TSecTm Date, const TChA &Content, const TVec<TChA> &Links) {
   if (!DocUrlToId.IsKey(TStr(Url))) {
-    TUInt64 DocId = NextId++;
+    TUInt DocId = NextId;
+    NextId = NextId + 1;
     TDoc NewDoc = TDoc(DocId, Url, Date, Content, Links);
     IdToDoc.AddDat(DocId, NewDoc);
     DocUrlToId.AddDat(TStr(Url), DocId);
@@ -134,11 +135,12 @@ TUInt64 TDocBase::AddDoc(const TChA &Url, TSecTm Date, const TChA &Content, cons
   }
 }
 
-TUInt64 TDocBase::AddDoc(TDoc &Doc) {
+TUInt TDocBase::AddDoc(TDoc &Doc) {
   TStr DocUrl;
   Doc.GetUrl(DocUrl);
   if (!DocUrlToId.IsKey(DocUrl)) {
-    TUInt64 DocId = NextId++;
+    TUInt DocId = NextId;
+    NextId = NextId + 1;
     Doc.SetId(DocId);
     IdToDoc.AddDat(DocId, Doc);
     DocUrlToId.AddDat(DocUrl, DocId);
@@ -148,7 +150,7 @@ TUInt64 TDocBase::AddDoc(TDoc &Doc) {
   }
 }
 
-void TDocBase::RemoveDoc(TUInt64 DocId) {
+void TDocBase::RemoveDoc(TUInt DocId) {
   IAssert(IdToDoc.IsKey(DocId));
   TDoc Doc;
   GetDoc(DocId, Doc);
@@ -160,20 +162,20 @@ void TDocBase::RemoveDoc(TUInt64 DocId) {
   IAssert(IdToDoc.Len() == DocUrlToId.Len());
 }
 
-void TDocBase::GetAllDocIds(TVec<TUInt64> &DocIds) const {
+void TDocBase::GetAllDocIds(TVec<TUInt> &DocIds) const {
   IdToDoc.GetKeyV(DocIds);
 }
 
 void TDocBase::RemoveNullDocs(TQuoteBase *QB) {
   Err("QB Size: %d DB Size: %d\n", QB->Len(), Len());
-  THashSet<TUInt64> ValidDocs;
+  THashSet<TUInt> ValidDocs;
 
   TIntV QuoteIds;
   QB->GetAllQuoteIds(QuoteIds);
   for (int i = 0; i < QuoteIds.Len(); i++) {
     TQuote Q;
     QB->GetQuote(QuoteIds[i], Q);
-    TVec<TUInt64> Sources;
+    TVec<TUInt> Sources;
     Q.GetSources(Sources);
     for (int j = 0; j < Sources.Len(); j++) {
       ValidDocs.AddKey(Sources[j]);
@@ -181,7 +183,7 @@ void TDocBase::RemoveNullDocs(TQuoteBase *QB) {
   }
 
   int count = 0;
-  TVec<TUInt64> DocIds;
+  TVec<TUInt> DocIds;
   GetAllDocIds(DocIds);
   for (int i = 0; i < DocIds.Len(); i++) {
     if(!ValidDocs.IsKey(DocIds[i])) {

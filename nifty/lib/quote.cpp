@@ -97,21 +97,21 @@ TInt TQuote::GetNumSources() {
   return Sources.Len();
 }
 
-void TQuote::AddSource(TUInt64 DocId) {
+void TQuote::AddSource(TUInt DocId) {
   Sources.Add(DocId);
 }
 
-void TQuote::GetSources(TVec<TUInt64> &RefS) {
+void TQuote::GetSources(TVec<TUInt> &RefS) {
   RefS = Sources;
 }
 
-void TQuote::RemoveSources(TVec<TUInt64> &ToDelete) {
-  THashSet<TUInt64> DeleteSet;
+void TQuote::RemoveSources(TVec<TUInt> &ToDelete) {
+  THashSet<TUInt> DeleteSet;
   for (int i = 0; i < ToDelete.Len(); i++) {
     DeleteSet.AddKey(ToDelete[i]);
   }
 
-  TVec<TUInt64> NewSources;
+  TVec<TUInt> NewSources;
   for (int i = 0; i < Sources.Len(); i++) {
     if (!DeleteSet.IsKey(Sources[i])) {
       NewSources.Add(Sources[i]);
@@ -121,7 +121,7 @@ void TQuote::RemoveSources(TVec<TUInt64> &ToDelete) {
 }
 
 void TQuote::RemoveDuplicateSources() {
-  TVec<TUInt64> UniqueSources;
+  TVec<TUInt> UniqueSources;
   Sources.Sort();
   for (int i = 0; i < Sources.Len(); i++) {
     if (i == 0 || Sources[i] != Sources[i-1]) {
@@ -179,7 +179,7 @@ void TQuote::GraphFreqOverTime(TDocBase *DocBase, TStr Filename, TInt BucketSize
 
 void TQuote::GetRepresentativeUrl(TDocBase *DocBase, TStr& RepUrl) {
   // Sort the sources by time (ascending)
-  TVec<TUInt64> SourcesSorted = Sources;
+  TVec<TUInt> SourcesSorted = Sources;
   SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
 
   // Pick the first url with the domain in the whitelist
@@ -256,7 +256,7 @@ TInt TQuoteBase::AddQuote(const TStr &ContentString) {
   }
 }
 
-TInt TQuoteBase::AddQuote(const TStr &ContentString, TUInt64 DocId) {
+TInt TQuoteBase::AddQuote(const TStr &ContentString, TUInt DocId) {
   //TQuote NewQuote = AddQuote(ContentString);
   //NewQuote.AddSource(SourceDoc);
   //return NewQuote;
@@ -279,7 +279,7 @@ TInt TQuoteBase::AddQuote(const TStr &ContentString, TUInt64 DocId) {
   }
 }
 
-void TQuoteBase::AddQuoteMerging(TInt QuoteId, const TStr& ContentString, TUInt64 DocId) {
+void TQuoteBase::AddQuoteMerging(TInt QuoteId, const TStr& ContentString, TUInt DocId) {
   TStrV ContentVectorString;
   TStringUtil::ParseStringIntoWords(ContentString, ContentVectorString);
 

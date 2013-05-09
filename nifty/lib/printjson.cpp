@@ -37,7 +37,7 @@ void TPrintJson::PrintClusterTableJSON(TQuoteBase *QB, TDocBase *DB, TClusterBas
     Quote.Add(JSONEscape(CRepQuote));
 
     TIntV CQuoteIds;
-	TVec<TUInt64> CUniqueSources;
+	TVec<TUInt> CUniqueSources;
     C.GetQuoteIds(CQuoteIds);
     TCluster::GetUniqueSources(CUniqueSources, CQuoteIds, QB);
     Frequency.Add(TInt(CUniqueSources.Len()).GetStr());
@@ -172,7 +172,7 @@ void TPrintJson::PrintClustersGraphJson(TQuoteBase *QB, TDocBase *DB, TClusterBa
     CB->GetCluster(ClustersToPrint[i], C);
     TIntV CQuoteIds;
     C.GetQuoteIds(CQuoteIds);
-    TVec<TUInt64> CSources;
+    TVec<TUInt> CSources;
     TCluster::GetUniqueSources(CSources, CQuoteIds, QB);
     TFreqTripleV CFreqV;
     uint StartDays = StartDate.GetInUnits(tmuDay);
@@ -284,7 +284,7 @@ void TPrintJson::PrintClustersTableJson(TQuoteBase *QB, TDocBase *DB, TClusterBa
     RepQuotes.Add(CRepQuote);
 
     TIntV CQuoteIds;
-	TVec<TUInt64> CUniqueSources;
+	TVec<TUInt> CUniqueSources;
     C.GetQuoteIds(CQuoteIds);
     TCluster::GetUniqueSources(CUniqueSources, CQuoteIds, QB);
     Frequencies.Add(CUniqueSources.Len());
@@ -323,7 +323,7 @@ void TPrintJson::PrintClustersDataJson(TQuoteBase *QB, TDocBase *DB, TClusterBas
     C.GetRepresentativeQuoteString(CRepQuote, QB);
 
     TIntV CQuoteIds;
-	TVec<TUInt64> CUniqueSources;
+	TVec<TUInt> CUniqueSources;
     C.GetQuoteIds(CQuoteIds);
     TCluster::GetUniqueSources(CUniqueSources, CQuoteIds, QB);
 

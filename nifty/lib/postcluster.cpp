@@ -157,7 +157,7 @@ void PostCluster::MergeClustersBasedOnSubstrings(TQuoteBase *QB, TDocBase *DB, T
 }
 
 // typical walkthrough function as covered in CS276.
-double PostCluster::ComputeClusterSourceOverlap(TVec<TUInt64>& Larger, TVec<TUInt64>& Smaller) {
+double PostCluster::ComputeClusterSourceOverlap(TVec<TUInt>& Larger, TVec<TUInt>& Smaller) {
   int Li = 0;
   int Si = 0;
   int count = 0;
@@ -185,7 +185,7 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TDocBase *DB, T
     CB->GetCluster(TopClusters[i], Ci);
     TIntV QuoteIds;
     Ci.GetQuoteIds(QuoteIds);
-    TVec<TUInt64> UniqueSources;
+    TVec<TUInt> UniqueSources;
     TCluster::GetUniqueSources(UniqueSources, QuoteIds, QB);
     UniqueSources.Sort(true);
     for (int j = i + 1; j < NumClusters; j++) {
@@ -194,7 +194,7 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TDocBase *DB, T
       CB->GetCluster(TopClusters[j], Cj);
       TIntV MoreQuoteIds;
       Cj.GetQuoteIds(MoreQuoteIds);
-      TVec<TUInt64> MoreUniqueSources;
+      TVec<TUInt> MoreUniqueSources;
       TCluster::GetUniqueSources(MoreUniqueSources, MoreQuoteIds, QB);
       MoreUniqueSources.Sort(true);
       double Overlap;
@@ -352,7 +352,7 @@ void PostCluster::RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *
     CB->GetCluster(AllClusterIds[i], C);
     TIntV ClusterQuoteIds;
     C.GetQuoteIds(ClusterQuoteIds);
-    TVec<TUInt64> AllSources;
+    TVec<TUInt> AllSources;
     TCluster::GetUniqueSources(AllSources, ClusterQuoteIds, QB);
     TFreqTripleV PeakV, FreqV;
     C.GetPeaks(DB, QB, PeakV, FreqV, PEAK_BUCKET, PEAK_WINDOW, NextDay);

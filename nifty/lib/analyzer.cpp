@@ -136,7 +136,7 @@ TStr DQuote::GetQuoteString(TDocBase *DB, TQuote& Quote, TSecTm &PresentTime) {
   Quote.GetRepresentativeUrl(DB, RepURL);
 
   TFreqTripleV FreqV, PeakV;
-  TVec<TUInt64> Sources;
+  TVec<TUInt> Sources;
   Quote.GetSources(Sources);
   Peaks::GetPeaks(DB, Sources, PeakV, FreqV, PEAK_BUCKET, PEAK_WINDOW, PresentTime);
   TSecTm First, Last, Peak;
@@ -150,7 +150,7 @@ TStr DQuote::GetQuoteString(TDocBase *DB, TQuote& Quote, TSecTm &PresentTime) {
 }
 
 void DQuote::GetQuoteSources(TDocBase *DB, TQuote& Quote, TStrV& SourceStrings) {
-  TVec<TUInt64> Sources;
+  TVec<TUInt> Sources;
   Quote.GetSources(Sources);
 
   for (int i = 0; i < Sources.Len(); i++) {

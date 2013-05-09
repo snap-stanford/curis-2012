@@ -12,7 +12,7 @@ do
     monthstr=$(printf "%02d" $month)
   	daystr=$(printf "%02d" $day)
   	./memefilter -date ${yearstr}-${monthstr}-${daystr} -qbdb /lfs/1/tmp/curis/QBDB/ -spinn3r /lfs/1/tmp/curis/spinn3r/ &
-  	[[ $((day%10)) -eq 0 ]] && wait
+  	[[ $((day%5)) -eq 0 ]] && wait
   done
   wait
 done

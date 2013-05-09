@@ -46,7 +46,7 @@ void TPrintClusterJson::UpdateDataForJsonPrinting(TQuoteBase *QB, TDocBase *DB, 
 
   TIntV QuoteIds;
   MostRecentC.GetQuoteIds(QuoteIds);
-  TVec<TUInt64> Sources;
+  TVec<TUInt> Sources;
   TCluster::GetUniqueSources(Sources, QuoteIds, QB);
   TFreqTripleV FreqV;
   TVec<TSecTm> NewTimes;
@@ -86,7 +86,7 @@ void TPrintClusterJson::UpdateDataForJsonPrinting(TQuoteBase *QB, TDocBase *DB, 
     
     TIntV CQuoteIds;
     C.GetQuoteIds(CQuoteIds);
-    TVec<TUInt64> CSources;
+    TVec<TUInt> CSources;
     TCluster::GetUniqueSources(CSources, CQuoteIds, QB);
     TFreqTripleV CFreqV;
     Peaks::GetFrequencyVector(DB, CSources, CFreqV, 24, 1, CurrentDate, DaysPassed);

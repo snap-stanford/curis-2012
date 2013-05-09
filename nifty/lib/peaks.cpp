@@ -11,12 +11,12 @@ const uint Peaks::NumSecondsInWeek = 604800;
 const int Peaks::NumHoursInDay = 24;
 const int Peaks::NumDaysToGraph = 14;
 
-void Peaks::GetPeaks(TDocBase *DocBase, TVec<TUInt64>& Sources, TFreqTripleV& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime) {
+void Peaks::GetPeaks(TDocBase *DocBase, TVec<TUInt>& Sources, TFreqTripleV& PeakTimesV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime) {
   TFreqTripleV FreqV;
   Peaks::GetPeaks(DocBase, Sources, PeakTimesV, FreqV, BucketSize, SlidingWindowSize, PresentTime);
 }
 
-void Peaks::GetPeaks(TDocBase *DocBase, TVec<TUInt64>& Sources, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime) {
+void Peaks::GetPeaks(TDocBase *DocBase, TVec<TUInt>& Sources, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime) {
   if (Sources.Len() == 0) return;
 
   Peaks::GetFrequencyVector(DocBase, Sources, FreqV, BucketSize, SlidingWindowSize, PresentTime);
@@ -88,9 +88,9 @@ void Peaks::GetPeaksEquationFunction(TFreqTripleV& FreqV, TFltV& FreqFltV) {
  * BucketSize = number of hours that will be lumped together
  * SlidingWindowSize = number of hours that a sliding window will occur.
  */
-void Peaks::GetFrequencyVector(TDocBase *DocBase, TVec<TUInt64>& Sources, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, TInt NumDays) {
+void Peaks::GetFrequencyVector(TDocBase *DocBase, TVec<TUInt>& Sources, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, TInt NumDays) {
   // Sort the given document sources by time (ascending).
-  TVec<TUInt64> SourcesSorted(Sources);
+  TVec<TUInt> SourcesSorted(Sources);
   SourcesSorted.SortCmp(TCmpDocByDate(true, DocBase));
   //fprintf(stderr, "Getting frequency vector\n");
 

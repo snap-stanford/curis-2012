@@ -9,7 +9,7 @@ private:
   TStrV Content;
   TStrV ParsedContent;
   TStr ParsedContentString;
-  TVec<TUInt64> Sources;
+  TVec<TUInt> Sources;
 
   void Init();
 
@@ -20,9 +20,9 @@ public:
   TQuote(TSIn& SIn) : Id(SIn), Content(SIn), ParsedContent(SIn), ParsedContentString(SIn), Sources(SIn) { }
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
-  void AddSource(TUInt64 DocId);
-  void GetSources(TVec<TUInt64> &RefS);
-  void RemoveSources(TVec<TUInt64> &ToDelete);
+  void AddSource(TUInt DocId);
+  void GetSources(TVec<TUInt> &RefS);
+  void RemoveSources(TVec<TUInt> &ToDelete);
   void RemoveDuplicateSources();
   void GetContent(TStrV &Ref);
   void GetContentString(TStr &Ref);
@@ -64,8 +64,8 @@ public:
   void Save(TSOut& SOut) const;
   void Load(TSIn& SIn);
   TInt AddQuote(const TStr &ContentString);
-  TInt AddQuote(const TStr &ContentString, TUInt64 DocId);
-  void AddQuoteMerging(TInt QuoteId, const TStr& ContentString, TUInt64 DocId);
+  TInt AddQuote(const TStr &ContentString, TUInt DocId);
+  void AddQuoteMerging(TInt QuoteId, const TStr& ContentString, TUInt DocId);
   void RemoveQuote(TInt QuoteId);
   TInt GetQuoteId(const TStrV &Content) const;
   TInt GetNewQuoteId(const TStrV &Content);

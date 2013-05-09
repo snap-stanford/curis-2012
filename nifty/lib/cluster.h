@@ -55,14 +55,14 @@ public:
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TSecTm PresentTime);
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
 
-  static void GetUniqueSources(TVec<TUInt64>& UniqueSources, const TIntV& QuoteIds, TQuoteBase *QB);
+  static void GetUniqueSources(TVec<TUInt>& UniqueSources, const TIntV& QuoteIds, TQuoteBase *QB);
 
   //void GetFreqTimes(TFreqTripleV& FreqV, bool reset = false);
   //void GetPeakTimes(TFreqTripleV& PeakTimesV, bool reset = false);
   //void GetPeakAndFreqTimes(TFreqTripleV& PeakTimesV, TFreqTripleV FreqV, bool reset = false);
 
 private:
-  void UpdateMaxPeak(TIntV QuoteIds, TVec<TUInt64> UniqueSources, TQuoteBase *QB, TDocBase *DB);
+  void UpdateMaxPeak(TIntV QuoteIds, TVec<TUInt> UniqueSources, TQuoteBase *QB, TDocBase *DB);
 };
 
 class TClusterBase {
