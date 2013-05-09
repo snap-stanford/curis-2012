@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
     TStr QContentString;
     Q.GetContentString(QContentString);
 
-    TVec<TUInt64> Sources;
+    TVec<TUInt> Sources;
     Q.GetSources(Sources);
     for (int j = 0; j < Sources.Len(); j++) {
       TDoc D;
