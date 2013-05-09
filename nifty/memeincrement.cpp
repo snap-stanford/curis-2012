@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
   TStr EndString = ArgumentParser::GetArgument(Arguments, "end", "2009-02-06");
   TStr QBDBCDirectory = ArgumentParser::GetArgument(Arguments, "qbdbc", QBDBC_DIR_DEFAULT);
   TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
-  TStr ClustMethod = ArgumentParser::GetArgument(Arguments, "method", "local");
+  TStr ClustMethod = ArgumentParser::GetArgument(Arguments, "method", "incremental");
   TStr NewDir = ArgumentParser::GetArgument(Arguments, "newdir", "");
 
   if (ArgumentParser::GetArgument(Arguments, "nolog", "") != "") {

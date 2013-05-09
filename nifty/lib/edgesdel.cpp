@@ -121,10 +121,10 @@ void TEdgesDel::TryPartitioningMethod(TQuoteBase *QB, TDocBase *DB, const PNGrap
 
     if (ToPrepend == TEdgesDel::IncEdgeDelMaxEdgeScore) {
       fprintf(stderr, "Doing incremental edge deletion, choosing cluster with max edge score\n");
-      ClusterJob.IncrementalEdgeDeletion(QGraphPartitioned, QB, DB, false);
+      ClusterJob.IncrementalEdgeDeletion(QGraphPartitioned, QB, DB, NULL, false);
     } else if (ToPrepend == TEdgesDel::IncEdgeDelMaxNumEdges) {
       fprintf(stderr, "Doing incremental edge deletion, choosing cluster with max num edges\n");
-      ClusterJob.IncrementalEdgeDeletion(QGraphPartitioned, QB, DB, true);
+      ClusterJob.IncrementalEdgeDeletion(QGraphPartitioned, QB, DB, NULL, true);
     } else {
       ClusterJob.KeepAtMostOneChildPerNode(QGraphPartitioned, QB, DB, Fn, RandomGenerator);
     }
@@ -178,10 +178,10 @@ void TEdgesDel::TryEdgeScore(TQuoteBase *QB, TDocBase *DB, const PNGraph& QGraph
     if (ToPrepend.IsStrIn("ComputeEdgeScoreBaseline")) {
       Clustering ClusterJob(QGraphPartitioned, QB, DB);
       fprintf(stderr, "Computing edge score baseline \n");
-      ClusterJob.IncrementalEdgeDeletion(QGraphPartitioned, QB, DB, Fn, false, true);
+      ClusterJob.IncrementalEdgeDeletion(QGraphPartitioned, QB, DB, NULL, Fn, false, true);
     } else {
       Clustering ClusterJob(QGraphPartitioned);
-      ClusterJob.IncrementalEdgeDeletion(QGraphPartitioned, QB, DB, Fn, false);
+      ClusterJob.IncrementalEdgeDeletion(QGraphPartitioned, QB, DB, NULL, Fn, false);
     }
     UpdatePercentages(QB, DB, QGraph, QGraphPartitioned, AvgPercentEdgeScoreDeletedNFS, AvgPercentEdgeScoreDeleted,
                       AvgPercentEdgesDeletedNFS, AvgPercentEdgesDeleted, Log, ToPrepend);

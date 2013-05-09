@@ -71,7 +71,7 @@ void Clustering::BuildClusters(TClusterBase *CB, TQuoteBase *QB, TDocBase *DB, L
   printf("Deleting extra graph edges...\n");
 
   if (method == "incremental") {
-    IncrementalEdgeDeletion(QGraph, QB, DB);
+    IncrementalEdgeDeletion(QGraph, QB, DB, OldCB);
   } else {
     KeepAtMostOneChildPerNode(QGraph, QB, DB);
   }
@@ -252,13 +252,32 @@ void Clustering::KeepAtMostOneChildPerNode(PNGraph& G, TQuoteBase *QB, TDocBase 
   //fprintf(stderr, "Edge deletion complete - each node should have max one outgoing edge now!\n");
 }
 
-
-void Clustering::IncrementalEdgeDeletion(PNGraph& G, TQuoteBase *QB, TDocBase *DB, bool ConstantEdgeScore) {
-  IncrementalEdgeDeletion(G, QB, DB, ComputeEdgeScore, ConstantEdgeScore, false);
+void Clustering::IncrementalEdgeDeletion(PNGraph& G, TQuoteBase *QB, TDocBase *DB, TClusterBase *OldCB, bool ConstantEdgeScore) {
+  IncrementalEdgeDeletion(G, QB, DB, OldCB, ComputeEdgeScore, ConstantEdgeScore, false);
 }
 
-void Clustering::IncrementalEdgeDeletion(PNGraph& G, TQuoteBase *QB, TDocBase *DB,
+void Clustering::IncrementalEdgeDeletion(PNGraph& G, TQuoteBase *QB, TDocBase *DB, TClusterBase *OldCB, 
                                          TFlt (*Fn)(TQuote& Source, TQuote& Dest, TDocBase *DB, TRnd *RandomGenerator), bool ConstantEdgeScore, bool RandomEdgeScore) {
+  visit.Clr();
+  
+  if (OldCB != NULL) {
+    TIntV ClusterIds;
+    OldCB->GetAllClusterIds(ClusterIds);
+
+    for (int i = 0; i < ClusterIds.Len(); i++) {
+      TCluster C;
+      OldCB->GetCluster(ClusterIds[i], C);
+
+      TIntV QuoteIds;
+      C.GetQuoteIds(QuoteIds);
+
+      TInt AssignedClust = QuoteIds[0];
+      for (int j = 0; j < QuoteIds.Len(); j++) {
+	visit.AddDat(QuoteIds[j], AssignedClust);
+      }
+    }
+  }
+
   TNGraph::TNodeI EndNode = G->EndNI();
   for (TNGraph::TNodeI Node = G->BegNI(); Node < EndNode; Node++) {
     GetCluster(Node.GetId(), G, QB, DB, Fn, ConstantEdgeScore, RandomEdgeScore);

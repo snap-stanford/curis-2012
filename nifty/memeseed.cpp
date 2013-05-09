@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
   TStr QBDBDirectory = ArgumentParser::GetArgument(Arguments, "qbdb", QBDB_DIR_DEFAULT);
   TInt WindowSize = ArgumentParser::GetArgument(Arguments, "window", "14").GetInt();
   TStr EdgeString = ArgumentParser::GetArgument(Arguments, "edge", EDGE_CREATION_STYLE);
-  TStr ClustMethod = ArgumentParser::GetArgument(Arguments, "method", "local");
+  TStr ClustMethod = ArgumentParser::GetArgument(Arguments, "method", "incremental");
   QuoteGraph::SetEdgeCreation(EdgeString);
 
   if (ArgumentParser::GetArgument(Arguments, "nolog", "") != "") {
