@@ -60,19 +60,21 @@ function SetupCluster(clusterID) {
 		$('#cluster-table').html(table);
 		
 		// graph viz
-		var graph_string = "digraph G { graph [ dpi = 66, width=8];"
-		for (var i = 0; i < data.parents.length; ++i) {
-			for (var j = 0; j < data.parents[i].length; ++j) {
-				graph_string += "\"" + id_map[data.parents[i][j]] + "\"";
-				graph_string += " -> ";
-				graph_string += "\"" + data.quotes[i] + "\";";
-			}
-			
-		}
-		graph_string += "}";
-		var viz_output = Viz(graph_string, "svg");
-		console.log(viz_output);
-		$('#cluster-digraph').html(viz_output);
+    if (typeof data.parents !== 'undefined') {
+      var graph_string = "digraph G { graph [ dpi = 66, width=8];"
+      for (var i = 0; i < data.parents.length; ++i) {
+        for (var j = 0; j < data.parents[i].length; ++j) {
+          graph_string += "\"" + id_map[data.parents[i][j]] + "\"";
+          graph_string += " -> ";
+          graph_string += "\"" + data.quotes[i] + "\";";
+        }
+        
+      }
+      graph_string += "}";
+      var viz_output = Viz(graph_string, "svg");
+      console.log(viz_output);
+      $('#cluster-digraph').html(viz_output);
+    }
 		
 		// ### SETUP GRAPH TIME
 		var originalDate = new Date(data.modified);
