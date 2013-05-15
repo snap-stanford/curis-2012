@@ -1,8 +1,8 @@
 #!/bin/sh
 
-year=2012
+year=2010
 ndays=(31 29 31 30 31 30 31 31 30 31 30 31)
-months=(1 2 3 4 5 6)
+months=(7 8 9 10 11 12)
 
 for month in ${months[*]}
 do

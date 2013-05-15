@@ -63,6 +63,11 @@ void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB
   CB->GetCluster(ClusterId, C);
   TFreqTripleV PeakV, FreqV;
   C.GetPeaks(DB, QB, PeakV, FreqV, PEAK_BUCKET, PEAK_WINDOW, PresentTime);
+  TStr LastDateString = FreqV[FreqV.Len() - 1].Val3.AddHours(-8).GetDtYmdStr();
+  if (PresentTime.GetAbsSecs() == 0) {
+    LastDateString = FreqV[0].Val3.AddHours(-8).GetDtYmdStr();
+  }
+//Err("%s == %s\n", CurDateString.CStr(), LastDateString.CStr());
 
   //Err("before peak\n");
 
@@ -95,7 +100,7 @@ void TPrintJson::PrintClusterJSON(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB
     }
   }
   Plots += "]";
-  Plots += ", \"modified\": \"" + CurDateString + "\"";
+  Plots += ", \"modified\": \"" + LastDateString + "\"";
 
   //Err("after peak\n");
 

@@ -18,14 +18,16 @@ int main(int argc, char *argv[]) {
 
   // #### POST CLUSTERING STEP YO
   TStr OutputDirectory;
-  if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
+  TStr NewDir = ArgumentParser::GetArgument(Arguments, "newdir", "");
+
+  if (ArgumentParser::GetArgument(Arguments, "nolog", "") != "") {
+    Log.DisableLogging();
+  } else if (!Arguments.IsKeyGetDat("directory", OutputDirectory)) {
     Log.SetupNewOutputDirectory("");
+  } else if (NewDir != "") {
+	Log.SetupNewOutputDirectory(OutputDirectory);
   } else {
-    if (ShouldSetupDirectory == "true") {
-      Log.SetupNewOutputDirectory(OutputDirectory);
-    } else {
-      Log.SetDirectory(OutputDirectory);
-    }
+    Log.SetDirectory(OutputDirectory);
   }
 
   TSecTm CurrentDate = StartDate;

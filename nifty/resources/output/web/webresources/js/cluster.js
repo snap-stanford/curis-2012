@@ -61,7 +61,7 @@ function SetupCluster(clusterID) {
 		
 		// graph viz
     if (typeof data.parents !== 'undefined') {
-      var graph_string = "digraph G { graph [ dpi = 66, width=8];"
+      var graph_string = "digraph G { graph [ dpi = 66, width=8]; node [shape=box];"
       for (var i = 0; i < data.parents.length; ++i) {
         for (var j = 0; j < data.parents[i].length; ++j) {
           graph_string += "\"" + id_map[data.parents[i][j]] + "\"";
