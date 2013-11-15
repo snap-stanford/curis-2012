@@ -323,6 +323,9 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
     TIntSet MaxPeakClusterIds;  // Store clusters that peaked during this time, with freq >= FreqCutoff
     TInt FreqCutoff = 350;
  
+    LogOutput Log;
+    Log.DisableLogging();
+
     int i;
     for (i = 0; CurrentDate < EndPeriodDate && CurrentDate < EndDate; ++i) {
       // Load Cumulative QBDBCB
@@ -334,12 +337,16 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
       TDataLoader::LoadCumulative(QBDBCDirectory, CurrentDate.GetDtYmdStr(), QB, DB, CB, QGraph);
 
       // Add clusters that peaked on this day, with freq > 350, to MaxPeakClusterIds
+      // Use postclustering to filter
       TIntV ClusterIds;
-      CB.GetAllClusterIds(ClusterIds);
+      PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, ClusterIds, CurrentDate, QGraph, false);
+
+      //CB.GetAllClusterIds(ClusterIds);
       for (int i = 0; i < ClusterIds.Len(); i++) {
         TCluster C;
         CB.GetCluster(ClusterIds[i], C);
-        if (C.GetNumQuotes() >= FreqCutoff) {
+        //if (C.GetNumQuotes() >= FreqCutoff) {
+        if (C.GetNumUniqueSources(&QB) >= FreqCutoff) {
           TDateFreq DF;
           C.GetMaxPeakInfo(DF);
           TSecTm DayStart = TSecTm(uint(CurrentDate.GetAbsSecs() / Peaks::NumSecondsInDay) * Peaks::NumSecondsInDay);
@@ -371,7 +378,7 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
         CBCumulative = CB;
       } else {
         fprintf(stderr, "Merging QBDBCB!\n");
-        TDataLoader::MergeQBDBCB(QBCumulative, DBCumulative, CBCumulative, QB, DB, CB, CurrentDate, true);
+        TDataLoader::MergeQBDBCB2(QBCumulative, DBCumulative, CBCumulative, QB, DB, CB, CurrentDate, true);
       }
 
       //}
@@ -423,11 +430,12 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TStr& StartString, TStr& EndSt
     }
     TopFilteredClusters.Clr();
     ClustersToPrintSet.GetKeyV(TopFilteredClusters);
+    TopFilteredClusters.SortCmp(TCmpTClusterIdByNumQuotes(false, &CBCumulative));
 
     // Filter out clusters that have duplicate quote content (remove the less popular duplicate cluster(s))
     TIntV TopFilteredClustersWoDups;
     FilterDuplicateClusters(&QBCumulative, &CBCumulative, TopFilteredClusters, TopFilteredClustersWoDups);
-
+    
     for (int j = 0; j < 100 && j < TopFilteredClustersWoDups.Len(); j++) {
       ClustersToPrint.Add(TopFilteredClustersWoDups[j]);
     }

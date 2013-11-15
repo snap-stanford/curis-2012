@@ -219,9 +219,9 @@ function PrintGraph(start, end) {
 	$('.graph').show();
 	$("#tooltip").remove();
 	if (!graphData) return;
-	if (start != 0 || end != graphData.length) {
+	if (start != 0 || end != tableData.length) {
 		var curGraph = [];
-		for (var i = start; i < end; i++) {
+		for (var i = start; i < end && i < graphData.length; i++) {
 			curGraph.push(graphData[i]);
 		}
 		$.plot(graphContainer, curGraph, options);
@@ -368,7 +368,7 @@ function GetGraphData(fileName, tickSize, offset) {
 	    };
 	    graphContainer = $("#cluster-graph");
 	    PrintGraph(0, graphData.length);
-	    curStart = 0, curEnd = graphData.length;
+	    curStart = 0, curEnd = tableData.length;
 	    
 	    // Mechanism for selecting one cluster on the plot
 	    $("#cluster-graph").bind("plotclick", function (event, pos, item) {
@@ -430,12 +430,12 @@ function FindCluster(x, y) {
 		var j = curStart, sum = 0;
 		
 		if (i + 1 < interpolated_dates.length) {
-			for (; j < curEnd; j++) {
+			for (; j < curEnd && j < graphData.length; j++) {
 				sum += one_minus_interpolation * graphData[j].data[i][1] + interpolation * graphData[j].data[i + 1][1];
 				if (y <= sum) break;
 			}
 		} else {
-			for (; j < curEnd; j++) {
+			for (; j < curEnd && j < graphData.length; j++) {
 				sum += graphData[j].data[i][1];
 				if (y <= sum) break;
 			}

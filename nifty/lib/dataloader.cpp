@@ -179,6 +179,34 @@ TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &Q
   return NewQuoteIds;
 }
 
+void TDataLoader::MergeQBDBCB2(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
+                              const TQuoteBase &QB2, const TDocBase &DB2, const TClusterBase &CB2, TSecTm& PresentTime,
+                              bool KeepQuotesWithNoSources) {
+  TVec<TUInt> DocIds;
+  DB2.GetAllDocIds(DocIds);
+  for (int i = 0; i < DocIds.Len(); i++) {
+    TDoc D;
+    DB2.GetDoc(DocIds[i], D);
+    DB1.AddStaticDoc(DocIds[i], D);
+  }
+
+  TIntV QuoteIds;
+  QB2.GetAllQuoteIds(QuoteIds);
+  for (int i = 0; i < QuoteIds.Len(); i++) {
+    TQuote D;
+    QB2.GetQuote(QuoteIds[i], D);
+    QB1.AddStaticQuote(QuoteIds[i], D);
+  }
+
+  TIntV ClusterIds;
+  CB2.GetAllClusterIds(ClusterIds);
+  for (int i = 0; i < ClusterIds.Len(); i++) {
+    TCluster D;
+    CB2.GetCluster(ClusterIds[i], D);
+    CB1.AddStaticCluster(ClusterIds[i], D);
+  }
+}
+
 /// Merge QBDBCB2 into QBDBCB1
 void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
                               const TQuoteBase &QB2, const TDocBase &DB2, const TClusterBase &CB2, TSecTm& PresentTime,
@@ -365,7 +393,7 @@ void TDataLoader::FilterOldData(TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, 
 }
 
 void TDataLoader::LoadCumulative(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, PNGraph& P) {
-  TStr CurFileName = Prefix + "QBDBC" + Date + ".bin";
+  TStr CurFileName = Prefix + "topQBDBC" + Date + ".bin";
   if (TFile::Exists(CurFileName)) {
     TFIn CurFile(CurFileName);
     QB.Load(CurFile);

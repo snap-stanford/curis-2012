@@ -30,7 +30,23 @@ int main(int argc, char *argv[]) {
     Log.SetDirectory(OutputDirectory);
   }
 
+  // #### GET OLD CLUSTERS
   TSecTm CurrentDate = StartDate;
+  TSecTm OldDate = StartDate;
+  OldDate.AddDays(-1);
+  TQuoteBase oldQB;
+  TDocBase oldDB;
+  TClusterBase oldCB;
+  PNGraph OldQGraph;
+  fprintf(stderr, "Loading cumulative QBDBCB from file...\n");
+  TDataLoader::LoadCumulative(QBDBCDirectory, OldDate.GetDtYmdStr(), oldQB, oldDB, oldCB, OldQGraph);
+  fprintf(stderr, "\tDone loading cumulative QBDBCB!\n");
+
+  // #### GET TOP FILTERED CLUSTERS FROM PREVIOUS DAY WHYY
+  TIntV OldTopClusters;
+  PostCluster::GetTopFilteredClusters(&oldCB, &oldDB, &oldQB, Log, OldTopClusters, OldDate, OldQGraph, false);
+
+
   while(CurrentDate < EndDate) {
     TStr CurDateString = CurrentDate.GetDtYmdStr();
     TQuoteBase QB;
@@ -45,9 +61,13 @@ int main(int argc, char *argv[]) {
     PostCluster::GetTopFilteredClusters(&CB, &DB, &QB, Log, TopFilteredClusters, CurrentDate, QGraph, false);
     Log.EnableLogging();
 
+    TStr FileName = QBDBCDirectory + "topQBDBC" + CurrentDate.GetDtYmdStr() + ".bin";
+    PostCluster::SaveTopFilteredClusters(FileName, &QB, &DB, &CB, TopFilteredClusters, QGraph);
+
     // TODO: consider if quote is dead?
     TIntV Temp;
-    Log.LogAllInformation(&DB, &QB, &CB, QGraph, TopFilteredClusters, CurrentDate, Temp, QBDBCDirectory);
+    Log.LogAllInformation(&DB, &QB, &CB, QGraph, TopFilteredClusters, CurrentDate, OldTopClusters, QBDBCDirectory);
+    OldTopClusters = TopFilteredClusters;
 
     CurrentDate.AddDays(1);
   }

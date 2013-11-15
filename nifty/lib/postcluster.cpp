@@ -8,6 +8,7 @@ const int PostCluster::SlidingWindowSize = 1;
 const int PostCluster::PeakThreshold = 5;
 const int PostCluster::DayThreshold = 3;
 const int PostCluster::QuoteThreshold = 20;
+TStrSet PostCluster::BlacklistedQuotes;
 
 void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteBase *QB, LogOutput& Log, TIntV& TopFilteredClusters, TSecTm& PresentTime, PNGraph& QGraph, bool RemoveClusters) {
   if (RemoveClusters) {
@@ -17,12 +18,53 @@ void PostCluster::GetTopFilteredClusters(TClusterBase *CB, TDocBase *DB, TQuoteB
   //MergeAllClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
   //MergeClustersBasedOnSubstrings(QB, TopFilteredClusters, CB);
   //MergeClustersWithCommonSources(QB, TopFilteredClusters, CB);
+  FilterBlacklistedQuotes(DB, QB, CB, Log, TopFilteredClusters, PresentTime);
   FilterAndCacheClusterSize(DB, QB, CB, Log, TopFilteredClusters, PresentTime);
   FilterAndCacheClusterPeaks(DB, QB, CB, Log, TopFilteredClusters, PresentTime);
   fprintf(stderr, "Number of top clusters remaining after 2 passes: %d\n", TopFilteredClusters.Len());
   CB->SortClustersByPopularity(DB, QB, TopFilteredClusters, PresentTime);
   Err("Done!\n");
 }
+
+void PostCluster::FilterBlacklistedQuotes(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV &TopClusters, TSecTm& PresentTime) {
+  if (BlacklistedQuotes.Len() == 0) {
+    PSIn BlackListFile = TFIn::New("resources/quote_blacklist.txt");
+    TStr Blacklisted;
+    while (!BlackListFile->Eof() && BlackListFile->GetNextLn(Blacklisted)) {
+      BlacklistedQuotes.AddKey(Blacklisted);
+    }
+  }
+
+  TIntSet DiscardedClusterIds;
+  for (int i = 0; i < TopClusters.Len(); i++) {
+    TCluster C;
+    CB->GetCluster(TopClusters[i], C);
+    TIntV QuoteIds;
+    C.GetQuoteIds(QuoteIds);
+    for (int j = 0; j < QuoteIds.Len(); j++) {
+      TQuote Q;
+      QB->GetQuote(QuoteIds[j], Q);
+      TStr CandidateQuote;
+      Q.GetContentString(CandidateQuote);
+      if (BlacklistedQuotes.IsKey(CandidateQuote)) {
+        DiscardedClusterIds.AddKey(TopClusters[i]);
+        break;
+      }
+    }
+  }
+
+  Err("Filtered %d blacklisted clusters out of %d (remaining %d)\n", DiscardedClusterIds.Len(), TopClusters.Len(), TopClusters.Len() - DiscardedClusterIds.Len());
+
+  // delete the discarded clusters from the top clusters list.
+  TIntV FilteredTopClusters;
+  for (int i = 0; i < TopClusters.Len(); ++i) {
+    if (!DiscardedClusterIds.IsKey(TopClusters[i])) {
+      FilteredTopClusters.Add(TopClusters[i]);
+    }
+  }
+  TopClusters = FilteredTopClusters;
+}
+
 
 /// Merges pairs of clusters if any quote of one is a substring of a quote
 //  of the other cluster's. Only merges into the clusters in TopFilterdClusters
@@ -248,7 +290,6 @@ void PostCluster::MergeClustersWithCommonSources(TQuoteBase* QB, TDocBase *DB, T
 
 
 void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV& TopClusters, TSecTm& PresentTime) {
-  fprintf(stderr, "Filtering clusters that have too many peaks...\n");
   TIntSet DiscardedClusterIds;  // Contains id's of clusters to be discarded
   TVec<TPair<TCluster, TInt> > DiscardedClusters;
   for (int i = 0; i < TopClusters.Len(); ++i) {
@@ -266,6 +307,8 @@ void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClus
     }
   }
 
+  Err("Filtered %d overpeaked clusters out of %d (remaining %d)\n", DiscardedClusterIds.Len(), TopClusters.Len(), TopClusters.Len() - DiscardedClusterIds.Len());
+
   // delete the discarded clusters from the top clusters list.
   TIntV FilteredTopClusters;
   for (int i = 0; i < TopClusters.Len(); ++i) {
@@ -273,30 +316,32 @@ void PostCluster::FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClus
       FilteredTopClusters.Add(TopClusters[i]);
     }
   }
-  fprintf(stderr, "Number of top clusters (1): %d\n", TopClusters.Len());
   TopClusters = FilteredTopClusters;
-
-  fprintf(stderr, "Logging discarded clusters...\n");
-  fprintf(stderr, "Number of top clusters (2): %d\n", TopClusters.Len());
 
   // log the discarded clusters in a log file.
   Log.OutputDiscardedClusters(QB, DiscardedClusters, PresentTime);
-  fprintf(stderr, "Done with peak filtering!\n");
 }
 
 void PostCluster::FilterAndCacheClusterSize(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV& TopClusters, TSecTm& PresentTime) {
-  Err("Filtering clusters that only have one cluster variant if they are too short...\n");
   TIntSet DiscardedClusterIds;  // Contains id's of clusters to be discarded
   TVec<TCluster> DiscardedClusters;
   for (int i = 0; i < TopClusters.Len(); ++i) {
     TCluster C;
     CB->GetCluster(TopClusters[i], C);
-    if (C.GetNumUniqueQuotes() < 2) {
-      TStr RepStr;
-      C.GetRepresentativeQuoteString(RepStr, QB);
-      TStrV Words;
-      RepStr.SplitOnStr(" ", Words);
-      if (Words.Len() <= 4) {
+    TInt NumVariants = C.GetNumUniqueQuotes();
+    if (NumVariants < 4) {
+      TInt QuoteId = C.GetMostPopularQuoteId(QB);
+      TQuote Q;
+      QB->GetQuote(QuoteId, Q);
+      TStrV Contents;
+      Q.GetContent(Contents);
+      TInt NumWords = Contents.Len();
+      //TStr RepStr;
+      //C.GetRepresentativeQuoteString(RepStr, QB);
+      //TStrV Words;
+      //RepStr.SplitOnStr(" ", Words);
+      //TInt NumWords = Words.Len();
+      if ((NumWords <= 3 && NumVariants < 3) || (NumWords <= 5 && NumVariants < 2)) {
         C.SetDiscardState(2);
         DiscardedClusterIds.AddKey(TopClusters[i]);
         DiscardedClusters.Add(C);
@@ -304,6 +349,8 @@ void PostCluster::FilterAndCacheClusterSize(TDocBase *DB, TQuoteBase *QB, TClust
     }
   }
 
+  Err("Filtered %d suspiciously unvarianted clusters out of %d (remaining %d)\n", DiscardedClusterIds.Len(), TopClusters.Len(), TopClusters.Len() - DiscardedClusterIds.Len());
+
   // delete the discarded clusters from the top clusters list.
   TIntV FilteredTopClusters;
   for (int i = 0; i < TopClusters.Len(); ++i) {
@@ -311,15 +358,10 @@ void PostCluster::FilterAndCacheClusterSize(TDocBase *DB, TQuoteBase *QB, TClust
       FilteredTopClusters.Add(TopClusters[i]);
     }
   }
-  fprintf(stderr, "Number of top clusters (1): %d\n", TopClusters.Len());
   TopClusters = FilteredTopClusters;
-
-  fprintf(stderr, "Logging deleted clusters by size...\n");
-  fprintf(stderr, "Number of top clusters (2): %d\n", TopClusters.Len());
 
   // log the discarded clusters in a log file.
   Log.OutputDiscardedClustersBySize(QB, DiscardedClusters, PresentTime);
-  fprintf(stderr, "Done!\n");
 }
 
 /// Remove clusters whose quotes have fewer than QuoteThreshold sources (total) for the last three days
@@ -437,4 +479,44 @@ void PostCluster::NukeCluster(TQuoteBase *QB, TClusterBase *CB, TInt ClusterId, 
     QGraph->DelNode(ClusterQuoteIds[j]);
   }
   CB->RemoveCluster(ClusterId);
+}
+
+void PostCluster::SaveTopFilteredClusters(TStr FileName, TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, TIntV& TopClusters, PNGraph& QGraph) {
+  TDocBase topDB(DB->GetCounter());
+  TQuoteBase topQB(QB->GetCounter());
+  TClusterBase topCB(CB->GetCounter());
+  PNGraph topQGraph = TNGraph::New();
+  for (int i = 0; i < TopClusters.Len(); i++) {
+    TCluster C;
+    CB->GetCluster(TopClusters[i], C);
+    TIntV ClusterQuoteIds;
+    C.GetQuoteIds(ClusterQuoteIds);
+    for (int j = 0; j < ClusterQuoteIds.Len(); j++) {
+      TQuote Q;
+      TInt QuoteId = ClusterQuoteIds[j];
+      QB->GetQuote(QuoteId, Q);
+      TVec<TUInt> Sources;
+      Q.GetSources(Sources);
+      for (int k = 0; k < Sources.Len(); k++) {
+        TDoc D;
+        if(DB->GetDoc(Sources[k], D)) {
+          topDB.AddStaticDoc(Sources[k], D);
+        }
+      }
+      topQGraph->AddNode(QuoteId);
+      topQB.AddStaticQuote(QuoteId, Q);
+    }
+
+    for (int j = 0; j < ClusterQuoteIds.Len(); j++) {
+      TNGraph::TNodeI NI = QGraph->GetNI(ClusterQuoteIds[j]);
+      for (int k = 0; k < NI.GetOutDeg(); k++) {
+        topQGraph->AddEdge(ClusterQuoteIds[j], NI.GetOutNId(k));
+      }
+    }
+
+    topCB.AddStaticCluster(TopClusters[i], C);
+  }
+
+  TDataLoader::SaveQBDBCQ(FileName, &topQB, &topDB, &topCB, topQGraph);
+  topQGraph.Clr();
 }

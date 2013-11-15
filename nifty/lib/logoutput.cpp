@@ -112,27 +112,25 @@ void LogOutput::LogAllInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB
   Month3Start.AddDays(-1);
   TStr Month3StartString = Month3Start.GetDtYmdStr();
 
-  Err("Week end: %s\nMonth end: %s\n3Month end: %s\n", WeekStartString.CStr(), MonthStartString.CStr(), Month3StartString.CStr());
-
   //fprintf(stderr, "Start date string: %s\n", WeekStartString.CStr());
   //fprintf(stderr, "Current date string: %s\n", CurDateString.CStr());
+  bool SmartLogging = ArgumentParser::Contains("fastjson");
   TStr ToIgnore;
-  if (CurDateString == WeekStartString) {
+  if (!SmartLogging || CurDateString == WeekStartString) {
+    if (SmartLogging) Err("DATE ====");
     fprintf(stderr, "LOGGING WEEK\n");
     JSONJob.PrintClusterJsonForPeriod(WeekStartString, ToIgnore, Directory, TStr("week"), QBDBCDirectory);
   }
-  if (CurDateString == MonthStartString) {
+  if (!SmartLogging || CurDateString == MonthStartString) {
+    if (SmartLogging) Err("DATE ====");
     fprintf(stderr, "LOGGING MONTH\n");
     JSONJob.PrintClusterJsonForPeriod(MonthStartString, ToIgnore, Directory, TStr("month"), QBDBCDirectory);
   }
-  if (CurDateString == Month3StartString) {
+  if (!SmartLogging || CurDateString == Month3StartString) {
+    if (SmartLogging) Err("DATE ====");
     fprintf(stderr, "LOGGING 3 MONTHS\n");
     JSONJob.PrintClusterJsonForPeriod(Month3StartString, ToIgnore, Directory, TStr("3month"), QBDBCDirectory);
   }
-
-  //JSONJob.PrintClusterJSONForPeriod(CurDateString, "week", QBDBCDirectory);
-  //JSONJob.PrintClusterJSONForPeriod(CurDateString, "month", QBDBCDirectory);
-  //JSONJob.PrintClusterJSONForPeriod(CurDateString, "3month", QBDBCDirectory);
 
   // Update current date file
   TStr CurrentDateFileName = Directory + "/web/currentdate.txt";

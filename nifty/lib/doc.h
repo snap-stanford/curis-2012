@@ -56,6 +56,7 @@ public:
   bool GetDoc(TUInt Id, TDoc &RetDoc) const;
   TUInt AddDoc(const TChA &Url, TSecTm Date, const TChA &Content, const TVec<TChA> &Links);
   TUInt AddDoc(TDoc &Doc);
+  void AddStaticDoc(TUInt DocId, TDoc &Doc);
   void RemoveDoc(TUInt DocId);
   void RemoveNullDocs(TQuoteBase *QB);
   void GetAllDocIds(TVec<TUInt> &DocIds) const;

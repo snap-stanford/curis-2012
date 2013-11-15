@@ -32,6 +32,7 @@ public:
   void SetBirthDate(TSecTm& BirthDate);
   void GetBirthDate(TSecTm& BirthDate);
   void GetRepresentativeQuoteIds(TIntV& RepQuoteIds) const;
+  TInt GetMostPopularQuoteId(TQuoteBase *QB);
   TInt GetNumRepresentativeQuoteIds() const;
   void GetRepresentativeQuoteString(TStr& RepStr, TQuoteBase *QB) const;
   TInt GetNumQuotes() const;
@@ -54,6 +55,8 @@ public:
   void GetPeaks(TDocBase *DocBase, TQuoteBase *QuoteBase, TFreqTripleV& PeakTimesV, TFreqTripleV& FreqV, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime, bool reset = false);
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TSecTm PresentTime);
   void GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr Filename, TInt BucketSize, TInt SlidingWindowSize, TSecTm PresentTime);
+  TInt GetNumSources(TQuoteBase *QuoteBase);
+  TInt GetNumUniqueSources(TQuoteBase *QuoteBase);
 
   static void GetUniqueSources(TVec<TUInt>& UniqueSources, const TIntV& QuoteIds, TQuoteBase *QB);
 
@@ -80,6 +83,7 @@ public:
   void Load(TSIn& SIn);
   TInt AddCluster(TCluster& Cluster, const TClusterBase *OldCB, TSecTm& PresentTime);
   TInt AddCluster(TCluster& Cluster);
+  void AddStaticCluster(TInt ClusterId, TCluster& Cluster);
   bool AddQuoteToCluster(TQuoteBase *QB, TDocBase *DB, const TIntV& QuoteIds, TInt ClusterId);
   //bool ReplaceQuoteInCluster(TQuoteBase *QB, TInt OldQuoteId, TInt NewQuoteId, TInt ClusterId);
   void RemoveCluster(TInt ClusterId);

@@ -91,6 +91,20 @@ void TCluster::GetRepresentativeQuoteIds(TIntV& RepQuoteIds) const {
   RepQuoteIds = RepresentativeQuoteIds;
 }
 
+TInt TCluster::GetMostPopularQuoteId(TQuoteBase *QB) {
+  TInt PopQuote, PopFreq = -1;
+  for (int i = 0; i < QuoteIds.Len(); i++) {
+    TQuote Quote;
+    QB->GetQuote(QuoteIds[i], Quote);
+    if (Quote.GetNumSources() > PopFreq) {
+      PopFreq = Quote.GetNumSources();
+      PopQuote = QuoteIds[i];
+    }
+  }
+  return PopQuote;
+}
+
+
 void TCluster::GetRepresentativeQuoteString(TStr& RepStr, TQuoteBase *QB) const {
   if(RepresentativeQuoteIds.Len() == 0) return;
   TQuote FirstQuote;
@@ -264,6 +278,25 @@ void TCluster::GraphFreqOverTime(TDocBase *DocBase, TQuoteBase *QuoteBase, TStr 
   //TStr SetXTic = TStr("set xtics 24\nset terminal png small size 1000,800");
   GP.SavePng(Filename + ".png");
   //GP.SavePng(Filename + ".png", 1000, 800, TStr(), SetXTic);
+}
+
+TInt TCluster::GetNumSources(TQuoteBase *QuoteBase) {
+  TInt Answer;
+  for (int i = 0; i < QuoteIds.Len(); i++) {
+    TQuote Q;
+    QuoteBase->GetQuote(QuoteIds[i], Q);
+    Answer += Q.GetNumSources();
+  }
+  return Answer;
+  //TVec<TUInt> UniqueSources;
+  //GetUniqueSources(UniqueSources, QuoteIds, QuoteBase);
+  //return UniqueSources.Len();
+}
+
+TInt TCluster::GetNumUniqueSources(TQuoteBase *QuoteBase) {
+  TVec<TUInt> UniqueSources;
+  GetUniqueSources(UniqueSources, QuoteIds, QuoteBase);
+  return UniqueSources.Len();
 }
 
 /// Calculates the number of unique sources among the quotes in a cluster,
@@ -463,6 +496,15 @@ TInt TClusterBase::AddCluster(TCluster& Cluster) {
   return CurCounter;
 }
 
+void TClusterBase::AddStaticCluster(TInt ClusterId, TCluster& Cluster) {
+  IdToTCluster.AddDat(ClusterId, Cluster);
+  TIntV QuoteIds;
+  Cluster.GetQuoteIds(QuoteIds);
+  for (int i = 0; i < QuoteIds.Len(); i++) {
+    QuoteIdToClusterId.AddDat(QuoteIds[i], ClusterId);
+  }
+}
+
 bool TClusterBase::AddQuoteToCluster(TQuoteBase *QB, TDocBase *DB, const TIntV& QuoteIds, TInt ClusterId) {
   TCluster Cluster;
   if (IdToTCluster.IsKeyGetDat(ClusterId, Cluster)) {
@@ -536,7 +578,6 @@ void TClusterBase::GetAllClusterIdsSortByFreq(TIntV &ClusterIds) {
 }
 
 void TClusterBase::GetTopClusterIdsByFreq(TIntV &TopClusterIds) {
-  fprintf(stderr, "Sorting cluster id's by size frequency and returning top ones...\n");
   TIntV ClusterIds;
   GetAllClusterIdsSortByFreq(ClusterIds);
   for (int i = 0; i < ClusterIds.Len(); i++) {

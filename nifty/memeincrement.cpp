@@ -7,6 +7,9 @@ int main(int argc, char *argv[]) {
   LogOutput Log;
   THash<TStr, TStr> Arguments;
   ArgumentParser::ParseArguments(argc, argv, Arguments, Log);
+  if(ArgumentParser::Contains("fastjson")) {
+    Err("FAST JSON BOOYEAH\n");
+  }
 
   TStr OutputDirectory;
   TStr StartString = ArgumentParser::GetArgument(Arguments, "start", "2009-02-01");
@@ -85,6 +88,8 @@ int main(int argc, char *argv[]) {
     CB = NewCB;
     TStr FileName = QBDBCDirectory + "QBDBC" + CurrentDate.GetDtYmdStr() + ".bin";
     TDataLoader::SaveQBDBCQ(FileName, &QB, &DB, &CB, QGraph);
+    FileName = QBDBCDirectory + "topQBDBC" + CurrentDate.GetDtYmdStr() + ".bin";
+    PostCluster::SaveTopFilteredClusters(FileName, &QB, &DB, &CB, TopFilteredClusters, QGraph);
 
     // ## LOG.
     Log.LogAllInformation(&DB, &QB, &NewCB, QGraph, TopFilteredClusters, CurrentDate, OldTopClusters, QBDBCDirectory);

@@ -4,16 +4,21 @@ $(document).ready(function() {
 });
 
 function SetupDate(dateString) {
+	daysPerMonth = [30, 27, 30, 29, 30, 29, 30, 30, 29, 30, 29, 30, 30, 27, 30, 29, 30, 29, 30, 30, 29, 30, 29, 30, 30]; // extra for january
 	date = new Date(dateString);
 
 	// set navigation links
 	$('#prev-month').click(function(e) { 
 		e.preventDefault();
+		if (daysPerMonth[date.getMonth() + 11] <= date.getDate())
+			date.setDate(daysPerMonth[date.getMonth() + 11]);
 		date.setMonth(date.getMonth() - 1);
 		UpdateDate(date);
 	});
 	$('#next-month').click(function(e) { 
 		e.preventDefault();
+		if (daysPerMonth[date.getMonth() + 13] <= date.getDate())
+			date.setDate(daysPerMonth[date.getMonth() + 13]);
 		date.setMonth(date.getMonth() + 1);
 		UpdateDate(date);
 	});

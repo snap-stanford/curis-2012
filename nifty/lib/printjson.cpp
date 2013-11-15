@@ -292,7 +292,7 @@ void TPrintJson::PrintClustersTableJson(TQuoteBase *QB, TDocBase *DB, TClusterBa
 	TVec<TUInt> CUniqueSources;
     C.GetQuoteIds(CQuoteIds);
     TCluster::GetUniqueSources(CUniqueSources, CQuoteIds, QB);
-    Frequencies.Add(CUniqueSources.Len());
+    Frequencies.Add(C.GetNumUniqueSources(QB));
 
     NumVariants.Add(C.GetNumUniqueQuotes());
   }

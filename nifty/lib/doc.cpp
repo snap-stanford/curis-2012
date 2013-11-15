@@ -150,6 +150,17 @@ TUInt TDocBase::AddDoc(TDoc &Doc) {
   }
 }
 
+// Only to be used when storing/loading popular docs
+void TDocBase::AddStaticDoc(TUInt DocId, TDoc &Doc) {
+  TStr DocUrl;
+  Doc.GetUrl(DocUrl);
+  if (!DocUrlToId.IsKey(DocUrl)) {
+    Doc.SetId(DocId);
+    IdToDoc.AddDat(DocId, Doc);
+    DocUrlToId.AddDat(DocUrl, DocId);
+  }
+}
+
 void TDocBase::RemoveDoc(TUInt DocId) {
   IAssert(IdToDoc.IsKey(DocId));
   TDoc Doc;

@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "argumentparser.h"
 
+THash<TStr, TStr> ArgumentParser::Arguments; // = THash<TStr, TStr>();
+
 /* 
  * ParseArguments takes in the system artuments and returns a hash table (Arguments) of string
  * key-value pairs. Log is passed in just so logging can be automatically disabled if need be.
@@ -19,6 +21,7 @@ void ArgumentParser::ParseArguments(int argc, char *argv[], THash<TStr, TStr>& A
   if (Arguments.IsKey("nolog")) {
     Log.DisableLogging();
   }
+  ArgumentParser::Arguments = Arguments;
 }
 
 /*
@@ -30,4 +33,8 @@ TStr ArgumentParser::GetArgument(THash<TStr, TStr>& Arguments, TStr Key, TStr De
   TStr Result = Default;
   Arguments.IsKeyGetDat(Key, Result);
   return Result;
+}
+
+bool ArgumentParser::Contains(TStr Key) {
+  return Arguments.IsKey(Key);
 }

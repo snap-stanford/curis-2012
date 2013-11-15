@@ -279,6 +279,13 @@ TInt TQuoteBase::AddQuote(const TStr &ContentString, TUInt DocId) {
   }
 }
 
+void TQuoteBase::AddStaticQuote(TInt QuoteId, TQuote &Quote) {
+  IdToTQuotes.AddDat(QuoteId, Quote);
+  TStrV ParsedContent;
+  Quote.GetParsedContent(ParsedContent);
+  QuoteToId.AddDat(ParsedContent, QuoteId);
+}
+
 void TQuoteBase::AddQuoteMerging(TInt QuoteId, const TStr& ContentString, TUInt DocId) {
   TStrV ContentVectorString;
   TStringUtil::ParseStringIntoWords(ContentString, ContentVectorString);

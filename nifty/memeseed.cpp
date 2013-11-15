@@ -76,6 +76,9 @@ int main(int argc, char *argv[]) {
   // #### SAVE THE DOLPHINS! I MEAN CLUSTERS
   TStr FileName = QBDBCDirectory + "QBDBC" + PresentTime.GetDtYmdStr() + ".bin";
   TDataLoader::SaveQBDBCQ(FileName, &QB, &DB, &CB, QGraph);
+  FileName = QBDBCDirectory + "topQBDBC" + PresentTime.GetDtYmdStr() + ".bin";
+  PostCluster::SaveTopFilteredClusters(FileName, &QB, &DB, &CB, TopFilteredClusters, QGraph);
+
 
   TIntV Temp;
   Log.LogAllInformation(&DB, &QB, &CB, QGraph, TopFilteredClusters, PresentTime, Temp, QBDBCDirectory);

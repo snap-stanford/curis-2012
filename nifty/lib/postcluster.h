@@ -11,6 +11,7 @@ private:
   static double ComputeClusterSourceOverlap(TVec<TUInt>& Larger, TVec<TUInt>& Smaller);
 
   static bool ShouldMergeClusters(TQuoteBase *QB, TCluster& Cluster1, TCluster& Cluster2);
+  static TStrSet BlacklistedQuotes;
 
 public:
   static const double ClusterSourceOverlapThreshold;
@@ -24,10 +25,12 @@ public:
   static void MergeAllClustersBasedOnSubstrings(TQuoteBase *QB, TDocBase *DB, TIntV& TopClusters, TClusterBase *CB);
   static void MergeClustersBasedOnSubstrings(TQuoteBase *QB, TDocBase *DB, TIntV& TopClusters, TClusterBase *CB);
   static void MergeClustersWithCommonSources(TQuoteBase* QB, TDocBase *DB, TIntV& TopClusters, TClusterBase *CB);
+  static void FilterBlacklistedQuotes(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV &TopClusters, TSecTm& PresentTime);
   static void FilterAndCacheClusterPeaks(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV &TopClusters, TSecTm& PresentTime);
   static void FilterAndCacheClusterSize(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB, LogOutput& Log, TIntV& TopClusters, TSecTm& PresentTime);
   static void RemoveOldClusters(TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, LogOutput& Log, TSecTm& PresentTime, PNGraph& QGraph);
   static void NukeCluster(TQuoteBase *QB, TClusterBase *CB, TInt ClusterId, TSecTm& PresentTime, PNGraph& QGraph, bool record);
+  static void SaveTopFilteredClusters(TStr FileName, TQuoteBase *QB, TDocBase *DB, TClusterBase *CB, TIntV& TopClusters, PNGraph& QGraph);
 };
 
 #endif
