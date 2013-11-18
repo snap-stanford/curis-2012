@@ -65,36 +65,6 @@ TSecTm TPrintClusterJson::CalculateEndPeriodDate(TSecTm& CurrentDate, TStr& Type
   return EndPeriodDate;
 }
 
-void TPrintClusterJson::FilterDuplicateClusters(TQuoteBase *QBCumulative, TClusterBase *CBCumulative, TIntV& TopFilteredClusters, TIntV& TopFilteredClustersWoDups) {
-  TStrSet SeenQuoteContents;
-  for (int i = 0; i < TopFilteredClusters.Len(); i++) {
-    bool SkipCluster = false;
-    TCluster C;
-    CBCumulative->GetCluster(TopFilteredClusters[i], C);
-    TIntV CQuoteIds;
-    C.GetQuoteIds(CQuoteIds);
-    TStrV CQuoteContents;
-    for (int j = 0; j < CQuoteIds.Len(); j++) {
-      TQuote Q;
-      QBCumulative->GetQuote(CQuoteIds[j], Q);
-      TStr QContent;
-      Q.GetContentString(QContent);
-      if (SeenQuoteContents.IsKey(QContent)) {
-        SkipCluster = true;
-        break;
-      }
-      CQuoteContents.Add(QContent);
-    }
-    if (!SkipCluster) {
-      // don't add the quote contents until we know the cluster doesn't contain any duplicate quotes (so that future clusters aren't skipped unnecessarily)
-      for (int j = 0; j < CQuoteContents.Len(); j++) {
-        SeenQuoteContents.AddKey(CQuoteContents[j]);
-      }
-      TopFilteredClustersWoDups.Add(TopFilteredClusters[i]);
-    }
-  }
-}
-
 bool TPrintClusterJson::IsClusterDuplicate(TQuoteBase *QBCumulative, TClusterBase *CBCumulative, TStrSet& ExistingQuotes, TInt CandidateCluster) {
   TCluster C;
   CBCumulative->GetCluster(CandidateCluster, C);
@@ -198,7 +168,7 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TSecTm& StartDate, TSecTm& Pre
     }
 
     // Fold in new QBDBCB with previous QBDBCB
-    TDataLoader::MergeQBDBCB2(QBCumulative, DBCumulative, CBCumulative, QGraphCumulative, QB, DB, CB, QGraph, CurrentDate, true);
+    TDataLoader::MergeTopQBDBCB(QBCumulative, DBCumulative, CBCumulative, QGraphCumulative, QB, DB, CB, QGraph, CurrentDate, true);
 
     CurrentDate.AddDays(1);
   }
@@ -228,7 +198,7 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TSecTm& StartDate, TSecTm& Pre
     MaxPeakClusters.SortCmp(TCmpPairByVal2<TInt, TInt>(false));  // Sort in descending order, by the frequency
     for (int i = 0; i < 3; i++) {
       int NumEntered = 0;
-      for (int j = 0; NumEntered < PeaksPerType[i]; j++) {
+      for (int j = 0; NumEntered < PeaksPerType[i] && j < MaxPeakClusters.Len(); j++) {
         if (!IsClusterDuplicate(&QBCumulative, &CBCumulative, ExistingQuotes[i], MaxPeakClusters[j].Val1)) {
           ClustersToPrintSet[i].AddKey(MaxPeakClusters[j].Val1);
           NumEntered++;
@@ -281,18 +251,10 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TSecTm& StartDate, TSecTm& Pre
   // Print individual cluster JSON info
   TStr ClusterJSONDirectory = LogDirectory + "/web/json/clusters/";
   TSecTm ZeroTime(0);
-// TODO: FIX
+
   for (int j = 0; j < ClustersToPrint.Len(); j++) {
     // The last parameter is ZeroTime so that the Peaks::GetFrequencyVector starts the graph of the cluster at the first source,
     // rather than X days before the TSecTm parameter given
-    /*TCluster C;
-    CBCumulative.GetCluster(ClustersToPrint[j], C);
-    TQuoteBase QB;
-    TDocBase DB;
-    TClusterBase CB;
-    PNGraph QGraph;
-    TDataLoader::LoadCumulative(QBDBCDirectory, C.DeathDate.GetDtYmdStr(), QB, DB, CB, QGraph);*/
-    
     TPrintJson::PrintClusterJSON(&QBCumulative, &DBCumulative, &CBCumulative, QGraphCumulative, ClusterJSONDirectory, ClustersToPrint[j], ZeroTime);
   }
 

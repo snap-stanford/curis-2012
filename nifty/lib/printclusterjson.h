@@ -15,7 +15,6 @@ private:
   int NumTopClustersPerDay;
   TStr OutputJsonDir;
 
-  void FilterDuplicateClusters(TQuoteBase *QBCumulative, TClusterBase *CBCumulative, TIntV& TopFilteredClusters, TIntV& TopFilteredClustersWoDups);
   static bool IsLeapYear(TInt Year);
   static TInt GetNumDaysInMonth(TSecTm& Date);
   static TInt QuarterDays(TInt NumDays, TInt Day);

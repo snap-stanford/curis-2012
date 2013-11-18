@@ -97,18 +97,5 @@ int main(int argc, char *argv[]) {
     OldTopClusters = TopFilteredClusters;
     CurrentDate.AddDays(1);
   }
-  // plot output
-  //ClusterPlot Plotter(TStr("/lfs/1/tmp/curis/"));
-
-  //Plotter.PlotClusterSizeUnique(Clusters);
-  //Plotter.PlotClusterSize(ClusterSummaries);
-  //Plotter.PlotQuoteFrequencies(&QB);
-
-  // Save to file
-  /*Command = "mkdir -p output";
-  system(Command.CStr());
-  TFOut FOut2("output/cumulativeclusters" + NewDayDate.CStr() + ".bin");
-  MergedClusterSummaries.Save(FOut2);*/
-  printf("Done with POST CLUSTERING!\n");
   return 0;
 }

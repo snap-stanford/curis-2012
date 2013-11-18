@@ -21,7 +21,6 @@
 #include "lsh.h"
 #include "quotegraph.h"
 #include "clustering.h"
-#include "clusterplot.h"
 #include "logoutput.h"
 #include "peaks.h"
 

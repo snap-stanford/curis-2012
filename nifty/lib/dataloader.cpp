@@ -180,7 +180,7 @@ TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &Q
 }
 
 
-void TDataLoader::MergeQBDBCB2(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1, PNGraph &Q1,
+void TDataLoader::MergeTopQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1, PNGraph &Q1,
                               const TQuoteBase &QB2, const TDocBase &DB2, const TClusterBase &CB2, const PNGraph &Q2, TSecTm& PresentTime,
                               bool KeepQuotesWithNoSources) {
   if (QB1.Len() == 0) {
@@ -232,20 +232,6 @@ void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
   TIntV NewQuoteIds;
   NewQuoteIds = MergeQBDB(QB1, DB1, QB2, DB2, true); // set MaintainDuplicateQuotes flag!
 
-  /*TIntV QuoteIds2;
-  QB2.GetAllQuoteIds(QuoteIds2);
-  TIntIntH OldToNewQuoteId;  // Only contains quotes with new source document
-  for (int i = 0; i < QuoteIds2.Len(); i++) {
-    TQuote Q;
-    QB2.GetQuote(QuoteIds2[i], Q);
-    TStrV QContent;
-    Q.GetContent(QContent);
-    TInt NewQuoteId = QB1.GetQuoteId(QContent);
-    if (NewQuoteId != -1) {
-      OldToNewQuoteId.AddDat(QuoteIds2[i], NewQuoteId);
-    }
-  }*/
-
   IAssert(!QB1.IsContainNullQuote());
 
   TIntV ClusterIds2;
@@ -255,62 +241,11 @@ void TDataLoader::MergeQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
     CB2.GetCluster(ClusterIds2[i], C);
     TIntV CQuoteIds, NewCQuoteIds;
     C.GetQuoteIds(CQuoteIds);
-    /*for (int j = 0; j < CQuoteIds.Len(); j++) {
-      TInt NewId = CQuoteIds[j];
-      if (OldToNewQuoteId.IsKeyGetDat(CQuoteIds[j], NewId)) {
-        NewCQuoteIds.Add(NewId);
-      } else if (KeepQuotesWithNoSources) {
-        NewCQuoteIds.Add(CQuoteIds[j]);
-      }
-    }*/
-
-      //FOR TESTING
-    /*for (int j = 0; j < CQuoteIds.Len(); j++) {
-      if (ClusterIds2[i] == 1) {
-        TQuote TestQ;
-        QB2.GetQuote(CQuoteIds[j], TestQ);
-        TStr TestQContent;
-        TestQ.GetContentString(TestQContent);
-        fprintf(stderr, "New quote: %s\n", TestQContent.CStr());
-      }
-    }*/
-      //END FOR TESTING
 
     TIntV CRepQuoteIds, NewCRepQuoteIds;
     C.GetRepresentativeQuoteIds(CRepQuoteIds);
-    /*for (int j = 0; j < CRepQuoteIds.Len(); j++) {
-      TInt NewId = CRepQuoteIds[j];
-      if (OldToNewQuoteId.IsKeyGetDat(CRepQuoteIds[j], NewId)) {
-        NewCRepQuoteIds.Add(NewId);
-      } else if (KeepQuotesWithNoSources) {
-        NewCRepQuoteIds.Add(CRepQuoteIds[j]);
-      }
-    }*/
 
-    //if (NewCQuoteIds.Len() != 0 && NewCRepQuoteIds.Len() != 0) {
     IAssert(CQuoteIds.Len() > 0 && CRepQuoteIds.Len() > 0);
-      //TODO: add these two lines back in (just taking them out temporarily for testing)
-      //C.SetQuoteIds(&QB1, NewCQuoteIds);
-      //C.SetRepresentativeQuoteIds(NewCRepQuoteIds);
-
-      //FOR TESTING
-      /*
-      if (ClusterIds2[i] == 1) {
-        fprintf(stderr, "New cluster id: %d\n", ClusterIds2[i].Val);
-        TCluster TestC;
-        if (CB1.GetCluster(1, TestC)) {
-          TIntV TestCRepQuoteIds;
-          TestC.GetQuoteIds(TestCRepQuoteIds);
-          TQuote TestQ;
-          for (int k = 0; k < TestCRepQuoteIds.Len(); k++) {
-            QB1.GetQuote(TestCRepQuoteIds[k], TestQ);
-            TStr TestQContent;
-            TestQ.GetContentString(TestQContent);
-            fprintf(stderr, "Old quote: %s\n", TestQContent.CStr());
-          }
-        }
-      }*/
-      //END FOR TESTING
 
     C.DeathDate = PresentTime;
     CB1.AddCluster(C);
@@ -419,6 +354,7 @@ void TDataLoader::LoadCumulative(const TStr &Prefix, const TStr &Date, TQuoteBas
     P = TNGraph::Load(CurFile);
     IAssert(!QB.IsContainNullQuote());
   } else {
+    P = TNGraph::New();
     Err("File not found: %s", CurFileName.CStr());
   }
 }

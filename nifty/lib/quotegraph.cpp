@@ -164,9 +164,6 @@ void QuoteGraph::LSHCreateEdges() {
 }
 
 void QuoteGraph::ElCheapoCreateEdges() {
-  /*THash<TMd5Sig, TIntSet> Shingles;
-  LSH::ElCheapoHashing(QB, LSH::ShingleLen, Shingles);
-  CompareUsingShingles(Shingles);*/
   THash<TMd5Sig, TIntSet> Shingles;
   LSH::WordHashing(QB, Shingles);
   CompareUsingShingles(Shingles);
@@ -180,13 +177,6 @@ void QuoteGraph::WordsCreateEdges() {
   TVec<THash<TMd5Sig, TIntSet> > BucketsVector;
   LSH::MinHash(QB, Shingles, BucketsVector);
   CompareUsingMinHash(BucketsVector);
-
-  /*
-  THash<TMd5Sig, TIntSet> Shingles;
-  LSH::WordHashing(QB, Shingles);
-  TVec<THash<TIntV, TIntSet> > BucketsVector;
-  LSH::MinHash(Shingles, BucketsVector);
-  CompareUsingMinHash(BucketsVector);*/
 }
 
 void QuoteGraph::OldWordsCreateEdges() {
@@ -273,9 +263,7 @@ bool QuoteGraph::EdgeShouldBeCreated(TQuote& Quote1, TQuote& Quote2) {
   // Decision tree from clustering methods paper
   int MinStopLen = min(Content1V.Len(), Content2V.Len());
   int MinLen = min(Quote1.GetContentNumWords(), Quote2.GetContentNumWords());
-  //printf("L Distance: %d\tMinStopLen: %d\n", LDistance.Val, MinStopLen);
-  //printf("%s\n", Content1.CStr());
-  //printf("%s\n", Content2.CStr());
+  
   if (LDistance == 0 && MinStopLen >= 2) {
     return true;
   } else if (MinLen == 4 && LDistance <= 1 && MinStopLen == 4) {
@@ -289,17 +277,3 @@ bool QuoteGraph::EdgeShouldBeCreated(TQuote& Quote1, TQuote& Quote2) {
   }
   return false;
 }
-
-/*double TQuoteBs::QuoteDistance(TInt Qt1, TInt Qt2, THash<TInt, TIntV>& QtToWordIdVH) {
-  int idx1 = 0, idx2 = 0, SkipTy = 0;
-  const TIntV& WIdV1 = QtToWordIdVH.GetDat(Qt1);
-  const TIntV& WIdV2 = QtToWordIdVH.GetDat(Qt2);
-  int ShortLen = TMath::Mn(WIdV1.Len(), WIdV2.Len());
-  int Overlap = LongestCmnSubSq(WIdV1, WIdV2, idx1, idx2, SkipTy);
-  Overlap -= 4; ShortLen -= 4;
-
-  Assert(Overlap >= 0);
-  if (ShortLen <= 0 || Overlap > 6) return 0;
-  if (Overlap < 2) return (1 - Overlap/double(ShortLen));
-  else return (1 - Overlap/double(ShortLen)) * (1 - Overlap / 7.0);
-}*/

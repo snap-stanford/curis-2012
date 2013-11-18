@@ -7,7 +7,6 @@
 class LogOutput {
 private:
   THash<TStr, TStr> OutputValues;
-  // TODO: Make constructor with proper load
   TBool ShouldLog;
   FILE *QBDBCBSizeFile;
   TStr Directory;
