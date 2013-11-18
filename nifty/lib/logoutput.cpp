@@ -119,17 +119,17 @@ void LogOutput::LogAllInformation(TDocBase *DB, TQuoteBase *QB, TClusterBase *CB
   if (!SmartLogging || CurDateString == WeekStartString) {
     if (SmartLogging) Err("DATE ====");
     fprintf(stderr, "LOGGING WEEK\n");
-    JSONJob.PrintClusterJsonForPeriod(WeekStartString, ToIgnore, Directory, TStr("week"), QBDBCDirectory);
+    JSONJob.PrintClusterJsonForPeriod(WeekStart, PresentTime, Directory, TStr("week"), QBDBCDirectory);
   }
   if (!SmartLogging || CurDateString == MonthStartString) {
     if (SmartLogging) Err("DATE ====");
     fprintf(stderr, "LOGGING MONTH\n");
-    JSONJob.PrintClusterJsonForPeriod(MonthStartString, ToIgnore, Directory, TStr("month"), QBDBCDirectory);
+    JSONJob.PrintClusterJsonForPeriod(MonthStart, PresentTime, Directory, TStr("month"), QBDBCDirectory);
   }
   if (!SmartLogging || CurDateString == Month3StartString) {
     if (SmartLogging) Err("DATE ====");
     fprintf(stderr, "LOGGING 3 MONTHS\n");
-    JSONJob.PrintClusterJsonForPeriod(Month3StartString, ToIgnore, Directory, TStr("3month"), QBDBCDirectory);
+    JSONJob.PrintClusterJsonForPeriod(Month3Start, PresentTime, Directory, TStr("3month"), QBDBCDirectory);
   }
 
   // Update current date file

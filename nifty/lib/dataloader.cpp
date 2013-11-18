@@ -179,9 +179,17 @@ TIntV TDataLoader::MergeQBDB(TQuoteBase &QB1, TDocBase &DB1, const TQuoteBase &Q
   return NewQuoteIds;
 }
 
-void TDataLoader::MergeQBDBCB2(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1,
-                              const TQuoteBase &QB2, const TDocBase &DB2, const TClusterBase &CB2, TSecTm& PresentTime,
+
+void TDataLoader::MergeQBDBCB2(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1, PNGraph &Q1,
+                              const TQuoteBase &QB2, const TDocBase &DB2, const TClusterBase &CB2, const PNGraph &Q2, TSecTm& PresentTime,
                               bool KeepQuotesWithNoSources) {
+  if (QB1.Len() == 0) {
+    QB1 = QB2;
+    DB1 = DB2;
+    CB1 = CB2;
+    Q1 = Q2;
+  }
+
   TVec<TUInt> DocIds;
   DB2.GetAllDocIds(DocIds);
   for (int i = 0; i < DocIds.Len(); i++) {
@@ -204,6 +212,15 @@ void TDataLoader::MergeQBDBCB2(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1
     TCluster D;
     CB2.GetCluster(ClusterIds[i], D);
     CB1.AddStaticCluster(ClusterIds[i], D);
+  }
+
+  TNGraph::TNodeI EndNode = Q2->EndNI();
+  for (TNGraph::TNodeI Node = Q2->BegNI(); Node < EndNode; Node++) {
+    Q1->AddNode(Node.GetId());
+  }
+  TNGraph::TEdgeI EndEdge = Q2->EndEI();
+  for (TNGraph::TEdgeI Edge = Q2->BegEI(); Edge < EndEdge; Edge++) {
+    Q1->AddEdge(Edge.GetSrcNId(), Edge.GetDstNId());
   }
 }
 

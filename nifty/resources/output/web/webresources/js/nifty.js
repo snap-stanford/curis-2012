@@ -57,6 +57,37 @@ function HeadingClicked(heading) {
 	alert(heading);
 }
 
+// 0 = 10, 1 = 30, 2 = 100
+function FilterData(filter_type) {
+	if (filter_type > 2) return;
+	if (!graphData || !tableData) return;
+	allClustersShown = true;
+
+	// get new tables (based on what was fed into the JSON)
+	graphData = [];
+	tableData = [];
+	for (var i = 0; i < allGraphData.length; ++i) {
+		if (allGraphData[i].isprinted[filter_type] == 1) {
+			graphData.push(allGraphData[i])
+		}
+	}
+	for (var i = 0; i < allTableData.length; ++i) {
+		if (allTableData[i].isprinted[filter_type] == 1) {
+			tableData.push(allTableData[i])
+		}
+	}
+
+	// rewire rankings
+	for (var i = 0; i < tableData.length; i++) {
+		tableData[i].rank = i + 1;
+	}
+
+	// print shit
+	curStart = 0, curEnd = graphData.length;
+	PrintTable(curStart, curEnd);
+	PrintGraph(curStart, curEnd);
+}
+
 function PrintData(start, end, allowClicking) {
 	if (!graphData || !tableData) return;
 	allClustersShown = allowClicking;
@@ -85,13 +116,15 @@ function GetTableData(fileName) {
 					frequency: data.frequency[i],
 					numvariants: data.numvariants[i],
 					quote: data.quote[i],
-					rank: (i + 1)
+					rank: (i + 1),
+					isprinted: data.isprinted[i]
 				};
 			if (data.prev) {
 				info.prev = data.prev[i];
 			}
 			tableData.push(info);
 		}
+		allTableData = tableData;
 		$("#table-error-log").hide();
 		PrintTable(0, tableData.length);
 		
@@ -280,7 +313,8 @@ function GetGraphData(fileName, tickSize, offset) {
 			graphData.push( {
 				label: data.quote[i],
 				data: dataPoints[i],
-				lines: { show: true, fill: 1.0, lineWidth: 0 }
+				lines: { show: true, fill: 1.0, lineWidth: 0 },
+				isprinted: data.isprinted[i]
 			})
 		}
 
@@ -390,6 +424,7 @@ function GetGraphData(fileName, tickSize, offset) {
     			$("#tooltip").remove();
     		}
 	    });
+	    allGraphData = graphData;
 	})
 	.error(function() { 
 		$('#graph-error-log').html("Error: Graph information either does not exist for given month or cannot be obtained at this time.");

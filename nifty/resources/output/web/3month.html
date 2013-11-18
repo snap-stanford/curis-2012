@@ -53,9 +53,9 @@
     
     <center><div id="container" class="main">
     <div class="graph">
-      <button class="all btn" onclick="PrintData(0, tableData.length, true)">show all clusters</button>
-      <button class="all btn" onclick="PrintData(0, 30, true)">show top 30</button>
-      <button class="all btn" onclick="PrintData(0, 10, true)">show top 10</button>
+      <button class="all btn" onclick="FilterData(2)">show all clusters</button>
+      <button class="all btn" onclick="FilterData(1)">show 30</button>
+      <button class="all btn" onclick="FilterData(0)">show 10</button>
       <div id='cluster-graph' style="width:1000px;height:400px;"></div><br />
     </div>
     <table id="cluster-table" border="1" class="table table-condensed table-striped"> </table>
