@@ -392,7 +392,7 @@ function GetGraphData(fileName, tickSize, offset) {
 		// ### GRAPH
 		options = {
 			colors: SetColors,
-	        yaxis: { axisLabel: "Frequency of Cluster", axisLabelUseCanvas: true, min: 0 },
+	        yaxis: { axisLabel: "Frequency of Cluster/1.5 hrs", axisLabelUseCanvas: true, min: 0 },
 	        xaxis: { min: dates[0], max:maxDate, axisLabelUseCanvas: true, mode: "time", timeformat: "%m/%d", tickSize: tickSize},
 	        legend: { show: false }, 
 	        series: {
@@ -419,7 +419,7 @@ function GetGraphData(fileName, tickSize, offset) {
     		if (info) {
     			var numMentions = dataCopy[info.clusterIndex].data[info.dateIndex][1];
     			showTooltip(pos.pageX, pos.pageY,
-                        "<b>" + numMentions + "</b> mentions of <b>\"" + dataCopy[info.clusterIndex].label + "\"</b>");
+                        "<b>" + numMentions + "</b> mentions of <b>\"" + dataCopy[info.clusterIndex].label + "\"</b> during 1.5-hr time period");
     		} else {
     			$("#tooltip").remove();
     		}
