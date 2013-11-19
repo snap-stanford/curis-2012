@@ -188,7 +188,7 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TSecTm& StartDate, TSecTm& Pre
   }
 
   // For each day, add clusters with largest X max peaks to a set
-  int PeaksPerType [] = {1, 3, 7};
+  int PeaksPerType [] = {1, 3, 6};
   if (Type == "month") { PeaksPerType[0] = 2; PeaksPerType[1] = 5; PeaksPerType[2] = 20; }
   if (Type == "3month") { PeaksPerType[0] = 1; PeaksPerType[1] = 3; PeaksPerType[2] = 8; }
   TIntSet ClustersToPrintSet[3];
@@ -216,6 +216,7 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TSecTm& StartDate, TSecTm& Pre
   // Fill the rest of the X quotes for the time period with most frequent quotes during this time period
   TIntV TopFilteredClustersLimit;
   int NumToLimit [] = {10, 30, 100};
+  if (Type == "week") NumToLimit[2] = 50;
   for (int i = 0; i < 3; i++) {
     for (int j = 0; ClustersToPrintSet[i].Len() < NumToLimit[i] && j < TopFilteredClusters.Len(); j++) {
       if (!IsClusterDuplicate(&QBCumulative, &CBCumulative, ExistingQuotes[i], TopFilteredClusters[j])) {
