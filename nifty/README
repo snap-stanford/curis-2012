@@ -47,6 +47,7 @@ The standard way to run the NIFTY pipeline is as follows:
   * Output step: We have a logging mechanism that also prints out web and text
     based output each day. The main classes used are logoutput, printjson, and
     printclusterjson.cpp
+
     
  Filtering is just run once per each daily file and is pretty insulated. For 
  efficiency and tracking purposes, we have a concept of "incremental clustering"
@@ -58,12 +59,19 @@ The standard way to run the NIFTY pipeline is as follows:
           logging to occur>]
  "windowsize" refers to the number of days, starting from startdate, that memeseed will
  seed the starting quote and doc bases with.
+
+ #### NOTE: RERUNNING MEMESEED AFTER A BREAK IN TIME?
+ Add "-last <date-of-last-run>" to your memeseed parameters. The program will make sure
+ all id's match those from the last day teh code was run.
+
  
  After memeseed has been run once, you can use memeincrement to build on your previous
  days' clustering output! Simply run memeincrement as follows:
         ./memeincrement -start <startdate> -end <enddate, noninclusive> 
           [-directory <outputdir>] [-nolog <just type -nolog and some random
-          characters if you don't want logging to occur>]
+          characters if you don't want logging to occur>] [-fastjson <random
+          characters if you only want to generate json files at the end of the
+          week/month/etc]
 
 Again, end date is noninclusive! So if you want to run memeincrement on 1 dayonly (say
 Jan 1), you would run ./memeincrement -start 2012-01-01 -end 2012-01-02.
@@ -92,3 +100,14 @@ In order to set up a directory, just run the following:
 ###################
 "runmeme.sh" and "runmemefilter.sh" do cool things. I can't read shell scripts so you're
 on your own for this one, heh. Cheers!
+
+###################
+## BLACKLIST!!!! ##
+###################
+Sick of having "new york times" invade results? Quickly solve this problem by adding any
+offending quotes to the blacklist file under the following directory:
+          resources/quote_blacklist.txt
+I'd recommend deleting all QBDBC's from the past week or two before you notice the bad
+quote showing up, and rerunning everything using memeincrement to ensure a clean system.
+It shouldn't take too long. If you're short on time just run memelog over the offending
+time period.

@@ -210,6 +210,7 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TSecTm& StartDate, TSecTm& Pre
   TIntV TopFilteredClusters;
   PNGraph P;
   CBCumulative.GetTopClusterIdsByFreq(TopFilteredClusters);
+  PostCluster::FilterBlacklistedQuotes(&DBCumulative, &QBCumulative, &CBCumulative, Log, TopFilteredClusters, CurrentDate);
   PostCluster::FilterAndCacheClusterSize(&DBCumulative, &QBCumulative, &CBCumulative, Log, TopFilteredClusters, CurrentDate);
   PostCluster::FilterAndCacheClusterPeaks(&DBCumulative, &QBCumulative, &CBCumulative, Log, TopFilteredClusters, CurrentDate);
 
