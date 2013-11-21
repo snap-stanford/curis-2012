@@ -152,6 +152,7 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TSecTm& StartDate, TSecTm& Pre
     // Use postclustering to filter
     TIntV ClusterIds;
     CB.GetAllClusterIds(ClusterIds);
+    PostCluster::FilterBlacklistedQuotes(&DB, &QB, &CB, Log, ClusterIds, CurrentDate);
 
     for (int i = 0; i < ClusterIds.Len(); i++) {
       TCluster C;
