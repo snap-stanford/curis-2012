@@ -81,6 +81,7 @@ public:
   bool IsContainNullQuote();
   static bool IsUrlTopNewsSource(TStr Url);
   void GetIdToTQuotes(THash<TInt, TQuote>& Pointer);
+  void PrintHashTableSizes();
 };
 
 // Compares two quotes by their frequency

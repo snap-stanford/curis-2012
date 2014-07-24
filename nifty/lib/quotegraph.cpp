@@ -59,9 +59,9 @@ void QuoteGraph::CompareUsingMinHash(TVec<THash<TIntV, TIntSet> >& BucketsVector
   int Count = 0;
   int RealCount = 0;
 
-  printf("Beginning edge creation step...\n");
+  Err("Beginning edge creation step...\n");
   for (int i = 0; i < BucketsVector.Len(); i++) {
-    printf("Processing band signature %d of %d - %d signatures\n", i+1, BucketsVector.Len(), BucketsVector[i].Len());
+    Err("Processing band signature %d of %d - %d signatures\n", i+1, BucketsVector.Len(), BucketsVector[i].Len());
     TVec<TIntV> Buckets;
     BucketsVector[i].GetKeyV(Buckets);
     TVec<TIntV>::TIter BucketEnd = Buckets.EndI();
@@ -92,9 +92,9 @@ void QuoteGraph::CompareUsingMinHash(TVec<THash<TMd5Sig, TIntSet> >& BucketsVect
   int Count = 0;
   int RealCount = 0;
 
-  printf("Beginning edge creation step...\n");
+  Err("Beginning edge creation step...\n");
   for (int i = 0; i < BucketsVector.Len(); i++) {
-    printf("Processing band signature %d of %d - %d signatures\n", i+1, BucketsVector.Len(), BucketsVector[i].Len());
+    Err("Processing band signature %d of %d - %d signatures\n", i+1, BucketsVector.Len(), BucketsVector[i].Len());
     TVec<TMd5Sig> Buckets;
     BucketsVector[i].GetKeyV(Buckets);
     TVec<TMd5Sig>::TIter BucketEnd = Buckets.EndI();

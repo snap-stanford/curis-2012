@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
   TDocBase DB;
   TClusterBase CB;
   PNGraph OldQGraph;
-  fprintf(stderr, "Loading cumulative QBDBCB from file...\n");
+  fprintf(stderr, "Loading cumulative QBDBCB from %s...\n", QBDBCDirectory.CStr());
   TDataLoader::LoadCumulative(QBDBCDirectory, OldDate.GetDtYmdStr(), QB, DB, CB, OldQGraph);
   fprintf(stderr, "\tDone loading cumulative QBDBCB!\n");
 

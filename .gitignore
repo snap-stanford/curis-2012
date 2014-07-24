@@ -1,3 +1,8 @@
-*.png
-*.plt
-*.tab
+memeincrement
+memefilter
+memeseed
+memelog
+niftylib.o
+Snap.o
+memecluster
+*.Err

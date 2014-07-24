@@ -9,12 +9,12 @@ const int LSH::ShingleWordLen = 2;
 const int LSH::WordWindow = 4;
 
 void LSH::WordHashing(TQuoteBase* QuoteBase, THashSet<TMd5Sig>& Shingles) {
-  fprintf(stderr, "Hashing shingles using words...\n");
+  Err("Hashing shingles using words...\n");
   TIntV QuoteIds;
   QuoteBase->GetAllQuoteIds(QuoteIds);
   for (int qt = 0; qt < QuoteIds.Len(); qt++) {
     if (qt % 1000 == 0) {
-      fprintf(stderr, "%d out of %d completed\n", qt, QuoteIds.Len());
+      Err("%d out of %d completed\n", qt, QuoteIds.Len());
     }
     TQuote Q;
     QuoteBase->GetQuote(QuoteIds[qt], Q);
@@ -28,7 +28,7 @@ void LSH::WordHashing(TQuoteBase* QuoteBase, THashSet<TMd5Sig>& Shingles) {
       Shingles.AddKey(ShingleMd5);
     }
   }
-  fprintf(stderr, "Done with word hashing! Number of shingles: %d\n", Shingles.Len());
+  Err("Done with word hashing! Number of shingles: %d\n", Shingles.Len());
 }
 
 void LSH::WordHashing(TQuoteBase *QuoteBase,
@@ -73,7 +73,7 @@ void LSH::WordHashing(TQuoteBase *QuoteBase,
     Err("%d: %s - %d \n", i, ShingleKeys[i].CStr(), TempSet.Len());
   }
 
-  fprintf(stderr, "Done with word hashing!\n");
+  Err("Done with word hashing!\n");
 }
 
 void LSH::ElCheapoHashing(TQuoteBase *QuoteBase, TInt ShingleLen,
@@ -109,14 +109,14 @@ void LSH::ElCheapoHashing(TQuoteBase *QuoteBase, TInt ShingleLen,
       ShingleToQuoteIds.AddDat(ShingleMd5, ShingleQuoteIds);
     }
   }
-  fprintf(stderr, "Done with el cheapo hashing!\n");
+  Err("Done with el cheapo hashing!\n");
 }
 
 /// For every quote, add it to corresponding bucket for each hashed x-character shingle of the quote
 // (Shingles by characters)
 void LSH::HashShingles(TQuoteBase *QuoteBase, TClusterBase *CB, TInt ShingleLen,
     THash<TMd5Sig, TShingleIdSet>& ShingleToQuoteIds) {
-  fprintf(stderr, "Hashing shingles...\n");
+  Err("Hashing shingles...\n");
   TIntV QuoteIds;
   QuoteBase->GetAllQuoteIds(QuoteIds);
   for (int qt = 0; qt < QuoteIds.Len(); qt++) {
@@ -160,7 +160,7 @@ void LSH::HashShingles(TQuoteBase *QuoteBase, TClusterBase *CB, TInt ShingleLen,
       }
     }
   }
-  fprintf(stderr, "Done hashing!\n");
+  Err("Done hashing!\n");
 }
 
 void LSH::GetHashedShinglesOfCluster(TQuoteBase *QuoteBase, TCluster& C,
@@ -194,7 +194,7 @@ void LSH::GetHashedShinglesOfCluster(TQuoteBase *QuoteBase, TCluster& C,
 void LSH::HashShinglesOfClusters(TQuoteBase *QuoteBase,
     TClusterBase *ClusterBase, TIntV& ClusterIds, TInt ShingleLen,
     THash<TMd5Sig, TIntV>& ShingleToClusterIds) {
-  fprintf(stderr, "Hashing shingles of clusters...\n");
+  Err("Hashing shingles of clusters...\n");
   for (int i = 0; i < ClusterIds.Len(); i++) {
     if (i % 1000 == 0) {
       fprintf(stderr, "%d out of %d completed\n", i, ClusterIds.Len());
@@ -216,7 +216,7 @@ void LSH::HashShinglesOfClusters(TQuoteBase *QuoteBase,
       ShingleToClusterIds.AddDat(*Hash, ShingleClusterIds);
     }
   }
-  fprintf(stderr, "Done hashing!\n");
+  Err("Done hashing!\n");
 }
 
 void LSH::MinHash(THash<TMd5Sig, TShingleIdSet>& ShingleToQuoteIds,
@@ -266,9 +266,9 @@ void LSH::MinHash(THash<TMd5Sig, TShingleIdSet>& ShingleToQuoteIds,
     }
 
     SignatureBandBuckets.Add(BandBuckets);
-    printf("%d out of %d band signatures computed\n", i + 1, NumBands);
+    Err("%d out of %d band signatures computed\n", i + 1, NumBands);
   }
-  printf("Minhash step complete!\n");
+  Err("Minhash step complete!\n");
 }
 
 // YES I COPIED AND PASTED CODE my section leader would be so ashamed :D
@@ -319,9 +319,9 @@ void LSH::MinHash(THash<TMd5Sig, TIntSet>& ShingleToQuoteIds,
     }
 
     SignatureBandBuckets.Add(BandBuckets);
-    printf("%d out of %d band signatures computed\n", i + 1, NumBands);
+    Err("%d out of %d band signatures computed\n", i + 1, NumBands);
   }
-  printf("Minhash step complete!\n");
+  Err("Minhash step complete!\n");
 }
 
 void LSH::ComputeSignatures(THashSet<TMd5Sig>& Shingles,
@@ -411,5 +411,5 @@ void LSH::MinHash(TQuoteBase *QB, THashSet<TMd5Sig>& Shingles,
     }
 
   }
-  printf("Minhash step complete!\n");
+  Err("Minhash step complete!\n");
 }

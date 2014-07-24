@@ -344,8 +344,11 @@ void TDataLoader::FilterOldData(TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, 
   }
 }
 
-void TDataLoader::LoadCumulative(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, PNGraph& P) {
-  TStr CurFileName = Prefix + "topQBDBC" + Date + ".bin";
+void TDataLoader::LoadCumulative(const TStr &Prefix, const TStr &Date, TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, PNGraph& P, bool LoadTop) {
+  TStr CurFileName = Prefix + "QBDBC" + Date + ".bin";
+  if (LoadTop) {
+    CurFileName = Prefix + "topQBDBC" + Date + ".bin";
+  }
   if (TFile::Exists(CurFileName)) {
     TFIn CurFile(CurFileName);
     QB.Load(CurFile);

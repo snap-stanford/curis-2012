@@ -311,7 +311,9 @@ void TQuoteBase::RemoveQuote(TInt QuoteId) {
   TQuote CurQuote = IdToTQuotes.GetDat(QuoteId);
   TStrV CurContent;
   CurQuote.GetContent(CurContent);
-  QuoteToId.DelKey(CurContent);
+  if (QuoteToId.IsKey(CurContent)) {
+    QuoteToId.DelKey(CurContent);
+  }
   IdToTQuotes.DelKey(QuoteId);
   IAssert(QuoteToId.Len() == IdToTQuotes.Len());
 }
@@ -464,3 +466,6 @@ void TQuoteBase::GetIdToTQuotes(THash<TInt, TQuote>& Pointer) {
   Pointer = IdToTQuotes;
 }
 
+void TQuoteBase::PrintHashTableSizes() {
+  Err("QuoteToId: %d    IdToTQuotes: %d\n", QuoteToId.Len(), IdToTQuotes.Len());
+}

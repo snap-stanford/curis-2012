@@ -146,7 +146,7 @@ void TPrintClusterJson::PrintClusterJsonForPeriod(TSecTm& StartDate, TSecTm& Pre
     TClusterBase CB;
     PNGraph QGraph;
     fprintf(stderr, "Loading cumulative QBDBCB from %s from file...\n", CurrentDate.GetDtYmdStr().CStr());
-    TDataLoader::LoadCumulative(QBDBCDirectory, CurrentDate.GetDtYmdStr(), QB, DB, CB, QGraph);
+    TDataLoader::LoadCumulative(QBDBCDirectory, CurrentDate.GetDtYmdStr(), QB, DB, CB, QGraph, true);
 
     // Add clusters that peaked on this day, with freq > 350, to MaxPeakClusterIds
     // Use postclustering to filter

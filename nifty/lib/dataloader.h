@@ -31,7 +31,7 @@ public:
   static void MergeTopQBDBCB(TQuoteBase &QB1, TDocBase &DB1, TClusterBase &CB1, PNGraph &Q1,
                               const TQuoteBase &QB2, const TDocBase &DB2, const TClusterBase &CB2, const PNGraph &Q2, TSecTm& PresentTime,
                           bool KeepQuotesWithNoSources = false);
-  static void LoadCumulative(const TStr&, const TStr&, TQuoteBase&, TDocBase&, TClusterBase&, PNGraph&);
+  static void LoadCumulative(const TStr&, const TStr&, TQuoteBase&, TDocBase&, TClusterBase&, PNGraph&, bool LoadTop = false);
   static void FilterOldData(TQuoteBase &QB, TDocBase &DB, TClusterBase &CB, TSecTm CutOffDate);
   static void LoadQBDB(const TStr&, const TStr&, TQuoteBase&, TDocBase&);
   static TSecTm LoadBulkQBDB(const TStr&, const TStr&, TQuoteBase&, TDocBase&);
